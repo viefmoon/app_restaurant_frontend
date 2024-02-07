@@ -1,4 +1,4 @@
-import 'package:ecommerce_flutter/src/domain/repository/ShoppingBagRepository.dart';
+import 'package:ecommerce_flutter/src/domain/repositories/ShoppingBagRepository.dart';
 
 class GetTotalShoppingBagUseCase {
 

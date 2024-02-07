@@ -1,4 +1,4 @@
-import 'package:ecommerce_flutter/src/domain/repository/OrdersRepository.dart';
+import 'package:ecommerce_flutter/src/domain/repositories/OrdersRepository.dart';
 
 class GetOrdersUseCase {
 

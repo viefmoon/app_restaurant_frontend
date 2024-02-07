@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:ecommerce_flutter/src/domain/models/User.dart';
-import 'package:ecommerce_flutter/src/domain/repository/UsersRepository.dart';
+import 'package:ecommerce_flutter/src/domain/repositories/UsersRepository.dart';
 
 class UpdateUserUseCase {
 

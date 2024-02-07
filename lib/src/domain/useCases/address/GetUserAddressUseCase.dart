@@ -1,4 +1,4 @@
-import 'package:ecommerce_flutter/src/domain/repository/AddressRepository.dart';
+import 'package:ecommerce_flutter/src/domain/repositories/AddressRepository.dart';
 
 class GetUserAddressUseCase {
 

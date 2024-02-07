@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:ecommerce_flutter/src/domain/models/Product.dart';
-import 'package:ecommerce_flutter/src/domain/repository/ProductsRepository.dart';
+import 'package:ecommerce_flutter/src/domain/repositories/ProductsRepository.dart';
 
 class CreateProductUseCase {
 

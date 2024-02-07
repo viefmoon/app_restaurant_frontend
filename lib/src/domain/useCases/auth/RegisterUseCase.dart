@@ -1,5 +1,5 @@
 import 'package:ecommerce_flutter/src/domain/models/User.dart';
-import 'package:ecommerce_flutter/src/domain/repository/AuthRepository.dart';
+import 'package:ecommerce_flutter/src/domain/repositories/AuthRepository.dart';
 
 class RegisterUseCase {
 

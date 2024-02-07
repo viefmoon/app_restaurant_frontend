@@ -1,4 +1,4 @@
-import 'package:ecommerce_flutter/src/domain/repository/CategoriesRepository.dart';
+import 'package:ecommerce_flutter/src/domain/repositories/CategoriesRepository.dart';
 
 class DeleteCategoryUseCase {
 
