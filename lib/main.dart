@@ -4,6 +4,7 @@ import 'src/presentation/pages/auth/login/LoginPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:app/src/presentation/pages/auth/register/RegisterPage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
         initialRoute: 'login',
         routes: {
           'login': (BuildContext context) => LoginPage(),
+          'register': (BuildContext context) => RegisterPage(),
         },
       ),
     );

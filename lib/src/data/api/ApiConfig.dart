@@ -1,3 +1,3 @@
 class ApiConfig {
-  static const String API_ECOMMERCE = "192.168.80.14:3000";
+  static const String API_ECOMMERCE = "192.168.100.32:3000";
 }

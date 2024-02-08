@@ -1,5 +1,5 @@
-import 'package:ecommerce_flutter/src/domain/models/AuthResponse.dart';
-import 'package:ecommerce_flutter/src/domain/utils/Resource.dart';
+import 'package:app/src/domain/models/AuthResponse.dart';
+import 'package:app/src/domain/utils/Resource.dart';
 import 'bloc/LoginBloc.dart';
 import 'LoginContent.dart';
 import 'bloc/LoginEvent.dart';

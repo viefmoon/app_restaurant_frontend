@@ -1,8 +1,7 @@
-import 'package:ecommerce_flutter/src/domain/models/User.dart';
-import 'package:ecommerce_flutter/src/domain/repositories/AuthRepository.dart';
+import 'package:app/src/domain/models/User.dart';
+import 'package:app/src/domain/repositories/AuthRepository.dart';
 
 class RegisterUseCase {
-
   AuthRepository repository;
 
   RegisterUseCase(this.repository);

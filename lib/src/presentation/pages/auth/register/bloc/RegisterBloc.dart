@@ -1,8 +1,8 @@
-import 'package:ecommerce_flutter/src/domain/useCases/auth/AuthUseCases.dart';
-import 'package:ecommerce_flutter/src/domain/utils/Resource.dart';
-import 'package:ecommerce_flutter/src/presentation/pages/auth/register/bloc/RegisterEvent.dart';
-import 'package:ecommerce_flutter/src/presentation/pages/auth/register/bloc/RegisterState.dart';
-import 'package:ecommerce_flutter/src/presentation/utils/BlocFormItem.dart';
+import 'package:app/src/domain/useCases/auth/AuthUseCases.dart';
+import 'package:app/src/domain/utils/Resource.dart';
+import 'package:app/src/presentation/pages/auth/register/bloc/RegisterEvent.dart';
+import 'package:app/src/presentation/pages/auth/register/bloc/RegisterState.dart';
+import 'package:app/src/presentation/utils/BlocFormItem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

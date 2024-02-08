@@ -1,5 +1,5 @@
-import 'package:ecommerce_flutter/src/domain/utils/Resource.dart';
-import 'package:ecommerce_flutter/src/presentation/utils/BlocFormItem.dart';
+import 'package:app/src/domain/utils/Resource.dart';
+import 'package:app/src/presentation/utils/BlocFormItem.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 

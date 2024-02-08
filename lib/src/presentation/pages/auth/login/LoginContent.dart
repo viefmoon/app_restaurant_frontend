@@ -1,8 +1,8 @@
 import 'bloc/LoginBloc.dart';
 import 'bloc/LoginEvent.dart';
 import 'bloc/LoginState.dart';
-import 'package:ecommerce_flutter/src/presentation/utils/BlocFormItem.dart';
-import 'package:ecommerce_flutter/src/presentation/widgets/DefaultTextField.dart';
+import 'package:app/src/presentation/utils/BlocFormItem.dart';
+import 'package:app/src/presentation/widgets/DefaultTextField.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -19,7 +19,11 @@ class LoginContent extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          _imageBackground(context),
+          Container(
+            color: Colors.black, // Establece el color de fondo a negro
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+          ),
           Container(
             width: MediaQuery.of(context).size.width * 0.85,
             height: MediaQuery.of(context).size.height * 0.75,
@@ -55,7 +59,7 @@ class LoginContent extends StatelessWidget {
 
   Widget _textLogin() {
     return Text(
-      'LOGIN',
+      'INICIO DE SESION',
       style: TextStyle(
           color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
     );
@@ -157,16 +161,5 @@ class LoginContent extends StatelessWidget {
             return state.username.error;
           },
         ));
-  }
-
-  Widget _imageBackground(BuildContext context) {
-    return Image.asset(
-      'assets/img/background3.jpg',
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height,
-      fit: BoxFit.cover,
-      color: Color.fromRGBO(0, 0, 0, 0.7),
-      colorBlendMode: BlendMode.darken,
-    );
   }
 }

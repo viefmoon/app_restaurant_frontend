@@ -1,10 +1,10 @@
-import 'package:ecommerce_flutter/src/presentation/pages/auth/register/bloc/RegisterBloc.dart';
-import 'package:ecommerce_flutter/src/presentation/pages/auth/register/bloc/RegisterEvent.dart';
-import 'package:ecommerce_flutter/src/presentation/pages/auth/register/bloc/RegisterState.dart';
-import 'package:ecommerce_flutter/src/presentation/utils/BlocFormItem.dart';
-import 'package:ecommerce_flutter/src/presentation/widgets/DefaultButton.dart';
-import 'package:ecommerce_flutter/src/presentation/widgets/DefaultIconBack.dart';
-import 'package:ecommerce_flutter/src/presentation/widgets/DefaultTextField.dart';
+import 'package:app/src/presentation/pages/auth/register/bloc/RegisterBloc.dart';
+import 'package:app/src/presentation/pages/auth/register/bloc/RegisterEvent.dart';
+import 'package:app/src/presentation/pages/auth/register/bloc/RegisterState.dart';
+import 'package:app/src/presentation/utils/BlocFormItem.dart';
+import 'package:app/src/presentation/widgets/DefaultButton.dart';
+import 'package:app/src/presentation/widgets/DefaultIconBack.dart';
+import 'package:app/src/presentation/widgets/DefaultTextField.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -21,13 +21,10 @@ class RegisterContent extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          Image.asset(
-            'assets/img/background3.jpg',
+          Container(
+            color: Colors.black, // Cambia el fondo a negro
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            fit: BoxFit.cover,
-            color: Color.fromRGBO(0, 0, 0, 0.7),
-            colorBlendMode: BlendMode.darken,
           ),
           Container(
             width: MediaQuery.of(context).size.width * 0.85,

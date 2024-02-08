@@ -1,17 +1,16 @@
-import 'package:ecommerce_flutter/src/domain/useCases/auth/GetUserSessionUseCase.dart';
-import 'package:ecommerce_flutter/src/domain/useCases/auth/LoginUseCase.dart';
-import 'package:ecommerce_flutter/src/domain/useCases/auth/LogoutUseCase.dart';
-import 'package:ecommerce_flutter/src/domain/useCases/auth/RegisterUseCase.dart';
-import 'package:ecommerce_flutter/src/domain/useCases/auth/SaveUserSessionUseCase.dart';
+import 'package:app/src/domain/useCases/auth/GetUserSessionUseCase.dart';
+import 'package:app/src/domain/useCases/auth/LoginUseCase.dart';
+import 'package:app/src/domain/useCases/auth/LogoutUseCase.dart';
+import 'package:app/src/domain/useCases/auth/RegisterUseCase.dart';
+import 'package:app/src/domain/useCases/auth/SaveUserSessionUseCase.dart';
 
 class AuthUseCases {
-
   LoginUseCase login;
   RegisterUseCase register;
   SaveUserSessionUseCase saveUserSession;
   GetUserSessionUseCase getUserSession;
   LogoutUseCase logout;
-  
+
   AuthUseCases({
     required this.login,
     required this.register,
@@ -19,5 +18,4 @@ class AuthUseCases {
     required this.getUserSession,
     required this.logout,
   });
-
 }

@@ -1,4 +1,4 @@
-import 'package:ecommerce_flutter/src/presentation/utils/BlocFormItem.dart';
+import 'package:app/src/presentation/utils/BlocFormItem.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class RegisterEvent extends Equatable {

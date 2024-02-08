@@ -1,4 +1,4 @@
-import 'package:ecommerce_flutter/src/domain/models/Role.dart';
+import 'Role.dart';
 
 class User {
   int? id;
