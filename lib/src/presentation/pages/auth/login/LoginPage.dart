@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
             // _bloc?.add(LoginFormReset());
             _bloc?.add(LoginSaveUserSession(authResponse: authResponse));
             Navigator.pushNamedAndRemoveUntil(
-                context, 'roles', (route) => false);
+                context, 'sales', (route) => false);
           });
         }
       }, child: BlocBuilder<LoginBloc, LoginState>(builder: (context, state) {

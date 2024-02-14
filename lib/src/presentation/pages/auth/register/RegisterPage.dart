@@ -20,9 +20,8 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void initState() {
     super.initState();
-    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-    //   _registerBlocCubit?.dispose();
-    // });
+    _bloc = BlocProvider.of<RegisterBloc>(context);
+    _bloc?.add(LoadRoles()); // Cargar los roles al iniciar
   }
 
   @override
@@ -33,7 +32,6 @@ class _RegisterPageState extends State<RegisterPage> {
         body: Container(
             height: MediaQuery.of(context).size.height,
             width: MediaQuery.of(context).size.width,
-            // color: Colors.black,
             child: BlocListener<RegisterBloc, RegisterState>(
                 listener: (context, state) {
               final responseState = state.response;

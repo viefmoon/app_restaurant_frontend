@@ -7,15 +7,18 @@ import 'package:app/src/presentation/widgets/DefaultIconBack.dart';
 import 'package:app/src/presentation/widgets/DefaultTextField.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:app/src/domain/models/Role.dart';
 
 class RegisterContent extends StatelessWidget {
   RegisterBloc? bloc;
   RegisterState state;
 
-  RegisterContent(this.bloc, this.state, {super.key});
+  RegisterContent(this.bloc, this.state);
 
   @override
   Widget build(BuildContext context) {
+    final roles = state.roles ?? [];
+
     return Form(
       key: state.formKey,
       child: Stack(
@@ -30,7 +33,7 @@ class RegisterContent extends StatelessWidget {
             width: MediaQuery.of(context).size.width * 0.85,
             height: MediaQuery.of(context).size.height * 0.75,
             decoration: BoxDecoration(
-                color: Color.fromRGBO(255, 255, 255, 0.3),
+                color: Color.fromRGBO(255, 255, 255, 0.5),
                 borderRadius: BorderRadius.all(Radius.circular(25))),
             child: SingleChildScrollView(
               child: Column(
@@ -50,33 +53,99 @@ class RegisterContent extends StatelessWidget {
                   Container(
                     margin: EdgeInsets.only(left: 25, right: 25),
                     child: DefaultTextField(
-                        label: 'Nombre',
-                        icon: Icons.person,
-                        onChanged: (text) {
-                          bloc?.add(RegisterNameChanged(
-                              name: BlocFormItem(value: text)));
-                        }),
+                      label: 'Nombre',
+                      icon: Icons.person,
+                      onChanged: (text) {
+                        bloc?.add(RegisterNameChanged(
+                            name: BlocFormItem(value: text)));
+                      },
+                      validator: (value) {
+                        return state.name.error;
+                      },
+                    ),
                   ),
                   Container(
                     margin: EdgeInsets.only(left: 25, right: 25),
                     child: DefaultTextField(
-                        label: 'Nombre de usuario',
-                        icon: Icons.person_outline,
-                        onChanged: (text) {
-                          bloc?.add(RegisterUsernameChanged(
-                              username: BlocFormItem(value: text)));
-                        }),
+                      label: 'Nombre de usuario',
+                      icon: Icons.person_outline,
+                      onChanged: (text) {
+                        bloc?.add(RegisterUsernameChanged(
+                            username: BlocFormItem(value: text)));
+                      },
+                      validator: (value) {
+                        return state.username.error;
+                      },
+                    ),
                   ),
+                  if (roles
+                      .isNotEmpty) // Verificar si la lista de roles no está vacía
+                    Container(
+                      margin: EdgeInsets.only(
+                          left: 25,
+                          right:
+                              25), // Ajustar los márgenes como en DefaultTextField
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButtonFormField<String>(
+                          value:
+                              roles.any((role) => role.id == state.roleId.value)
+                                  ? state.roleId.value
+                                  : roles.first.id,
+                          decoration: InputDecoration(
+                            labelText: 'Rol',
+                            labelStyle: TextStyle(
+                                color: Colors.white), // Estilo para la etiqueta
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 40,
+                                vertical: 15), // Ajustar el padding
+                            border: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Colors.white), // Borde inferior blanco
+                            ),
+                            prefixIcon: Icon(Icons.group,
+                                color: Colors.white), // Icono al inicio
+                          ),
+                          items:
+                              roles.map<DropdownMenuItem<String>>((Role role) {
+                            return DropdownMenuItem<String>(
+                              value: role.id, // Usar el ID del rol como valor
+                              child: Text(role.name,
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors
+                                          .white)), // Texto con color blanco
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            if (newValue != null) {
+                              bloc?.add(RoleSelected(
+                                  roleId: BlocFormItem(
+                                      value:
+                                          newValue))); // Pasar el ID del rol seleccionado
+                            }
+                          },
+                          icon: Icon(Icons.arrow_drop_down,
+                              color: Colors.white), // Icono de dropdown
+                          iconSize: 24, // Tamaño del icono
+                          dropdownColor: Color.fromRGBO(255, 255, 255,
+                              0.5), // Color de fondo del dropdown al expandirse
+                        ),
+                      ),
+                    ),
                   Container(
                     margin: EdgeInsets.only(left: 25, right: 25),
                     child: DefaultTextField(
-                        label: 'Contraseña',
-                        icon: Icons.lock,
-                        obscureText: true,
-                        onChanged: (text) {
-                          bloc?.add(RegisterPasswordChanged(
-                              password: BlocFormItem(value: text)));
-                        }),
+                      label: 'Contraseña',
+                      icon: Icons.lock,
+                      obscureText: true,
+                      onChanged: (text) {
+                        bloc?.add(RegisterPasswordChanged(
+                            password: BlocFormItem(value: text)));
+                      },
+                      validator: (value) {
+                        return state.password.error;
+                      },
+                    ),
                   ),
                   Container(
                     margin: EdgeInsets.only(left: 25, right: 25, top: 15),

@@ -1,5 +1,6 @@
 import 'package:app/injection.dart';
 import 'package:app/src/domain/useCases/auth/AuthUseCases.dart';
+import 'package:app/src/domain/useCases/roles/RolesUseCases.dart';
 import 'package:app/src/presentation/pages/auth/login/bloc/LoginBloc.dart';
 import 'package:app/src/presentation/pages/auth/login/bloc/LoginEvent.dart';
 import 'package:app/src/presentation/pages/auth/register/bloc/RegisterBloc.dart';
@@ -12,5 +13,6 @@ List<BlocProvider> blocProviders = [
           LoginBloc(locator<AuthUseCases>())..add(InitEvent())),
   BlocProvider<RegisterBloc>(
       create: (context) =>
-          RegisterBloc(locator<AuthUseCases>())..add(RegisterInitEvent())),
+          RegisterBloc(locator<AuthUseCases>(), locator<RolesUseCases>())
+            ..add(RegisterInitEvent())),
 ];

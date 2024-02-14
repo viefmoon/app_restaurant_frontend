@@ -39,3 +39,14 @@ class RegisterFormSubmit extends RegisterEvent {
 class RegisterFormReset extends RegisterEvent {
   const RegisterFormReset();
 }
+
+class LoadRoles extends RegisterEvent {
+  const LoadRoles();
+}
+
+class RoleSelected extends RegisterEvent {
+  final BlocFormItem roleId;
+  const RoleSelected({required this.roleId});
+  @override
+  List<Object?> get props => [roleId];
+}
