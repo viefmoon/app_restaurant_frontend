@@ -3,16 +3,16 @@ import 'package:ecommerce_flutter/src/presentation/pages/client/home/bloc/Client
 import 'package:ecommerce_flutter/src/presentation/pages/client/home/bloc/ClientHomeState.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ClientHomeBloc extends Bloc<ClientHomeEvent, ClientHomeState> {
+class SalesHomeBloc extends Bloc<SalesHomeEvent, SalesHomeState> {
 
   AuthUseCases authUseCases;
 
-  ClientHomeBloc(this.authUseCases): super(ClientHomeState()) {
-    on<ChangeDrawerPage>(_onChangeDrawerPage);
+  SalesHomeBloc(this.authUseCases): super(SalesHomeState()) {
+    on<SalesChangeDrawerPage>(_onSalesChangeDrawerPage);
     on<Logout>(_onLogout);
   }
 
-  Future<void> _onChangeDrawerPage(ChangeDrawerPage event, Emitter<ClientHomeState> emit) async {
+  Future<void> _onSalesChangeDrawerPage(SalesChangeDrawerPage event, Emitter<SalesHomeState> emit) async {
     emit(
       state.copyWith(
         pageIndex: event.pageIndex

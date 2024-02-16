@@ -1,14 +1,14 @@
 import 'package:equatable/equatable.dart';
 
-abstract class ClientHomeEvent extends Equatable {
-  const ClientHomeEvent();
+abstract class SalesHomeEvent extends Equatable {
+  const SalesHomeEvent();
   @override
   List<Object?> get props => [];
 }
 
-class ChangeDrawerPage extends ClientHomeEvent {
+class SalesChangeDrawerPage extends SalesHomeEvent {
   final int pageIndex;
-  const ChangeDrawerPage({ required this.pageIndex });
+  const SalesChangeDrawerPage({ required this.pageIndex });
   @override
   List<Object?> get props => [pageIndex];
 }

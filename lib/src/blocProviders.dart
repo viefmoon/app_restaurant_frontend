@@ -15,4 +15,6 @@ List<BlocProvider> blocProviders = [
       create: (context) =>
           RegisterBloc(locator<AuthUseCases>(), locator<RolesUseCases>())
             ..add(RegisterInitEvent())),
+  BlocProvider<SalesHomeBloc>(
+      create: (context) => SalesHomeBloc(locator<AuthUseCases>())),
 ];
