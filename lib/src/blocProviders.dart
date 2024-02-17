@@ -5,6 +5,7 @@ import 'package:app/src/presentation/pages/auth/login/bloc/LoginBloc.dart';
 import 'package:app/src/presentation/pages/auth/login/bloc/LoginEvent.dart';
 import 'package:app/src/presentation/pages/auth/register/bloc/RegisterBloc.dart';
 import 'package:app/src/presentation/pages/auth/register/bloc/RegisterEvent.dart';
+import 'package:app/src/presentation/pages/sales_receipts/home/bloc/SalesHomeBloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 List<BlocProvider> blocProviders = [

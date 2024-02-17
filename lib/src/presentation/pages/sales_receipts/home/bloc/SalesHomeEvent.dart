@@ -8,11 +8,19 @@ abstract class SalesHomeEvent extends Equatable {
 
 class SalesChangeDrawerPage extends SalesHomeEvent {
   final int pageIndex;
-  const SalesChangeDrawerPage({ required this.pageIndex });
+  const SalesChangeDrawerPage({required this.pageIndex});
   @override
   List<Object?> get props => [pageIndex];
 }
 
-class Logout extends ClientHomeEvent {
+class LoadUser extends SalesHomeEvent {
+  const LoadUser();
+}
+
+class InitEvent extends SalesHomeEvent {
+  const InitEvent();
+}
+
+class Logout extends SalesHomeEvent {
   const Logout();
 }

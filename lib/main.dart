@@ -1,3 +1,4 @@
+import 'package:app/src/presentation/pages/sales_receipts/home/SalesHomePage.dart';
 import 'injection.dart';
 import 'src/blocProviders.dart';
 import 'src/presentation/pages/auth/login/LoginPage.dart';
@@ -5,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:app/src/presentation/pages/auth/register/RegisterPage.dart';
-import 'package:app/src/presentation/pages/sales/SalesPage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
         routes: {
           'login': (BuildContext context) => LoginPage(),
           'register': (BuildContext context) => RegisterPage(),
-          'sales': (BuildContext context) => SalesPage(),
+          'salesHome': (BuildContext context) => SalesHomePage(),
         },
       ),
     );

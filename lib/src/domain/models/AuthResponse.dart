@@ -7,7 +7,7 @@ AuthResponse authResponseFromJson(String str) =>
 String authResponseToJson(AuthResponse data) => json.encode(data.toJson());
 
 class AuthResponse {
-  User? user;
+  User user;
   String token;
 
   AuthResponse({
@@ -16,12 +16,12 @@ class AuthResponse {
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) => AuthResponse(
-        user: json["user"] != null ? User.fromJson(json["user"]) : null,
+        user: User.fromJson(json["user"]),
         token: json["token"],
       );
 
   Map<String, dynamic> toJson() => {
-        "user": user?.toJson(),
+        "user": user.toJson(),
         "token": token,
       };
 }
