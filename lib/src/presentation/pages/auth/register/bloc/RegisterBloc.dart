@@ -78,11 +78,8 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
 
   Future<void> _onLoadRoles(
       LoadRoles event, Emitter<RegisterState> emit) async {
-    // Implementación de la lógica para cargar los roles utilizando los casos de uso
-
     try {
-      var result = await rolesUseCases.getRoles
-          .run(); // Uso de rolesUseCases para obtener los roles
+      var result = await rolesUseCases.getRoles.run();
       if (result is Success<List<Role>>) {
         List<Role> roles = result.data; // Extracción de la lista de roles
         emit(state.copyWith(roles: roles));

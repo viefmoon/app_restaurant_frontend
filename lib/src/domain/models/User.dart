@@ -27,7 +27,7 @@ class User {
         notificationToken: json["notification_token"] ?? '',
         roles:
             (json["roles"] as List?)?.map((x) => Role.fromJson(x)).toList() ??
-              [],
+                [],
       );
 
   Map<String, dynamic> toJson() => {

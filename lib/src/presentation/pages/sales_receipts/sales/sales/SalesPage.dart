@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/sales/bloc/SalesBloc.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/sales/bloc/SalesEvent.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/sales/bloc/SalesState.dart';
 import 'SalesContent.dart';
 
@@ -19,13 +18,10 @@ class _SalesPageState extends State<SalesPage> {
       body: BlocProvider<SalesBloc>(
         create: (context) => SalesBloc(),
         child: BlocConsumer<SalesBloc, SalesState>(
-          listener: (context, state) {
-            // Manejar estados específicos como éxito o error
-          },
+          listener: (context, state) {},
           builder: (context, state) {
-            // Aquí se obtiene la instancia del bloc directamente desde el contexto
             final _bloc = BlocProvider.of<SalesBloc>(context);
-            return SalesContent(_bloc, state); // Pasar estado si es necesario
+            return SalesContent(_bloc, state);
           },
         ),
       ),

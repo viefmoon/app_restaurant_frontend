@@ -1,14 +1,20 @@
 import 'package:app/src/data/dataSource/local/SharedPref.dart';
+import 'package:app/src/data/dataSource/remote/services/AreasService.dart';
 import 'package:app/src/data/dataSource/remote/services/UsersService.dart';
+import 'package:app/src/data/repositories/AreasRepositoryImpl.dart';
 import 'package:app/src/data/repositories/AuthRepositoryImpl.dart';
 import 'package:app/src/data/dataSource/remote/services/AuthService.dart';
 import 'package:app/src/data/repositories/UsersRepositoryImpl.dart';
 import 'package:app/src/data/dataSource/remote/services/RolesService.dart';
 import 'package:app/src/data/repositories/RolesRepositoryImpl.dart';
 import 'package:app/src/domain/models/AuthResponse.dart';
+import 'package:app/src/domain/repositories/AreasRepository.dart';
 import 'package:app/src/domain/repositories/AuthRepository.dart';
 import 'package:app/src/domain/repositories/UsersRepository.dart';
 import 'package:app/src/domain/repositories/RolesRepository.dart';
+import 'package:app/src/domain/useCases/areas/AreasUseCases.dart';
+import 'package:app/src/domain/useCases/areas/GetAreasUseCase.dart';
+import 'package:app/src/domain/useCases/areas/GetTablesFromAreaUseCase.dart';
 import 'package:app/src/domain/useCases/roles/RolesUseCases.dart';
 import 'package:app/src/domain/useCases/auth/AuthUseCases.dart';
 import 'package:app/src/domain/useCases/auth/GetUserSessionUseCase.dart';
@@ -37,6 +43,8 @@ abstract class AppModule {
     return token;
   }
 
+  //SERVICES
+
   @injectable
   AuthService get authService => AuthService();
 
@@ -45,6 +53,10 @@ abstract class AppModule {
 
   @injectable
   RolesService get rolesService => RolesService();
+
+  AreasService get areasService => AreasService();
+
+//REPOSITORIES
 
   @injectable
   AuthRepository get authRepository =>
@@ -56,6 +68,9 @@ abstract class AppModule {
   @injectable
   RolesRepository get rolesRepository => RolesRepositoryImpl(rolesService);
 
+  AreasRepository get areasRepository => AreasRepositoryImpl(areasService);
+
+// USE CASES
   @injectable
   AuthUseCases get authUseCases => AuthUseCases(
       login: LoginUseCase(authRepository),
@@ -71,4 +86,8 @@ abstract class AppModule {
   @injectable
   RolesUseCases get rolesUseCases =>
       RolesUseCases(getRoles: GetRolesUseCase(rolesRepository));
+  @injectable
+  AreasUseCases get areasUseCases => AreasUseCases(
+      getAreas: GetAreasUseCase(areasRepository),
+      getTablesFromArea: GetTablesFromAreaUseCase(areasRepository));
 }
