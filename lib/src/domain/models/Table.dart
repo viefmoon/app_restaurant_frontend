@@ -27,11 +27,11 @@ class Table {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['number'] = this.number;
-    data['status'] = this.status.toString().split('.').last;
-    if (this.area != null) {
-      data['area'] = this.area!.toJson();
+    data['id'] = id;
+    data['number'] = number;
+    data['status'] = status.toString().split('.').last;
+    if (area != null) {
+      data['area'] = area!.toJson();
     }
     return data;
   }

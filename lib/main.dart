@@ -1,6 +1,6 @@
 import 'package:app/src/presentation/pages/sales_receipts/home/SalesHomePage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/add_phone_number/AddPhoneNumberPage.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/table_selection/TableSelectionPage.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/TableSelectionPage.dart';
 import 'injection.dart';
 import 'src/blocProviders.dart';
 import 'src/presentation/pages/auth/login/LoginPage.dart';
