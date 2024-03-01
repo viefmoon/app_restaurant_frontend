@@ -45,9 +45,9 @@ class Order {
           .firstWhere((e) => e.toString().split(".").last == json['orderType']),
       status: OrderStatus.values
           .firstWhere((e) => e.toString().split(".").last == json['status']),
-      amountPaid: json['amountPaid']?.toDouble(),
+      amountPaid: double.parse(json['price']!),
       creationDate: DateTime.parse(json['creationDate']),
-      total: json['total']?.toDouble(),
+      total: double.parse(json['price']!),
       comments: json['comments'],
       phoneNumber: json['phoneNumber'],
       address: json['address'],

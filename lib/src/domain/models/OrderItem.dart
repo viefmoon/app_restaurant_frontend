@@ -9,8 +9,8 @@ import 'package:app/src/domain/models/Order.dart' as OrderModel;
 enum OrderItemStatus { creado, enPreparacion, finalizado }
 
 class OrderItem {
-  final int id;
-  OrderItemStatus status;
+  final int? id;
+  OrderItemStatus? status;
   String? comments;
   OrderModel.Order? order;
   Product? product;
@@ -21,8 +21,8 @@ class OrderItem {
   List<OrderItemUpdate>? orderItemUpdates;
 
   OrderItem({
-    required this.id,
-    required this.status,
+    this.id,
+    this.status,
     this.comments,
     this.order,
     this.product,

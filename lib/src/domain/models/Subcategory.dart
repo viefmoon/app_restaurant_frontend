@@ -8,6 +8,7 @@ class Subcategory {
       category; // Referencia opcional a Category para mantener la relación
   List<Product>?
       products; // Lista de productos pertenecientes a esta subcategoría
+
   Subcategory({
     required this.id,
     required this.name,

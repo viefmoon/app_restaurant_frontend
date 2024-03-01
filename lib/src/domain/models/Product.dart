@@ -9,6 +9,7 @@ class Product {
   final int id;
   final String name;
   final double? price;
+  final String? imageUrl;
   Subcategory? subcategory;
   List<ProductVariant>? productVariants;
   List<ModifierType>? modifierTypes;
@@ -20,6 +21,7 @@ class Product {
     required this.id,
     required this.name,
     this.price,
+    this.imageUrl,
     this.subcategory,
     this.productVariants,
     this.modifierTypes,
@@ -32,7 +34,8 @@ class Product {
     return Product(
       id: json['id'],
       name: json['name'],
-      price: json['price']?.toDouble(),
+      price: json['price'] != null ? double.parse(json['price']) : null,
+      imageUrl: json['imageUrl'],
       subcategory: json['subcategory'] != null
           ? Subcategory.fromJson(json['subcategory'])
           : null,
@@ -69,6 +72,7 @@ class Product {
     data['id'] = id;
     data['name'] = name;
     data['price'] = price;
+    data['imageUrl'] = imageUrl;
     if (subcategory != null) {
       data['subcategory'] = subcategory!.toJson();
     }

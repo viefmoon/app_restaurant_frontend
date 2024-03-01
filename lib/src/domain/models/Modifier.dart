@@ -17,7 +17,7 @@ class Modifier {
     return Modifier(
       id: json['id'],
       name: json['name'],
-      price: json['price'].toDouble(),
+      price: double.parse(json['price']!),
       modifierType: json['modifierType'] != null
           ? ModifierType.fromJson(json['modifierType'])
           : null,

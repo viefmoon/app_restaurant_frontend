@@ -1,5 +1,6 @@
 import 'package:app/main.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/sales/SalesPage.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderCreationContainer.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/sales_options/SalesOptionsPage.dart';
 import 'package:flutter/material.dart';
 import 'bloc/SalesHomeBloc.dart';
 import 'bloc/SalesHomeEvent.dart';
@@ -18,8 +19,8 @@ class _SalesHomePageState extends State<SalesHomePage> {
   SalesHomeBloc? _bloc;
 
   List<Widget> pageList = <Widget>[
+    SalesOptionsPage(),
     ReceiptsPage(),
-    SalesPage(),
   ];
 
   @override

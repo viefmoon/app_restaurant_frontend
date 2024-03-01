@@ -1,10 +1,22 @@
+import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/Product.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationState.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class OrderCreationEvent extends Equatable {
   const OrderCreationEvent();
   @override
   List<Object> get props => [];
+}
+
+class BackToPreviousStep extends OrderCreationEvent {
+  const BackToPreviousStep();
+}
+
+class OrderTypeSelected extends OrderCreationEvent {
+  final OrderType selectedOrderType;
+
+  const OrderTypeSelected({required this.selectedOrderType});
 }
 
 class OrderCreationInitEvent extends OrderCreationEvent {
@@ -15,22 +27,26 @@ class LoadAreas extends OrderCreationEvent {
   const LoadAreas();
 }
 
+class ResetOrder extends OrderCreationEvent {
+  const ResetOrder();
+}
+
 class LoadTables extends OrderCreationEvent {
-  final int areaId; // Cambiado para manejar directamente el ID como int.
+  final int areaId;
   const LoadTables({required this.areaId});
   @override
   List<Object> get props => [areaId];
 }
 
 class AreaSelected extends OrderCreationEvent {
-  final int areaId; // Cambiado para manejar directamente el ID como int.
+  final int areaId;
   const AreaSelected({required this.areaId});
   @override
   List<Object> get props => [areaId];
 }
 
 class TableSelected extends OrderCreationEvent {
-  final int tableId; // Cambiado para manejar directamente el ID como int.
+  final int tableId;
   const TableSelected({required this.tableId});
   @override
   List<Object> get props => [tableId];
@@ -61,13 +77,6 @@ class ProductSelected extends OrderCreationEvent {
   List<Object> get props => [productId];
 }
 
-// class ProductCustomized extends OrderCreationEvent {
-//   final ProductCustomization customization;
-//   const ProductCustomized({required this.customization});
-//   @override
-//   List<Object> get props => [customization];
-// }
-
 class AddProductToOrder extends OrderCreationEvent {
   final Product product;
   const AddProductToOrder({required this.product});
@@ -77,4 +86,13 @@ class AddProductToOrder extends OrderCreationEvent {
 
 class TableSelectionContinue extends OrderCreationEvent {
   const TableSelectionContinue();
+}
+
+class AddOrderItem extends OrderCreationEvent {
+  final OrderItem orderItem;
+
+  AddOrderItem({required this.orderItem});
+
+  @override
+  List<Object> get props => [orderItem];
 }

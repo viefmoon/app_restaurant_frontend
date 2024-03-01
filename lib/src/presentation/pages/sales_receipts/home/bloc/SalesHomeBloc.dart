@@ -26,7 +26,6 @@ class SalesHomeBloc extends Bloc<SalesHomeEvent, SalesHomeState> {
 
   Future<void> _onSalesChangeDrawerPage(
       SalesChangeDrawerPage event, Emitter<SalesHomeState> emit) async {
-    print('SalesChangeDrawerPage: ${event.pageIndex}');
     emit(state.copyWith(pageIndex: event.pageIndex));
   }
 

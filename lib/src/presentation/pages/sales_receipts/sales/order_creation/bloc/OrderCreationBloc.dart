@@ -1,4 +1,5 @@
 import 'package:app/src/domain/models/Category.dart';
+import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/domain/models/Subcategory.dart';
 import 'package:app/src/domain/useCases/categories/CategoriesUseCases.dart';
@@ -10,6 +11,7 @@ import 'package:app/src/domain/utils/Resource.dart';
 
 import 'package:app/src/domain/models/Area.dart';
 import 'package:app/src/domain/models/Table.dart' as appModel;
+import 'package:collection/collection.dart';
 
 class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
   final AreasUseCases areasUseCases;
@@ -19,31 +21,71 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
       {required this.categoriesUseCases, required this.areasUseCases})
       : super(OrderCreationState()) {
     on<OrderCreationInitEvent>(_onInitEvent);
+    on<OrderTypeSelected>(_onOrderTypeSelected);
     on<AreaSelected>(_onAreaSelected);
     on<TableSelected>(_onTableSelected);
     on<LoadAreas>(_onLoadAreas);
     on<LoadTables>(_onLoadTables);
+    on<TableSelectionContinue>(_onTableSelectionContinue);
     on<LoadCategoriesWithProducts>(_onLoadCategoriesWithProducts);
     on<CategorySelected>(_onCategorySelected);
     on<SubcategorySelected>(_onSubcategorySelected);
-    // on<ProductSelected>(_onProductSelected);
-    // on<ProductCustomized>(_onProductCustomized);
-    //on<AddProductToOrder>(_onAddProductToOrder);
+    on<ProductSelected>(_onProductSelected);
+    on<AddOrderItem>(_onAddOrderItem);
   }
   Future<void> _onInitEvent(
       OrderCreationInitEvent event, Emitter<OrderCreationState> emit) async {
     await _onLoadAreas(LoadAreas(), emit);
   }
 
+  Future<void> _onResetOrder(
+      ResetOrder event, Emitter<OrderCreationState> emit) async {
+    emit(OrderCreationState(
+      // Establece explícitamente todos los campos a sus valores iniciales o a null
+      selectedOrderType: null,
+      areas: [],
+      tables: [],
+      selectedAreaId: null,
+      selectedAreaName: null,
+      selectedTableId: null,
+      selectedTableNumber: null,
+      categories: [],
+      selectedCategoryId: null,
+      selectedSubcategoryId: null,
+      filteredSubcategories: [],
+      filteredProducts: [],
+      selectedProductForPersonalization: null,
+      orderItems: [],
+      currentOrder: null,
+      response: null,
+      step: OrderCreationStep
+          .orderTypeSelection, // O el paso inicial que consideres apropiado
+    ));
+    await _onLoadAreas(LoadAreas(), emit);
+  }
+
+  Future<void> _onOrderTypeSelected(
+      OrderTypeSelected event, Emitter<OrderCreationState> emit) async {
+    emit(state.copyWith(
+        selectedOrderType: event.selectedOrderType,
+        step: OrderCreationStep.tableSelection));
+  }
+
   Future<void> _onAreaSelected(
       AreaSelected event, Emitter<OrderCreationState> emit) async {
     emit(state.copyWith(selectedAreaId: event.areaId));
+    final areaName =
+        state.areas?.firstWhere((area) => area.id == event.areaId).name;
     await _onLoadTables(LoadTables(areaId: event.areaId), emit);
+    emit(state.copyWith(selectedAreaName: areaName));
   }
 
   Future<void> _onTableSelected(
       TableSelected event, Emitter<OrderCreationState> emit) async {
     emit(state.copyWith(selectedTableId: event.tableId));
+    final tableNumber =
+        state.tables?.firstWhere((table) => table.id == event.tableId).number;
+    emit(state.copyWith(selectedTableNumber: tableNumber));
   }
 
   Future<void> _onLoadAreas(
@@ -77,6 +119,12 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
     } catch (e) {
       emit(state.copyWith(tables: [], response: Error(e.toString())));
     }
+  }
+
+  void _onTableSelectionContinue(
+      TableSelectionContinue event, Emitter<OrderCreationState> emit) {
+    emit(state.copyWith(step: OrderCreationStep.productSelection));
+    add(LoadCategoriesWithProducts());
   }
 
   Future<void> _onLoadCategoriesWithProducts(LoadCategoriesWithProducts event,
@@ -143,19 +191,31 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
     ));
   }
 
-  // Future<void> _onProductSelected(
-  //     ProductSelected event, Emitter<OrderCreationState> emit) async {
-  //   // Aquí agregarías el producto seleccionado a la lista de productos seleccionados en el estado
-  //   List<Product> updatedSelectedProducts =
-  //       List.from(state.selectedProducts ?? []);
-  //   updatedSelectedProducts.add(
-  //       /* Producto seleccionado basado en event.productId */);
-  //   emit(state.copyWith(selectedProducts: updatedSelectedProducts));
-  // }
+  Future<void> _onProductSelected(
+      ProductSelected event, Emitter<OrderCreationState> emit) async {
+    print(event.productId);
+    // Encuentra el producto seleccionado basado en event.productId
+    // Esto puede requerir cargar el producto o tener una lista de productos disponible para buscar
+    Product? selectedProduct = state.filteredProducts
+        ?.firstWhereOrNull((product) => product.id == event.productId);
+    // Construye un nuevo OrderItem basado en el producto seleccionado y cualquier detalle adicional
+    OrderItem newOrderItem = OrderItem(
+      // Genera o asigna un ID único
+      product: selectedProduct,
+      // Inicializa otros campos como null o basado en eventos adicionales para variantes, modificadores, etc.
+    );
+    // Añade el nuevo OrderItem a la lista existente en el estado
+    List<OrderItem> updatedOrderItems = List.from(state.orderItems ?? []);
+    updatedOrderItems.add(newOrderItem);
 
-  // Future<void> _onProductCustomized(
-  //     ProductCustomized event, Emitter<OrderCreationState> emit) async {
-  //   // Aquí actualizarías el producto personalizado en la lista de productos seleccionados
-  //   // Esto podría requerir identificar el producto específico por su ID y actualizar su personalización
-  // }
+    emit(state.copyWith(orderItems: updatedOrderItems));
+  }
+
+  Future<void> _onAddOrderItem(
+      AddOrderItem event, Emitter<OrderCreationState> emit) async {
+    // Añade el OrderItem proporcionado por el evento al estado actual
+    final updatedOrderItems = List<OrderItem>.from(state.orderItems ?? [])
+      ..add(event.orderItem);
+    emit(state.copyWith(orderItems: updatedOrderItems));
+  }
 }

@@ -12,6 +12,7 @@ class CategoriesService {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
+        print('Data: $data');
         List<Category> categories =
             data.map((dynamic item) => Category.fromJson(item)).toList();
         print('Categories: $categories');

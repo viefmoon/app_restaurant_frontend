@@ -20,7 +20,7 @@ class ProductVariant {
     return ProductVariant(
       id: json['id'],
       name: json['name'],
-      price: json['price'] != null ? json['price'].toDouble() : 0.0,
+      price: double.parse(json['price']!),
       product:
           json['product'] != null ? Product.fromJson(json['product']) : null,
       orderItems: json['orderItems'] != null
