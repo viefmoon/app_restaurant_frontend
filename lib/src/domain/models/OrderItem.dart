@@ -18,6 +18,7 @@ class OrderItem {
   List<SelectedModifier>? selectedModifiers;
   List<SelectedProductObservation>? selectedProductObservations;
   PizzaFlavor? pizzaFlavor;
+  double? price;
   List<OrderItemUpdate>? orderItemUpdates;
 
   OrderItem({
@@ -30,6 +31,7 @@ class OrderItem {
     this.selectedModifiers,
     this.selectedProductObservations,
     this.pizzaFlavor,
+    this.price,
     this.orderItemUpdates,
   });
 
@@ -61,6 +63,7 @@ class OrderItem {
       pizzaFlavor: json['pizzaFlavor'] != null
           ? PizzaFlavor.fromJson(json['pizzaFlavor'])
           : null,
+      price: json['price'],
       orderItemUpdates: json['orderItemUpdates'] != null
           ? (json['orderItemUpdates'] as List)
               .map((i) => OrderItemUpdate.fromJson(i))
@@ -89,6 +92,9 @@ class OrderItem {
     }
     if (pizzaFlavor != null) {
       data['pizzaFlavor'] = pizzaFlavor!.toJson();
+    }
+    if (price != null) {
+      data['price'] = price;
     }
     if (orderItemUpdates != null) {
       data['orderItemUpdates'] =

@@ -2,15 +2,12 @@ import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationState.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
 abstract class OrderCreationEvent extends Equatable {
   const OrderCreationEvent();
   @override
   List<Object> get props => [];
-}
-
-class BackToPreviousStep extends OrderCreationEvent {
-  const BackToPreviousStep();
 }
 
 class OrderTypeSelected extends OrderCreationEvent {
@@ -19,8 +16,47 @@ class OrderTypeSelected extends OrderCreationEvent {
   const OrderTypeSelected({required this.selectedOrderType});
 }
 
-class OrderCreationInitEvent extends OrderCreationEvent {
-  const OrderCreationInitEvent();
+class ResetTableSelection extends OrderCreationEvent {
+  const ResetTableSelection();
+
+  @override
+  List<Object> get props => [];
+}
+
+class PhoneNumberEntered extends OrderCreationEvent {
+  final String phoneNumber;
+
+  const PhoneNumberEntered({required this.phoneNumber});
+
+  @override
+  List<Object> get props => [phoneNumber];
+}
+
+class DeliveryAddressEntered extends OrderCreationEvent {
+  final String deliveryAddress;
+
+  const DeliveryAddressEntered({required this.deliveryAddress});
+
+  @override
+  List<Object> get props => [deliveryAddress];
+}
+
+class CustomerNameEntered extends OrderCreationEvent {
+  final String customerName;
+
+  const CustomerNameEntered({required this.customerName});
+
+  @override
+  List<Object> get props => [customerName];
+}
+
+class TimeSelected extends OrderCreationEvent {
+  final TimeOfDay time;
+
+  const TimeSelected({required this.time});
+
+  @override
+  List<Object> get props => [time];
 }
 
 class LoadAreas extends OrderCreationEvent {
@@ -91,7 +127,7 @@ class TableSelectionContinue extends OrderCreationEvent {
 class AddOrderItem extends OrderCreationEvent {
   final OrderItem orderItem;
 
-  AddOrderItem({required this.orderItem});
+  const AddOrderItem({required this.orderItem});
 
   @override
   List<Object> get props => [orderItem];

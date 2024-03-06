@@ -1,5 +1,6 @@
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderSummaryPage.dart'; // Asegúrate de importar OrderSummaryPage
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderTypeSelectionPage.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/PhoneNumberInputPage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/ProducSelectionPage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/TableSelectionPage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
@@ -18,17 +19,28 @@ class OrderCreationContainer extends StatelessWidget {
             switch (state.step) {
               case OrderCreationStep.orderTypeSelection:
                 return Text('Selecciona el tipo de orden');
+              case OrderCreationStep.phoneNumberInput:
+                return Text('Ingresa tu número de teléfono');
               case OrderCreationStep.tableSelection:
                 return Text('Selecciona una mesa');
               case OrderCreationStep.productSelection:
-                String area = state.selectedAreaName ?? 'N/A';
-                String table = state.selectedTableNumber?.toString() ?? 'N/A';
-                return Text('$area: $table');
+                if (state.selectedOrderType == OrderType.dineIn) {
+                  String area = state.selectedAreaName ?? 'N/A';
+                  String table = state.selectedTableNumber?.toString() ?? 'N/A';
+                  return Text('$area: $table');
+                } else if (state.selectedOrderType == OrderType.delivery) {
+                  String phoneNumber = state.phoneNumber ?? 'N/A';
+                  return Text('Teléfono: $phoneNumber');
+                }
+                break;
               case OrderCreationStep.orderSummary:
                 return Text('Resumen de la orden');
               default:
-                return Text('Selecciona una mesa');
+                // Maneja el caso null y cualquier otro no contemplado
+                return Text('Selecciona el tipo de orden');
             }
+            // Retorno por defecto para manejar cualquier caso no contemplado
+            return Text('Selecciona el tipo de orden');
           },
         ),
         actions: <Widget>[
@@ -37,7 +49,7 @@ class OrderCreationContainer extends StatelessWidget {
               if (state.step == OrderCreationStep.productSelection) {
                 // Solo muestra el botón en el paso de selección de productos
                 return IconButton(
-                  icon: Icon(Icons.list),
+                  icon: Icon(Icons.shopping_cart),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -59,14 +71,16 @@ class OrderCreationContainer extends StatelessWidget {
           switch (state.step) {
             case OrderCreationStep.orderTypeSelection:
               return OrderTypeSelectionPage();
+            case OrderCreationStep.phoneNumberInput:
+              return PhoneNumberInputPage();
             case OrderCreationStep.tableSelection:
               return TableSelectionPage();
             case OrderCreationStep.productSelection:
               return ProductSelectionPage();
             case OrderCreationStep.orderSummary:
-              return OrderSummaryPage(); // Asegúrate de manejar este caso
+              return OrderSummaryPage();
             default:
-              return TableSelectionPage();
+              return OrderTypeSelectionPage();
           }
         },
       ),

@@ -1,5 +1,4 @@
 import 'package:app/src/presentation/pages/sales_receipts/home/SalesHomePage.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/add_phone_number/AddPhoneNumberPage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderCreationContainer.dart';
 import 'injection.dart';
 import 'src/blocProviders.dart';
@@ -55,8 +54,6 @@ class MyApp extends StatelessWidget {
           'register': (BuildContext context) => RegisterPage(),
           'salesHome': (BuildContext context) => SalesHomePage(),
           'order/create': (BuildContext context) => OrderCreationContainer(),
-          'order/delivery/add_phone_number': (BuildContext context) =>
-              AddPhoneNumberPage(),
         },
       ),
     );

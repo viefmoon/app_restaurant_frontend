@@ -1,18 +1,17 @@
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/OrderUpdate.dart';
 import 'package:app/src/domain/models/Table.dart' as TableModel;
-import 'package:flutter/material.dart';
 
 enum OrderType { delivery, dineIn, pickUpWait }
 
 enum OrderStatus { creado, preparandose, preparada, finalizada, cancelada }
 
 class Order {
-  final int id;
+  final int? id;
   final OrderType orderType;
-  final OrderStatus status;
+  final OrderStatus? status;
   final double? amountPaid;
-  final DateTime creationDate;
+  final DateTime? creationDate;
   final double? total;
   final String? comments;
   final String? phoneNumber;
@@ -23,11 +22,11 @@ class Order {
   List<OrderUpdate>? orderUpdates;
 
   Order({
-    required this.id,
+    this.id,
     required this.orderType,
-    required this.status,
+    this.status,
     this.amountPaid,
-    required this.creationDate,
+    this.creationDate,
     this.total,
     this.comments,
     this.phoneNumber,
@@ -74,7 +73,7 @@ class Order {
     data['orderType'] = orderType.toString().split(".").last;
     data['status'] = status.toString().split(".").last;
     data['amountPaid'] = amountPaid;
-    data['creationDate'] = creationDate.toIso8601String();
+    data['creationDate'] = creationDate?.toIso8601String();
     data['total'] = total;
     data['comments'] = comments;
     data['phoneNumber'] = phoneNumber;

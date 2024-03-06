@@ -1,11 +1,11 @@
 import 'package:app/src/domain/models/Modifier.dart';
 
 class SelectedModifier {
-  final int id;
+  final int? id;
   final Modifier? modifier;
 
   SelectedModifier({
-    required this.id,
+    this.id,
     this.modifier,
   });
 

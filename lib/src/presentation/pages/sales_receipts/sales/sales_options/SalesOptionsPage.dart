@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderCreationContainer.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationEvent.dart';
 
-class SalesOptionsPage extends StatelessWidget {
+class SalesOptionsPage extends StatefulWidget {
+  @override
+  _SalesOptionsPageState createState() => _SalesOptionsPageState();
+}
+
+class _SalesOptionsPageState extends State<SalesOptionsPage> {
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -10,12 +18,14 @@ class SalesOptionsPage extends StatelessWidget {
         children: [
           ElevatedButton(
             onPressed: () {
-              // Navega a OrderCreationContainer
               Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => OrderCreationContainer()),
-              );
+              ).then((_) {
+                BlocProvider.of<OrderCreationBloc>(context, listen: false)
+                    .add(ResetOrder());
+              });
             },
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 70, vertical: 20),

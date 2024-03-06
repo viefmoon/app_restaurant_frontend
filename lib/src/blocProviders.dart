@@ -8,9 +8,7 @@ import 'package:app/src/presentation/pages/auth/login/bloc/LoginEvent.dart';
 import 'package:app/src/presentation/pages/auth/register/bloc/RegisterBloc.dart';
 import 'package:app/src/presentation/pages/auth/register/bloc/RegisterEvent.dart';
 import 'package:app/src/presentation/pages/sales_receipts/home/bloc/SalesHomeBloc.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/add_phone_number/bloc/AddPhoneNumberBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationEvent.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 List<BlocProvider> blocProviders = [
@@ -26,9 +24,5 @@ List<BlocProvider> blocProviders = [
   BlocProvider<OrderCreationBloc>(
       create: (context) => OrderCreationBloc(
           categoriesUseCases: locator<CategoriesUseCases>(),
-          areasUseCases: locator<AreasUseCases>())
-        ..add(OrderCreationInitEvent())),
-  BlocProvider<AddPhoneNumberBloc>(
-    create: (context) => AddPhoneNumberBloc(),
-  ),
+          areasUseCases: locator<AreasUseCases>())),
 ];

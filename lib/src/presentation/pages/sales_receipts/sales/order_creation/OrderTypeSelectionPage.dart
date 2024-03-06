@@ -22,7 +22,6 @@ class OrderTypeSelectionPage extends StatelessWidget {
 
     return Scaffold(
       body: Center(
-        // Centrar los botones en la pantalla
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -30,29 +29,26 @@ class OrderTypeSelectionPage extends StatelessWidget {
               onPressed: () {
                 bloc.add(
                     OrderTypeSelected(selectedOrderType: OrderType.delivery));
-                // Navigator.pushNamed(context, 'order/delivery/add_phone_number');
               },
               style: buttonStyle, // Aplicar el estilo personalizado
               child: Text('Para llevar'),
             ),
-            SizedBox(height: 20), // Espacio entre botones
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 bloc.add(
-                    OrderTypeSelected(selectedOrderType: OrderType.takeout));
-                // Navigator.pushNamed(context, 'order/table_selection');
+                    OrderTypeSelected(selectedOrderType: OrderType.pickUpWait));
               },
-              style: buttonStyle, // Aplicar el estilo personalizado
+              style: buttonStyle,
               child: Text('Pasan/Esperan'),
             ),
-            SizedBox(height: 20), // Espacio entre botones
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 bloc.add(
                     OrderTypeSelected(selectedOrderType: OrderType.dineIn));
-                // Navigator.pushNamed(context, 'order/create');
               },
-              style: buttonStyle, // Aplicar el estilo personalizado
+              style: buttonStyle,
               child: Text('Comer dentro'),
             ),
           ],

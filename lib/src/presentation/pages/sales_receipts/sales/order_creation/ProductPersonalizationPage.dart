@@ -1,13 +1,10 @@
-import 'package:app/src/domain/models/Category.dart';
-import 'package:app/src/domain/models/Modifier.dart';
 import 'package:app/src/domain/models/ModifierType.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/Product.dart';
-import 'package:app/src/domain/models/ProductObservation.dart';
 import 'package:app/src/domain/models/ProductObservationType.dart';
 import 'package:app/src/domain/models/ProductVariant.dart';
 import 'package:app/src/domain/models/SelectedModifier.dart';
-import 'package:app/src/domain/utils/Resource.dart';
+import 'package:app/src/domain/models/SelectedProductObservation.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationEvent.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class ProductPersonalizationPage extends StatefulWidget {
   final Product product;
 
-  ProductPersonalizationPage({Key? key, required this.product})
+  const ProductPersonalizationPage({Key? key, required this.product})
       : super(key: key);
 
   @override
@@ -27,8 +24,8 @@ class ProductPersonalizationPage extends StatefulWidget {
 class _ProductPersonalizationPageState
     extends State<ProductPersonalizationPage> {
   ProductVariant? selectedVariant;
-  List<Modifier> selectedModifiers = [];
-  List<ProductObservation> selectedObservations = [];
+  List<SelectedModifier> selectedModifiers = [];
+  List<SelectedProductObservation> selectedObservations = [];
   String? comments;
 
   @override
@@ -73,33 +70,37 @@ class _ProductPersonalizationPageState
   }
 
   void _saveOrderItem() {
-    if (selectedVariant == null) {
-      // Muestra un mensaje de error o realiza alguna acción si la variante no está seleccionada
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Por favor, selecciona una variante del producto')),
-      );
-      return;
+    double price = widget.product.price ?? 0.0; // Precio base del producto
+
+    // Si hay una variante seleccionada, usa el precio de la variante
+    if (selectedVariant != null) {
+      price = selectedVariant!.price;
     }
 
-    // Creación del OrderItem con los datos necesarios, incluyendo variantes, modificadores, observaciones y comentarios
+    // Suma el precio de cada modificador seleccionado
+    for (var selectedModifier in selectedModifiers) {
+      price += selectedModifier.modifier?.price ?? 0.0;
+    }
+
+    // Creación del OrderItem con los datos necesarios, incluyendo el precio calculado
     final orderItem = OrderItem(
       product: widget.product,
       productVariant: selectedVariant,
       selectedModifiers: selectedModifiers
-          .map((modifier) =>
-              SelectedModifier(modifierId: modifier.id, name: modifier.name))
+          .map((selectedModifier) =>
+              SelectedModifier(modifier: selectedModifier.modifier))
           .toList(),
       selectedProductObservations: selectedObservations
-          .map((observation) => SelectedProductObservation(
-              observationId: observation.id, name: observation.name))
+          .map((selectedProductObservation) => SelectedProductObservation(
+              productObservation:
+                  selectedProductObservation.productObservation))
           .toList(),
       comments: comments,
-      // Añade los demás campos necesarios
       id: null,
       status: null,
       order: null,
       pizzaFlavor: null,
+      price: price, // Asigna el precio calculado
       orderItemUpdates: [],
     );
 
@@ -107,7 +108,15 @@ class _ProductPersonalizationPageState
     BlocProvider.of<OrderCreationBloc>(context)
         .add(AddOrderItem(orderItem: orderItem));
 
-    // Opcional: Navegar de regreso o mostrar un mensaje de confirmación
+    // Muestra un SnackBar de confirmación
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Producto añadido con éxito'),
+        duration: Duration(milliseconds: 1500),
+      ),
+    );
+
+    // Opcional: Navegar de regreso o realizar otra acción
     Navigator.pop(context);
   }
 
@@ -149,17 +158,21 @@ class _ProductPersonalizationPageState
         ...(modifierType.modifiers?.map((modifier) => CheckboxListTile(
                   title: Text(modifier.name),
                   subtitle: Text('\$${modifier.price.toStringAsFixed(2)}'),
-                  value: selectedModifiers.contains(modifier),
+                  value: selectedModifiers.any((selectedModifier) =>
+                      selectedModifier.modifier == modifier),
                   onChanged: (bool? value) {
                     setState(() {
                       if (value == true) {
                         if (!modifierType.acceptsMultiple) {
-                          selectedModifiers.removeWhere(
-                              (m) => modifierType.modifiers!.contains(m));
+                          selectedModifiers.removeWhere((selectedModifier) =>
+                              modifierType.modifiers!
+                                  .contains(selectedModifier.modifier));
                         }
-                        selectedModifiers.add(modifier);
+                        selectedModifiers
+                            .add(SelectedModifier(modifier: modifier));
                       } else {
-                        selectedModifiers.remove(modifier);
+                        selectedModifiers.removeWhere((selectedModifier) =>
+                            selectedModifier.modifier == modifier);
                       }
                     });
                   },
@@ -178,25 +191,32 @@ class _ProductPersonalizationPageState
           child: Text(observationType.name,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         ),
-        ...(observationType.productObservations
-                ?.map((observation) => CheckboxListTile(
-                      title: Text(observation.name),
-                      value: selectedObservations.contains(observation),
-                      onChanged: (bool? value) {
-                        setState(() {
-                          if (value == true) {
-                            if (!observationType.acceptsMultiple) {
-                              selectedObservations.removeWhere((m) =>
-                                  observationType.productObservations!
-                                      .contains(m));
-                            }
-                            selectedObservations.add(observation);
-                          } else {
-                            selectedObservations.remove(observation);
-                          }
-                        });
-                      },
-                    )) ??
+        ...(observationType.productObservations?.map((productObservation) =>
+                CheckboxListTile(
+                  title: Text(productObservation.name),
+                  value: selectedObservations.any((selectedObservation) =>
+                      selectedObservation.productObservation ==
+                      productObservation),
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value == true) {
+                        if (!observationType.acceptsMultiple) {
+                          selectedObservations.removeWhere(
+                              (selectedObservation) =>
+                                  observationType.productObservations!.contains(
+                                      selectedObservation.productObservation));
+                        }
+                        selectedObservations.add(SelectedProductObservation(
+                            productObservation: productObservation));
+                      } else {
+                        selectedObservations.removeWhere(
+                            (selectedObservation) =>
+                                selectedObservation.productObservation ==
+                                productObservation);
+                      }
+                    });
+                  },
+                )) ??
             []),
       ],
     );

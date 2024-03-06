@@ -4,15 +4,28 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationEvent.dart';
 
-class TableSelectionPage extends StatelessWidget {
+class TableSelectionPage extends StatefulWidget {
   const TableSelectionPage({Key? key}) : super(key: key);
 
   @override
+  _TableSelectionPageState createState() => _TableSelectionPageState();
+}
+
+class _TableSelectionPageState extends State<TableSelectionPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final OrderCreationBloc bloc =
+          BlocProvider.of<OrderCreationBloc>(context);
+      bloc.add(LoadAreas());
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Accede al Bloc directamente desde el contexto
     final OrderCreationBloc bloc = BlocProvider.of<OrderCreationBloc>(context);
 
-    // Usa BlocBuilder para reconstruir solo este widget basado en cambios de estado
     return BlocBuilder<OrderCreationBloc, OrderCreationState>(
       builder: (context, state) {
         return Column(
@@ -23,7 +36,10 @@ class TableSelectionPage extends StatelessWidget {
             if (state.selectedAreaId != null) _buildTableDropdown(bloc, state),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () => bloc.add(TableSelectionContinue()),
+              onPressed:
+                  state.selectedAreaId != null && state.selectedTableId != null
+                      ? () => bloc.add(TableSelectionContinue())
+                      : null,
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(horizontal: 70, vertical: 30),
               ),
@@ -37,14 +53,12 @@ class TableSelectionPage extends StatelessWidget {
   }
 
   Widget _buildAreaDropdown(OrderCreationBloc bloc, OrderCreationState state) {
-    // Usa una ValueKey basada en el valor seleccionado para forzar la reconstrucción del widget
     return InputDecorator(
       decoration:
           InputDecoration(labelText: 'Área', border: OutlineInputBorder()),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<int>(
-          key: ValueKey<int?>(
-              state.selectedAreaId), // Clave que cambia con el estado
+          key: ValueKey<int?>(state.selectedAreaId),
           value: state.selectedAreaId,
           isExpanded: true,
           onChanged: (int? newValue) {
@@ -65,17 +79,20 @@ class TableSelectionPage extends StatelessWidget {
   }
 
   Widget _buildTableDropdown(OrderCreationBloc bloc, OrderCreationState state) {
-    // Usa una ValueKey basada en el valor seleccionado para forzar la reconstrucción del widget
     return InputDecorator(
       decoration:
           InputDecoration(labelText: 'Mesa', border: OutlineInputBorder()),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<int>(
-          key: ValueKey<int?>(
-              state.selectedTableId), // Clave que cambia con el estado
-          value: state.selectedTableId,
+          key: ValueKey<int?>(state.selectedTableId),
+          value:
+              state.tables?.any((table) => table.id == state.selectedTableId) ??
+                      false
+                  ? state.selectedTableId
+                  : null,
           isExpanded: true,
           onChanged: (int? newValue) {
+            print('newValuett: $newValue');
             if (newValue != null) {
               bloc.add(TableSelected(tableId: newValue));
             }

@@ -2,12 +2,12 @@ import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/ProductObservation.dart';
 
 class SelectedProductObservation {
-  final int id;
-  OrderItem? orderItem;
-  ProductObservation? productObservation;
+  final int? id;
+  final OrderItem? orderItem;
+  final ProductObservation? productObservation;
 
   SelectedProductObservation({
-    required this.id,
+    this.id,
     this.orderItem,
     this.productObservation,
   });

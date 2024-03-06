@@ -1,5 +1,4 @@
 import 'package:app/src/domain/models/Category.dart';
-import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/domain/models/Subcategory.dart';
@@ -7,18 +6,21 @@ import 'package:equatable/equatable.dart';
 import 'package:app/src/domain/models/Area.dart';
 import 'package:app/src/domain/models/Table.dart' as TableModel;
 import 'package:app/src/domain/utils/Resource.dart';
+import 'package:flutter/material.dart';
 
 enum OrderCreationStep {
   orderTypeSelection,
+  phoneNumberInput,
   tableSelection,
   productSelection,
   orderSummary
 }
 
-enum OrderType { delivery, takeout, dineIn }
+enum OrderType { delivery, pickUpWait, dineIn }
 
 class OrderCreationState extends Equatable {
   final OrderType? selectedOrderType;
+  final String? phoneNumber;
   final List<Area>? areas;
   final List<TableModel.Table>? tables;
   final int? selectedAreaId;
@@ -30,15 +32,17 @@ class OrderCreationState extends Equatable {
   final int? selectedSubcategoryId;
   final List<Subcategory>? filteredSubcategories;
   final List<Product>? filteredProducts;
-  final Product? selectedProductForPersonalization;
-  final List<Product>? productsSelected;
   final List<OrderItem>? orderItems;
-  final Order? currentOrder;
+  final String? deliveryAddress;
+  final String? customerName;
+  final String? comments;
+  final TimeOfDay? selectedTime;
   final Resource? response;
   final OrderCreationStep? step;
 
   const OrderCreationState({
     this.selectedOrderType,
+    this.phoneNumber,
     this.areas,
     this.tables,
     this.selectedAreaId,
@@ -50,16 +54,18 @@ class OrderCreationState extends Equatable {
     this.selectedSubcategoryId,
     this.filteredSubcategories,
     this.filteredProducts,
-    this.selectedProductForPersonalization,
-    this.productsSelected,
     this.orderItems,
-    this.currentOrder,
+    this.deliveryAddress,
+    this.customerName,
+    this.comments,
+    this.selectedTime,
     this.response,
     this.step,
   });
 
   OrderCreationState copyWith({
     OrderType? selectedOrderType,
+    String? phoneNumber,
     List<Area>? areas,
     List<TableModel.Table>? tables,
     int? selectedAreaId,
@@ -71,14 +77,17 @@ class OrderCreationState extends Equatable {
     int? selectedSubcategoryId,
     List<Subcategory>? filteredSubcategories,
     List<Product>? filteredProducts,
-    Product? selectedProductForPersonalization,
-    List<Product>? productsSelected,
     List<OrderItem>? orderItems,
+    String? deliveryAddress,
+    String? customerName,
+    String? comments,
+    TimeOfDay? selectedTime,
     Resource? response,
     OrderCreationStep? step,
   }) {
     return OrderCreationState(
       selectedOrderType: selectedOrderType ?? this.selectedOrderType,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
       areas: areas ?? this.areas,
       tables: tables ?? this.tables,
       selectedAreaId: selectedAreaId ?? this.selectedAreaId,
@@ -92,11 +101,11 @@ class OrderCreationState extends Equatable {
       filteredSubcategories:
           filteredSubcategories ?? this.filteredSubcategories,
       filteredProducts: filteredProducts ?? this.filteredProducts,
-      selectedProductForPersonalization: selectedProductForPersonalization ??
-          this.selectedProductForPersonalization,
-      productsSelected: productsSelected ?? this.productsSelected,
       orderItems: orderItems ?? this.orderItems,
-      currentOrder: currentOrder ?? this.currentOrder,
+      deliveryAddress: deliveryAddress ?? this.deliveryAddress,
+      customerName: customerName ?? this.customerName,
+      comments: comments ?? this.comments,
+      selectedTime: selectedTime ?? this.selectedTime,
       response: response ?? this.response,
       step: step ?? this.step,
     );
@@ -105,6 +114,7 @@ class OrderCreationState extends Equatable {
   @override
   List<Object?> get props => [
         selectedOrderType,
+        phoneNumber,
         areas,
         tables,
         selectedAreaId,
@@ -116,10 +126,11 @@ class OrderCreationState extends Equatable {
         selectedSubcategoryId,
         filteredSubcategories,
         filteredProducts,
-        selectedProductForPersonalization,
-        productsSelected,
         orderItems,
-        currentOrder,
+        deliveryAddress,
+        customerName,
+        comments,
+        selectedTime,
         response,
         step,
       ];

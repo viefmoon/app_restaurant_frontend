@@ -138,10 +138,8 @@ class ProductSelectionPage extends StatelessWidget {
                     (product.pizzaFlavors?.isNotEmpty ?? false);
 
             if (!requiresPersonalization) {
-              // Crea un OrderItem a partir del producto seleccionado
               final orderItem = OrderItem(
                 product: product,
-                // Inicializa los campos necesarios con valores predeterminados o nulos
                 id: null,
                 status: null,
                 comments: null,
@@ -150,13 +148,19 @@ class ProductSelectionPage extends StatelessWidget {
                 selectedModifiers: [],
                 selectedProductObservations: [],
                 pizzaFlavor: null,
+                price: product.price,
                 orderItemUpdates: [],
               );
 
-              // Agrega el OrderItem al estado actual
               bloc.add(AddOrderItem(orderItem: orderItem));
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Producto agregado'),
+                  duration: Duration(milliseconds: 300),
+                ),
+              );
             } else {
-              // Navega a la pantalla de personalización si es necesario
               Navigator.push(
                 context,
                 MaterialPageRoute(
