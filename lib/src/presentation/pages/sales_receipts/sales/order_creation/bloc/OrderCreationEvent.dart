@@ -1,6 +1,6 @@
+import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/Product.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationState.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
@@ -21,6 +21,15 @@ class ResetTableSelection extends OrderCreationEvent {
 
   @override
   List<Object> get props => [];
+}
+
+class UpdateOrderItem extends OrderCreationEvent {
+  final OrderItem orderItem;
+
+  const UpdateOrderItem({required this.orderItem});
+
+  @override
+  List<Object> get props => [orderItem];
 }
 
 class PhoneNumberEntered extends OrderCreationEvent {
@@ -48,6 +57,15 @@ class CustomerNameEntered extends OrderCreationEvent {
 
   @override
   List<Object> get props => [customerName];
+}
+
+class OrderCommentsEntered extends OrderCreationEvent {
+  final String comments;
+
+  const OrderCommentsEntered({required this.comments});
+
+  @override
+  List<Object> get props => [comments];
 }
 
 class TimeSelected extends OrderCreationEvent {
@@ -131,4 +149,11 @@ class AddOrderItem extends OrderCreationEvent {
 
   @override
   List<Object> get props => [orderItem];
+}
+
+class SendOrder extends OrderCreationEvent {
+  const SendOrder();
+
+  @override
+  List<Object> get props => [];
 }

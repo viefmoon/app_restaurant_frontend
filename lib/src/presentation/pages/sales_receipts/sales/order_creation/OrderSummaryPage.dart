@@ -1,9 +1,11 @@
+import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationEvent.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationState.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/ProductPersonalizationPage.dart';
 
 class OrderSummaryPage extends StatefulWidget {
   @override
@@ -20,7 +22,9 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
   late TextEditingController _customerNameController;
-  TimeOfDay? _selectedTime; // Hacerlo nullable
+  late TextEditingController _commentsController;
+
+  TimeOfDay? _selectedTime;
   bool _isTimePickerEnabled = false;
 
   @override
@@ -29,6 +33,7 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
     _phoneController = TextEditingController(text: "");
     _addressController = TextEditingController(text: "");
     _customerNameController = TextEditingController(text: "");
+    _commentsController = TextEditingController(text: "");
   }
 
   @override
@@ -36,6 +41,7 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
     _phoneController.dispose();
     _addressController.dispose();
     _customerNameController.dispose();
+    _commentsController.dispose();
     super.dispose();
   }
 
@@ -58,8 +64,10 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
       ),
       body: BlocBuilder<OrderCreationBloc, OrderCreationState>(
         builder: (context, state) {
-          // Actualizar el controlador del teléfono con el valor actual del estado
           _phoneController.text = state.phoneNumber ?? "";
+          _addressController.text = state.deliveryAddress ?? "";
+          _customerNameController.text = state.customerName ?? "";
+          _commentsController.text = state.comments ?? "";
 
           List<Widget> headerDetails = [];
           headerDetails.add(Padding(
@@ -92,7 +100,6 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                   items: OrderType.values.map((OrderType type) {
                     return DropdownMenuItem<OrderType>(
                       value: type,
-                      // Usar el mapa para obtener la traducción al español
                       child:
                           Text(_orderTypeTranslations[type] ?? type.toString()),
                     );
@@ -191,7 +198,9 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (value) {
-                    // Aquí puedes actualizar el estado con el nuevo nombre del cliente, si es necesario
+                    BlocProvider.of<OrderCreationBloc>(context).add(
+                      CustomerNameEntered(customerName: value),
+                    );
                   },
                 ),
               ));
@@ -199,6 +208,32 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
             default:
               break;
           }
+          // Añadir campo de comentarios debajo de todos los detalles de la cabecera
+          headerDetails.add(Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+            child: TextField(
+              controller: _commentsController,
+              decoration: InputDecoration(
+                labelText: 'Comentarios',
+                hintText: 'Ingresa comentarios sobre la orden',
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide(color: Colors.green, width: 2.0),
+                ),
+              ),
+              onChanged: (value) {
+                BlocProvider.of<OrderCreationBloc>(context)
+                    .add(OrderCommentsEntered(comments: value));
+              },
+            ),
+          ));
           headerDetails.add(
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -239,7 +274,7 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
 
           return ListView.builder(
             itemCount: (state.orderItems?.length ?? 0) +
-                2, // Añade +2 en lugar de +1 para incluir el total
+                3, // Añade +3 para incluir el total y el botón de enviar
             itemBuilder: (context, index) {
               if (index == 0) {
                 return Column(
@@ -270,21 +305,34 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                       Text('Sabor de Pizza: ${orderItem.pizzaFlavor?.name}'));
                 }
 
-                return ListTile(
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Text(orderItem.product?.name ?? ''),
+                return InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProductPersonalizationPage(
+                          product: orderItem.product!,
+                          existingOrderItem: orderItem,
+                        ),
                       ),
-                      Text('\$${orderItem.price?.toStringAsFixed(2) ?? ''}'),
-                    ],
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: details,
+                    );
+                  },
+                  child: ListTile(
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Text(orderItem.product?.name ?? ''),
+                        ),
+                        Text('\$${orderItem.price?.toStringAsFixed(2) ?? ''}'),
+                      ],
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: details,
+                    ),
                   ),
                 );
-              } else {
+              } else if (index == (state.orderItems?.length ?? 0) + 1) {
                 // Widget para mostrar el total
                 return ListTile(
                   title: Text(
@@ -302,53 +350,25 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                     ),
                   ),
                 );
+              } else {
+                // Nuevo widget para el botón de enviar orden
+                return Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: ElevatedButton(
+                    onPressed: () => _sendOrder(context, state),
+                    child: Text('Enviar orden'),
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.blue,
+                      textStyle: TextStyle(fontSize: 20),
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
+                );
               }
             },
           );
         },
       ),
-      floatingActionButton: BlocBuilder<OrderCreationBloc, OrderCreationState>(
-        builder: (context, state) {
-          bool isButtonEnabled = false;
-          if (state.orderItems != null && state.orderItems!.isNotEmpty) {
-            switch (state.selectedOrderType) {
-              case OrderType.dineIn:
-                isButtonEnabled = state.selectedAreaId != null &&
-                    state.selectedTableId != null;
-                break;
-              case OrderType.delivery:
-                isButtonEnabled = state.deliveryAddress != null &&
-                    state.deliveryAddress!.isNotEmpty;
-                break;
-              case OrderType.pickUpWait:
-                isButtonEnabled = _customerNameController.text.isNotEmpty;
-                break;
-              default:
-                break;
-            }
-          }
-          return Theme(
-            data: Theme.of(context).copyWith(
-              floatingActionButtonTheme: FloatingActionButtonThemeData(
-                shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(5.0), // Esquinas menos redondeadas
-                ),
-                extendedTextStyle: TextStyle(
-                  fontSize: 26, // Tamaño de letra más grande
-                ),
-              ),
-            ),
-            child: FloatingActionButton.extended(
-              onPressed:
-                  isButtonEnabled ? () => _sendOrder(context, state) : null,
-              backgroundColor: isButtonEnabled ? Colors.blue : Colors.grey,
-              label: Text('Enviar orden'),
-            ),
-          );
-        },
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
@@ -385,7 +405,6 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
               if (newValue != null) {
                 BlocProvider.of<OrderCreationBloc>(context)
                     .add(AreaSelected(areaId: newValue));
-                // Asegúrate de que el evento AreaSelected maneje el reseteo de la selección de la mesa y la carga de las nuevas mesas.
               }
             },
             items: state.areas!.map<DropdownMenuItem<int>>((area) {
@@ -422,7 +441,7 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                         ?.any((table) => table.id == state.selectedTableId) ??
                     false
                 ? state.selectedTableId
-                : null, // Asegúrate de que el valor actual sea nulo si el ID seleccionado no está en las mesas cargadas
+                : null,
             isExpanded: true,
             onChanged: (int? newValue) {
               if (newValue != null) {
@@ -470,7 +489,10 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
   }
 
   void _sendOrder(BuildContext context, OrderCreationState state) {
-    // Implementa la lógica para enviar la orden aquí.
-    // Por ejemplo, puedes llamar a un evento de Bloc para procesar la orden.
+    BlocProvider.of<OrderCreationBloc>(context).add(SendOrder());
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Orden enviada con éxito')),
+    );
+    Navigator.popUntil(context, ModalRoute.withName('salesHome'));
   }
 }

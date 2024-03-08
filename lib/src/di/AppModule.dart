@@ -1,11 +1,13 @@
 import 'package:app/src/data/dataSource/local/SharedPref.dart';
 import 'package:app/src/data/dataSource/remote/services/AreasService.dart';
 import 'package:app/src/data/dataSource/remote/services/CategoriesService.dart';
+import 'package:app/src/data/dataSource/remote/services/OrdersService.dart';
 import 'package:app/src/data/dataSource/remote/services/UsersService.dart';
 import 'package:app/src/data/repositories/AreasRepositoryImpl.dart';
 import 'package:app/src/data/repositories/AuthRepositoryImpl.dart';
 import 'package:app/src/data/dataSource/remote/services/AuthService.dart';
 import 'package:app/src/data/repositories/CategoriesRepositoryImpl.dart';
+import 'package:app/src/data/repositories/OrdersRepositoryImpl.dart';
 import 'package:app/src/data/repositories/UsersRepositoryImpl.dart';
 import 'package:app/src/data/dataSource/remote/services/RolesService.dart';
 import 'package:app/src/data/repositories/RolesRepositoryImpl.dart';
@@ -13,6 +15,7 @@ import 'package:app/src/domain/models/AuthResponse.dart';
 import 'package:app/src/domain/repositories/AreasRepository.dart';
 import 'package:app/src/domain/repositories/AuthRepository.dart';
 import 'package:app/src/domain/repositories/CategoriesRepository.dart';
+import 'package:app/src/domain/repositories/OrdersRepository.dart';
 import 'package:app/src/domain/repositories/UsersRepository.dart';
 import 'package:app/src/domain/repositories/RolesRepository.dart';
 import 'package:app/src/domain/useCases/areas/AreasUseCases.dart';
@@ -20,6 +23,9 @@ import 'package:app/src/domain/useCases/areas/GetAreasUseCase.dart';
 import 'package:app/src/domain/useCases/areas/GetTablesFromAreaUseCase.dart';
 import 'package:app/src/domain/useCases/categories/CategoriesUseCases.dart';
 import 'package:app/src/domain/useCases/categories/GetCategoriesWithProductsUseCase.dart';
+import 'package:app/src/domain/useCases/orders/CreateOrderUseCase.dart';
+import 'package:app/src/domain/useCases/orders/GetOpenOrdersUseCase.dart';
+import 'package:app/src/domain/useCases/orders/OrdersUseCases.dart';
 import 'package:app/src/domain/useCases/roles/RolesUseCases.dart';
 import 'package:app/src/domain/useCases/auth/AuthUseCases.dart';
 import 'package:app/src/domain/useCases/auth/GetUserSessionUseCase.dart';
@@ -63,6 +69,8 @@ abstract class AppModule {
 
   CategoriesService get categoriesService => CategoriesService();
 
+  OrdersService get ordersService => OrdersService();
+
   //REPOSITORIES
 
   @injectable
@@ -79,6 +87,8 @@ abstract class AppModule {
 
   CategoriesRepository get categoriesRepository =>
       CategoriesRepositoryImpl(categoriesService);
+
+  OrdersRepository get ordersRepository => OrdersRepositoryImpl(ordersService);
 
 // USE CASES
   @injectable
@@ -105,4 +115,8 @@ abstract class AppModule {
   CategoriesUseCases get categoriesUseCases => CategoriesUseCases(
       getCategoriesWithProducts:
           GetCategoriesWithProductsUseCase(categoriesRepository));
+
+  OrdersUseCases get ordersUseCases => OrdersUseCases(
+      createOrder: CreateOrderUseCase(ordersRepository),
+      getOpenOrders: GetOpenOrdersUseCase(ordersRepository));
 }

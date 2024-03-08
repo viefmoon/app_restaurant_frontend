@@ -1,3 +1,4 @@
+import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderSummaryPage.dart'; // Asegúrate de importar OrderSummaryPage
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderTypeSelectionPage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/PhoneNumberInputPage.dart';

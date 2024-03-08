@@ -1,8 +1,10 @@
 import 'package:app/src/domain/models/Category.dart';
+import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/domain/models/Subcategory.dart';
 import 'package:app/src/domain/useCases/categories/CategoriesUseCases.dart';
+import 'package:app/src/domain/useCases/orders/OrdersUseCases.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationEvent.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationState.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,14 +17,18 @@ import 'package:collection/collection.dart';
 class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
   final AreasUseCases areasUseCases;
   final CategoriesUseCases categoriesUseCases;
+  final OrdersUseCases ordersUseCases;
 
   OrderCreationBloc(
-      {required this.categoriesUseCases, required this.areasUseCases})
+      {required this.categoriesUseCases,
+      required this.areasUseCases,
+      required this.ordersUseCases})
       : super(OrderCreationState()) {
     on<OrderTypeSelected>(_onOrderTypeSelected);
     on<PhoneNumberEntered>(_onPhoneNumberEntered);
     on<DeliveryAddressEntered>(_onDeliveryAddressEntered);
     on<CustomerNameEntered>(_onCustomerNameEntered);
+    on<OrderCommentsEntered>(_onOrderCommentsEntered);
     on<TimeSelected>(_onTimeSelected);
     on<AreaSelected>(_onAreaSelected);
     on<TableSelected>(_onTableSelected);
@@ -34,7 +40,9 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
     on<SubcategorySelected>(_onSubcategorySelected);
     on<ProductSelected>(_onProductSelected);
     on<AddOrderItem>(_onAddOrderItem);
+    on<UpdateOrderItem>(_onUpdateOrderItem);
     on<ResetTableSelection>(_onResetTableSelection);
+    on<SendOrder>(_onSendOrder);
     on<ResetOrder>(_onResetOrder);
   }
 
@@ -93,19 +101,22 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
 
   Future<void> _onDeliveryAddressEntered(
       DeliveryAddressEntered event, Emitter<OrderCreationState> emit) async {
-    // Actualiza el estado con la nueva dirección de entrega
     emit(state.copyWith(deliveryAddress: event.deliveryAddress));
   }
 
   Future<void> _onCustomerNameEntered(
       CustomerNameEntered event, Emitter<OrderCreationState> emit) async {
-    // Actualiza el estado con el nuevo nombre del cliente
     emit(state.copyWith(customerName: event.customerName));
+  }
+
+  Future<void> _onOrderCommentsEntered(
+      OrderCommentsEntered event, Emitter<OrderCreationState> emit) async {
+    emit(state.copyWith(comments: event.comments));
   }
 
   Future<void> _onTimeSelected(
       TimeSelected event, Emitter<OrderCreationState> emit) async {
-    emit(state.copyWith(selectedTime: event.time));
+    emit(state.copyWith(scheduledDeliveryTime: event.time));
   }
 
   Future<void> _onAreaSelected(
@@ -115,14 +126,7 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
         state.areas?.firstWhere((area) => area.id == event.areaId).name;
     emit(state.copyWith(selectedAreaName: areaName));
 
-    // Emitir el evento ResetTableSelection
     add(ResetTableSelection());
-
-    // No es recomendable esperar a que el estado se actualice inmediatamente después de emitir un evento aquí.
-    // En su lugar, considera reaccionar a los cambios de estado en la UI con BlocListener o similar.
-
-    // Continuar con la carga de las mesas para el área seleccionada
-    // Esto se manejará de forma asíncrona y no necesita esperar explícitamente aquí.
     add(LoadTables(areaId: event.areaId));
   }
 
@@ -130,9 +134,6 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
       ResetTableSelection event, Emitter<OrderCreationState> emit) async {
     emit(state.copyWith(
         tables: const [], selectedTableId: null, selectedTableNumber: null));
-    // Las impresiones aquí reflejarán el estado inmediatamente después de la actualización.
-    print('selectedTableIdR: ${state.selectedTableId}');
-    print('selectedTableNumberR: ${state.selectedTableNumber}');
   }
 
   Future<void> _onTableSelected(
@@ -274,6 +275,62 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
     // Imprime los nombres de todos los OrderItems
     for (var orderItem in updatedOrderItems) {
       print('Nombre del OrderItem: ${orderItem.product?.name}');
+    }
+  }
+
+  Future<void> _onUpdateOrderItem(
+      UpdateOrderItem event, Emitter<OrderCreationState> emit) async {
+    final updatedOrderItems = state.orderItems?.map((orderItem) {
+          return orderItem.tempId == event.orderItem.tempId
+              ? event.orderItem
+              : orderItem;
+        }).toList() ??
+        [];
+    emit(state.copyWith(orderItems: updatedOrderItems));
+  }
+
+  Future<void> _onSendOrder(
+      SendOrder event, Emitter<OrderCreationState> emit) async {
+    DateTime? scheduledDeliveryDateTime;
+    if (state.scheduledDeliveryTime != null) {
+      final now = DateTime.now();
+      scheduledDeliveryDateTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        state.scheduledDeliveryTime!.hour,
+        state.scheduledDeliveryTime!.minute,
+      );
+    }
+
+    Order order = Order(
+      orderType: state.selectedOrderType,
+      status: OrderStatus.created,
+      totalCost: state.totalCost,
+      comments: state.comments,
+      creationDate: DateTime.now(),
+      phoneNumber: state.phoneNumber,
+      deliveryAddress: state.deliveryAddress,
+      customerName: state.customerName,
+      scheduledDeliveryTime: scheduledDeliveryDateTime,
+
+      // Construye el objeto Area basado en selectedAreaId
+      area: state.areas
+          ?.firstWhereOrNull((area) => area.id == state.selectedAreaId),
+      // Construye el objeto Table basado en selectedTableId
+      table: state.tables
+          ?.firstWhereOrNull((table) => table.id == state.selectedTableId),
+      orderItems: state.orderItems,
+    );
+
+    final result = await ordersUseCases.createOrder.run(order);
+
+    if (result is Success<Order>) {
+      // Maneja el éxito, por ejemplo, mostrando un mensaje
+      print('Orden creada con éxito: ${result.data.id}');
+    } else if (result is Error<Order>) {
+      // Maneja el error, por ejemplo, mostrando un mensaje de error
+      print('Error al crear la orden: ${result.message}');
     }
   }
 }

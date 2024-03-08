@@ -49,6 +49,8 @@ dependencies:
   flutter_image_slideshow: ^0.1.6
   flutter_credit_card: ^4.0.1
   collection: ^1.15.0
+  uuid: ^3.0.4
+  intl: ^0.17.0
 
 
 

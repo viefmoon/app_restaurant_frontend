@@ -8,6 +8,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:app/src/presentation/pages/auth/register/RegisterPage.dart';
 
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await configureDependencies();
@@ -49,6 +51,7 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Demo',
         theme: theme, // Usa el tema personalizado aquí
         initialRoute: 'login',
+        navigatorObservers: [routeObserver], // Añade el RouteObserver aquí
         routes: {
           'login': (BuildContext context) => LoginPage(),
           'register': (BuildContext context) => RegisterPage(),

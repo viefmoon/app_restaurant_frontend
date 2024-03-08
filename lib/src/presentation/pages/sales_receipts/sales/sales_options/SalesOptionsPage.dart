@@ -1,3 +1,4 @@
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/OpenOrdersPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderCreationContainer.dart';
@@ -35,8 +36,10 @@ class _SalesOptionsPageState extends State<SalesOptionsPage> {
           SizedBox(height: 20), // Espacio entre botones
           ElevatedButton(
             onPressed: () {
-              // Acción para "Órdenes abiertas" aún no definida
-              // Navigator.pushNamed(context, 'ruta_a_definir');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => OpenOrdersPage()),
+              );
             },
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 70, vertical: 20),

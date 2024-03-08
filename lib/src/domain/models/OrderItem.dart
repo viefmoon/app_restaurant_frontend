@@ -5,11 +5,13 @@ import 'package:app/src/domain/models/ProductVariant.dart';
 import 'package:app/src/domain/models/SelectedModifier.dart';
 import 'package:app/src/domain/models/SelectedProductObservation.dart';
 import 'package:app/src/domain/models/Order.dart' as OrderModel;
+import 'package:uuid/uuid.dart';
 
-enum OrderItemStatus { creado, enPreparacion, finalizado }
+enum OrderItemStatus { created, inPreparation, finished }
 
 class OrderItem {
   final int? id;
+  final String tempId;
   OrderItemStatus? status;
   String? comments;
   OrderModel.Order? order;
@@ -23,6 +25,7 @@ class OrderItem {
 
   OrderItem({
     this.id,
+    String? tempId,
     this.status,
     this.comments,
     this.order,
@@ -33,7 +36,7 @@ class OrderItem {
     this.pizzaFlavor,
     this.price,
     this.orderItemUpdates,
-  });
+  }) : this.tempId = tempId ?? Uuid().v4();
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
@@ -41,7 +44,6 @@ class OrderItem {
       status: OrderItemStatus.values
           .firstWhere((e) => e.toString().split(".").last == json['status']),
       comments: json['comments'],
-      // Las siguientes líneas asumen la existencia de métodos fromJson para cada modelo relacionado
       order: json['order'] != null
           ? OrderModel.Order.fromJson(json['order'])
           : null,
@@ -63,7 +65,9 @@ class OrderItem {
       pizzaFlavor: json['pizzaFlavor'] != null
           ? PizzaFlavor.fromJson(json['pizzaFlavor'])
           : null,
-      price: json['price'],
+      price: json['price'] != null
+          ? double.tryParse(json['price'].toString())
+          : null,
       orderItemUpdates: json['orderItemUpdates'] != null
           ? (json['orderItemUpdates'] as List)
               .map((i) => OrderItemUpdate.fromJson(i))
@@ -101,5 +105,36 @@ class OrderItem {
           orderItemUpdates!.map((v) => v.toJson()).toList();
     }
     return data;
+  }
+
+  OrderItem copyWith({
+    int? id,
+    String? tempId,
+    OrderItemStatus? status,
+    String? comments,
+    OrderModel.Order? order,
+    Product? product,
+    ProductVariant? productVariant,
+    List<SelectedModifier>? selectedModifiers,
+    List<SelectedProductObservation>? selectedProductObservations,
+    PizzaFlavor? pizzaFlavor,
+    double? price,
+    List<OrderItemUpdate>? orderItemUpdates,
+  }) {
+    return OrderItem(
+      id: id ?? this.id,
+      tempId: tempId ?? this.tempId,
+      status: status ?? this.status,
+      comments: comments ?? this.comments,
+      order: order ?? this.order,
+      product: product ?? this.product,
+      productVariant: productVariant ?? this.productVariant,
+      selectedModifiers: selectedModifiers ?? this.selectedModifiers,
+      selectedProductObservations:
+          selectedProductObservations ?? this.selectedProductObservations,
+      pizzaFlavor: pizzaFlavor ?? this.pizzaFlavor,
+      price: price ?? this.price,
+      orderItemUpdates: orderItemUpdates ?? this.orderItemUpdates,
+    );
   }
 }
