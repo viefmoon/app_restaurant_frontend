@@ -8,6 +8,10 @@ import 'package:app/src/presentation/pages/auth/login/bloc/LoginBloc.dart';
 import 'package:app/src/presentation/pages/auth/login/bloc/LoginEvent.dart';
 import 'package:app/src/presentation/pages/auth/register/bloc/RegisterBloc.dart';
 import 'package:app/src/presentation/pages/auth/register/bloc/RegisterEvent.dart';
+import 'package:app/src/presentation/pages/preparation/bar/home/bloc/BarHomeBloc.dart';
+import 'package:app/src/presentation/pages/preparation/hamburger/home/bloc/HamburgerHomeBloc.dart';
+import 'package:app/src/presentation/pages/preparation/kitchen/home/bloc/KitchenHomeBloc.dart';
+import 'package:app/src/presentation/pages/preparation/pizza/home/bloc/PizzaHomeBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/home/bloc/SalesHomeBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateBloc.dart';
@@ -31,6 +35,14 @@ List<BlocProvider> blocProviders = [
   BlocProvider<OrderUpdateBloc>(
       create: (context) => OrderUpdateBloc(
           ordersUseCases: locator<OrdersUseCases>(),
-          areasUseCases:
-              locator<AreasUseCases>())), // Añade los paréntesis aquí
+          areasUseCases: locator<AreasUseCases>())),
+  BlocProvider<PizzaHomeBloc>(
+      create: (context) => PizzaHomeBloc(locator<AuthUseCases>())),
+  BlocProvider<KitchenHomeBloc>(
+      create: (context) => KitchenHomeBloc(locator<AuthUseCases>())),
+  BlocProvider<HamburgerHomeBloc>(
+      create: (context) => HamburgerHomeBloc(locator<AuthUseCases>())),
+  BlocProvider<BarHomeBloc>(
+      create: (context) => BarHomeBloc(locator<AuthUseCases>())),
+  // Añade los paréntesis aquí
 ];

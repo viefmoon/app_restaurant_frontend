@@ -1,3 +1,7 @@
+import 'package:app/src/presentation/pages/preparation/bar/home/BarHomePage.dart';
+import 'package:app/src/presentation/pages/preparation/hamburger/home/HamburgerHomePage.dart';
+import 'package:app/src/presentation/pages/preparation/kitchen/home/KitchenHomePage.dart';
+import 'package:app/src/presentation/pages/preparation/pizza/home/PizzaHomePage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/home/SalesHomePage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderCreationContainer.dart';
 import 'injection.dart';
@@ -7,8 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:app/src/presentation/pages/auth/register/RegisterPage.dart';
-
-final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,12 +53,15 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Demo',
         theme: theme, // Usa el tema personalizado aquí
         initialRoute: 'login',
-        navigatorObservers: [routeObserver], // Añade el RouteObserver aquí
         routes: {
           'login': (BuildContext context) => LoginPage(),
           'register': (BuildContext context) => RegisterPage(),
           'salesHome': (BuildContext context) => SalesHomePage(),
           'order/create': (BuildContext context) => OrderCreationContainer(),
+          'hamburgerHome': (BuildContext context) => HamburgerHomePage(),
+          'pizzaHome': (BuildContext context) => PizzaHomePage(),
+          'barHome': (BuildContext context) => BarHomePage(),
+          'kitchenHome': (BuildContext context) => KitchenHomePage(),
         },
       ),
     );
