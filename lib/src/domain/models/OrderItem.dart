@@ -3,6 +3,8 @@ import 'package:app/src/domain/models/PizzaFlavor.dart';
 import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/domain/models/ProductVariant.dart';
 import 'package:app/src/domain/models/SelectedModifier.dart';
+import 'package:app/src/domain/models/SelectedPizzaFlavor.dart';
+import 'package:app/src/domain/models/SelectedPizzaIngredient.dart';
 import 'package:app/src/domain/models/SelectedProductObservation.dart';
 import 'package:app/src/domain/models/Order.dart' as OrderModel;
 import 'package:uuid/uuid.dart';
@@ -19,7 +21,8 @@ class OrderItem {
   ProductVariant? productVariant;
   List<SelectedModifier>? selectedModifiers;
   List<SelectedProductObservation>? selectedProductObservations;
-  PizzaFlavor? pizzaFlavor;
+  List<SelectedPizzaFlavor>? selectedPizzaFlavors;
+  List<SelectedPizzaIngredient>? selectedPizzaIngredients;
   double? price;
   List<OrderItemUpdate>? orderItemUpdates;
 
@@ -33,10 +36,11 @@ class OrderItem {
     this.productVariant,
     this.selectedModifiers,
     this.selectedProductObservations,
-    this.pizzaFlavor,
+    this.selectedPizzaFlavors,
+    this.selectedPizzaIngredients,
     this.price,
     this.orderItemUpdates,
-  }) : this.tempId = tempId ?? Uuid().v4();
+  }) : tempId = tempId ?? Uuid().v4();
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
@@ -62,8 +66,15 @@ class OrderItem {
               .map((i) => SelectedProductObservation.fromJson(i))
               .toList()
           : null,
-      pizzaFlavor: json['pizzaFlavor'] != null
-          ? PizzaFlavor.fromJson(json['pizzaFlavor'])
+      selectedPizzaFlavors: json['selectedPizzaFlavors'] != null
+          ? (json['selectedPizzaFlavors'] as List)
+              .map((i) => SelectedPizzaFlavor.fromJson(i))
+              .toList()
+          : null,
+      selectedPizzaIngredients: json['selectedPizzaIngredients'] != null
+          ? (json['selectedPizzaIngredients'] as List)
+              .map((i) => SelectedPizzaIngredient.fromJson(i))
+              .toList()
           : null,
       price: json['price'] != null
           ? double.tryParse(json['price'].toString())
@@ -94,8 +105,13 @@ class OrderItem {
       data['selectedProductObservations'] =
           selectedProductObservations!.map((v) => v.toJson()).toList();
     }
-    if (pizzaFlavor != null) {
-      data['pizzaFlavor'] = pizzaFlavor!.toJson();
+    if (selectedPizzaFlavors != null) {
+      data['selectedPizzaFlavors'] =
+          selectedPizzaFlavors!.map((v) => v.toJson()).toList();
+    }
+    if (selectedPizzaIngredients != null) {
+      data['selectedPizzaIngredients'] =
+          selectedPizzaIngredients!.map((v) => v.toJson()).toList();
     }
     if (price != null) {
       data['price'] = price;
@@ -117,7 +133,8 @@ class OrderItem {
     ProductVariant? productVariant,
     List<SelectedModifier>? selectedModifiers,
     List<SelectedProductObservation>? selectedProductObservations,
-    PizzaFlavor? pizzaFlavor,
+    List<SelectedPizzaFlavor>? selectedPizzaFlavors,
+    List<SelectedPizzaIngredient>? selectedPizzaIngredients,
     double? price,
     List<OrderItemUpdate>? orderItemUpdates,
   }) {
@@ -132,7 +149,9 @@ class OrderItem {
       selectedModifiers: selectedModifiers ?? this.selectedModifiers,
       selectedProductObservations:
           selectedProductObservations ?? this.selectedProductObservations,
-      pizzaFlavor: pizzaFlavor ?? this.pizzaFlavor,
+      selectedPizzaFlavors: selectedPizzaFlavors ?? this.selectedPizzaFlavors,
+      selectedPizzaIngredients:
+          selectedPizzaIngredients ?? this.selectedPizzaIngredients,
       price: price ?? this.price,
       orderItemUpdates: orderItemUpdates ?? this.orderItemUpdates,
     );

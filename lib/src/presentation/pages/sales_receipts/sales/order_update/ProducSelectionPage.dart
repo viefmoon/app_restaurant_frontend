@@ -9,6 +9,8 @@ import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/b
 import 'package:uuid/uuid.dart';
 
 class ProductSelectionPage extends StatelessWidget {
+  const ProductSelectionPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     final OrderCreationBloc bloc = BlocProvider.of<OrderCreationBloc>(context);
@@ -34,13 +36,13 @@ class ProductSelectionPage extends StatelessWidget {
                                 bloc.add(
                                     CategorySelected(categoryId: category.id));
                               },
-                              child: Text(category.name,
-                                  style: TextStyle(fontSize: 20)),
                               style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
+                              child: Text(category.name,
+                                  style: TextStyle(fontSize: 20)),
                             ),
                           ),
                         ),
@@ -97,13 +99,13 @@ class ProductSelectionPage extends StatelessWidget {
             onPressed: () {
               bloc.add(SubcategorySelected(subcategoryId: subcategory.id));
             },
-            child: Text(subcategory.name),
             style: ElevatedButton.styleFrom(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
               padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
             ),
+            child: Text(subcategory.name),
           );
         },
         shrinkWrap: true,
@@ -150,7 +152,6 @@ class ProductSelectionPage extends StatelessWidget {
                 productVariant: null,
                 selectedModifiers: [],
                 selectedProductObservations: [],
-                pizzaFlavor: null,
                 price: product.price,
                 orderItemUpdates: [],
               );

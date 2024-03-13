@@ -8,6 +8,8 @@ import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/b
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/ProductPersonalizationPage.dart';
 
 class OrderSummaryPage extends StatefulWidget {
+  const OrderSummaryPage({super.key});
+
   @override
   _OrderSummaryPageState createState() => _OrderSummaryPageState();
 }
@@ -295,14 +297,27 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                   details.add(Text(
                       'Modificadores: ${orderItem.selectedModifiers!.map((m) => m.modifier?.name).join(', ')}'));
                 }
+                // Añadir detalles de sabores de pizza seleccionados
+                if (orderItem.selectedPizzaFlavors != null &&
+                    orderItem.selectedPizzaFlavors!.isNotEmpty) {
+                  details.add(Text(
+                      'Sabores de Pizza: ${orderItem.selectedPizzaFlavors!.map((f) => f.pizzaFlavor?.name).join(', ')}'));
+                }
+                // Añadir detalles de ingredientes de pizza seleccionados
+                if (orderItem.selectedPizzaIngredients != null &&
+                    orderItem.selectedPizzaIngredients!.isNotEmpty) {
+                  details.add(Text(
+                      'Ingredientes de Pizza: ${orderItem.selectedPizzaIngredients!.map((i) => i.pizzaIngredient?.name).join(', ')}'));
+                }
                 if (orderItem.selectedProductObservations != null &&
                     orderItem.selectedProductObservations!.isNotEmpty) {
                   details.add(Text(
                       'Observaciones: ${orderItem.selectedProductObservations!.map((o) => o.productObservation?.name).join(', ')}'));
                 }
-                if (orderItem.pizzaFlavor != null) {
-                  details.add(
-                      Text('Sabor de Pizza: ${orderItem.pizzaFlavor?.name}'));
+                // Añadir comentarios del item de orden si existen
+                if (orderItem.comments != null &&
+                    orderItem.comments!.isNotEmpty) {
+                  details.add(Text('Comentarios: ${orderItem.comments}'));
                 }
 
                 return InkWell(
@@ -356,12 +371,12 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                   padding: const EdgeInsets.all(10.0),
                   child: ElevatedButton(
                     onPressed: () => _sendOrder(context, state),
-                    child: Text('Enviar orden'),
                     style: ElevatedButton.styleFrom(
-                      primary: Colors.blue,
+                      backgroundColor: Colors.blue,
                       textStyle: TextStyle(fontSize: 20),
                       padding: EdgeInsets.symmetric(vertical: 10),
                     ),
+                    child: Text('Enviar orden'),
                   ),
                 );
               }
@@ -463,8 +478,9 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
   }
 
   Future<void> _selectTime(BuildContext context) async {
-    if (!_isTimePickerEnabled)
+    if (!_isTimePickerEnabled) {
       return; // No hacer nada si el selector de tiempo está deshabilitado
+    }
 
     final localContext =
         context; // Captura el contexto antes de la brecha asíncrona

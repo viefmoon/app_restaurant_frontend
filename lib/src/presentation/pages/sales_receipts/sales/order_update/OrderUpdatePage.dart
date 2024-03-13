@@ -6,10 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateEvent.dart';
-import 'package:intl/intl.dart';
 
 class OrderUpdatePage extends StatefulWidget {
-  OrderUpdatePage({Key? key}) : super(key: key);
+  const OrderUpdatePage({Key? key}) : super(key: key);
 
   @override
   _OrderUpdatePageState createState() => _OrderUpdatePageState();
@@ -130,7 +129,11 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                   // Añadir Dropdown para Mesa si el área está seleccionada
                   if (state.selectedOrderType == OrderType.dineIn &&
                       state.selectedAreaId != null &&
-                      state.tables != null) {
+                      state.tables != null &&
+                      state.selectedTableId != null) {
+                    print("selectedAreaId: ${state.selectedAreaId}");
+                    print("tables: ${state.tables}");
+                    print("selectedTableId: ${state.selectedTableId}");
                     headerDetails.add(_buildTableDropdown(context, state));
                   }
                   break;
@@ -308,14 +311,27 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                       details.add(Text(
                           'Modificadores: ${orderItem.selectedModifiers!.map((m) => m.modifier?.name).join(', ')}'));
                     }
+                    // Añadir detalles de sabores de pizza seleccionados
+                    if (orderItem.selectedPizzaFlavors != null &&
+                        orderItem.selectedPizzaFlavors!.isNotEmpty) {
+                      details.add(Text(
+                          'Sabores de Pizza: ${orderItem.selectedPizzaFlavors!.map((f) => f.pizzaFlavor?.name).join(', ')}'));
+                    }
+                    // Añadir detalles de ingredientes de pizza seleccionados
+                    if (orderItem.selectedPizzaIngredients != null &&
+                        orderItem.selectedPizzaIngredients!.isNotEmpty) {
+                      details.add(Text(
+                          'Ingredientes de Pizza: ${orderItem.selectedPizzaIngredients!.map((i) => i.pizzaIngredient?.name).join(', ')}'));
+                    }
                     if (orderItem.selectedProductObservations != null &&
                         orderItem.selectedProductObservations!.isNotEmpty) {
                       details.add(Text(
                           'Observaciones: ${orderItem.selectedProductObservations!.map((o) => o.productObservation?.name).join(', ')}'));
                     }
-                    if (orderItem.pizzaFlavor != null) {
-                      details.add(Text(
-                          'Sabor de Pizza: ${orderItem.pizzaFlavor?.name}'));
+                    // Añadir comentarios del item de orden si existen
+                    if (orderItem.comments != null &&
+                        orderItem.comments!.isNotEmpty) {
+                      details.add(Text('Comentarios: ${orderItem.comments}'));
                     }
 
                     return InkWell(
@@ -379,6 +395,7 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                     //   ),
                     // );
                   }
+                  return null;
                 },
               );
             },
@@ -468,8 +485,9 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
   }
 
   Future<void> _selectTime(BuildContext context) async {
-    if (!_isTimePickerEnabled)
+    if (!_isTimePickerEnabled) {
       return; // No hacer nada si el selector de tiempo está deshabilitado
+    }
 
     final localContext =
         context; // Captura el contexto antes de la brecha asíncrona

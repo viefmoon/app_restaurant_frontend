@@ -1,6 +1,7 @@
 import 'package:app/src/domain/models/ModifierType.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/PizzaFlavor.dart';
+import 'package:app/src/domain/models/PizzaIngredient.dart';
 import 'package:app/src/domain/models/ProductObservationType.dart';
 import 'package:app/src/domain/models/ProductVariant.dart';
 import 'package:app/src/domain/models/Subcategory.dart';
@@ -15,6 +16,7 @@ class Product {
   List<ModifierType>? modifierTypes;
   List<ProductObservationType>? productObservationTypes;
   List<PizzaFlavor>? pizzaFlavors;
+  List<PizzaIngredient>? pizzaIngredients;
   List<OrderItem>? orderItems;
 
   Product({
@@ -27,6 +29,7 @@ class Product {
     this.modifierTypes,
     this.productObservationTypes,
     this.pizzaFlavors,
+    this.pizzaIngredients,
     this.orderItems,
   });
 
@@ -59,6 +62,11 @@ class Product {
               .map((i) => PizzaFlavor.fromJson(i))
               .toList()
           : null,
+      pizzaIngredients: json['pizzaIngredients'] != null
+          ? (json['pizzaIngredients'] as List)
+              .map((i) => PizzaIngredient.fromJson(i))
+              .toList()
+          : null,
       orderItems: json['orderItems'] != null
           ? (json['orderItems'] as List)
               .map((i) => OrderItem.fromJson(i))
@@ -89,6 +97,10 @@ class Product {
     }
     if (pizzaFlavors != null) {
       data['pizzaFlavors'] = pizzaFlavors!.map((v) => v.toJson()).toList();
+    }
+    if (pizzaIngredients != null) {
+      data['pizzaIngredients'] =
+          pizzaIngredients!.map((v) => v.toJson()).toList();
     }
     if (orderItems != null) {
       data['orderItems'] = orderItems!.map((v) => v.toJson()).toList();

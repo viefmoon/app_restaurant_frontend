@@ -1,16 +1,18 @@
-class PizzaFlavor {
+import 'package:app/src/domain/models/Product.dart';
+
+class PizzaIngredient {
   final int id;
   final String name;
   final double price;
 
-  PizzaFlavor({
+  PizzaIngredient({
     required this.id,
     required this.name,
     required this.price,
   });
 
-  factory PizzaFlavor.fromJson(Map<String, dynamic> json) {
-    return PizzaFlavor(
+  factory PizzaIngredient.fromJson(Map<String, dynamic> json) {
+    return PizzaIngredient(
       id: json['id'],
       name: json['name'],
       price: double.parse(json['price']!),

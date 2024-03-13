@@ -9,7 +9,7 @@ class CategoriesService {
     try {
       Uri url = Uri.http(ApiConfig.API_ECOMMERCE, '/categories');
       final response = await http.get(url);
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         List<dynamic> data = json.decode(response.body);
         List<Category> categories =
             data.map((dynamic item) => Category.fromJson(item)).toList();

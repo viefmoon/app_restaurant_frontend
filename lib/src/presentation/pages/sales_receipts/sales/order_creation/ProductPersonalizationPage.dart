@@ -1,9 +1,13 @@
 import 'package:app/src/domain/models/ModifierType.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/PizzaFlavor.dart';
+import 'package:app/src/domain/models/PizzaIngredient.dart';
 import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/domain/models/ProductObservationType.dart';
 import 'package:app/src/domain/models/ProductVariant.dart';
 import 'package:app/src/domain/models/SelectedModifier.dart';
+import 'package:app/src/domain/models/SelectedPizzaFlavor.dart';
+import 'package:app/src/domain/models/SelectedPizzaIngredient.dart';
 import 'package:app/src/domain/models/SelectedProductObservation.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationEvent.dart';
@@ -29,23 +33,39 @@ class _ProductPersonalizationPageState
   ProductVariant? selectedVariant;
   List<SelectedModifier> selectedModifiers = [];
   List<SelectedProductObservation> selectedObservations = [];
+  List<SelectedPizzaIngredient> selectedPizzaIngredients = [];
+  List<SelectedPizzaFlavor> selectedPizzaFlavors = [];
   String? comments;
+  bool _showPizzaIngredients = false;
+  bool _showPizzaModifiers = false;
+  bool _createTwoHalves = false;
 
   @override
   void initState() {
     super.initState();
+
     if (widget.existingOrderItem != null) {
       selectedVariant = widget.existingOrderItem!.productVariant;
       selectedModifiers =
           List.from(widget.existingOrderItem?.selectedModifiers ?? []);
       selectedObservations = List.from(
           widget.existingOrderItem?.selectedProductObservations ?? []);
+      selectedPizzaFlavors =
+          List.from(widget.existingOrderItem?.selectedPizzaFlavors ?? []);
+      selectedPizzaIngredients =
+          List.from(widget.existingOrderItem?.selectedPizzaIngredients ?? []);
       comments = widget.existingOrderItem!.comments;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Verifica si el producto es una pizza
+    bool isPizza = widget.product.pizzaFlavors != null &&
+        widget.product.pizzaFlavors!.isNotEmpty &&
+        widget.product.pizzaIngredients != null &&
+        widget.product.pizzaIngredients!.isNotEmpty;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.product.name),
@@ -58,14 +78,75 @@ class _ProductPersonalizationPageState
       ),
       body: ListView(
         children: [
+          // Muestra el switch solo si el producto es una pizza
+          if (isPizza)
+            SwitchListTile(
+              title: Text('Armar pizza',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              value: _showPizzaIngredients,
+              onChanged: (bool value) {
+                setState(() {
+                  _showPizzaIngredients = value;
+                  if (value) {
+                    _showPizzaModifiers =
+                        false; // Desactiva "Modificar sabores"
+                    selectedPizzaFlavors
+                        .clear(); // Borra los sabores de pizza seleccionados
+                    selectedModifiers
+                        .clear(); // Borra todos los modificadores seleccionados
+                  } else {
+                    // Aquí se agrega la lógica para borrar los ingredientes cuando se deselecciona "Armar pizza"
+                    selectedPizzaIngredients
+                        .clear(); // Borra los ingredientes de pizza seleccionados
+                  }
+                });
+              },
+            ),
+          if (isPizza && _showPizzaIngredients)
+            SwitchListTile(
+              title: Text('Crear dos mitades',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              value: _createTwoHalves,
+              onChanged: (bool value) {
+                setState(() {
+                  _createTwoHalves = value;
+                  // Al activar o desactivar, reinicia los ingredientes seleccionados
+                  selectedPizzaIngredients.clear();
+                });
+              },
+            ),
+
+          if (isPizza && !_showPizzaIngredients)
+            SwitchListTile(
+              title: Text('Modificar sabores',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              value: _showPizzaModifiers,
+              onChanged: (bool value) {
+                setState(() {
+                  _showPizzaModifiers = value;
+                  if (!value) {
+                    selectedModifiers.clear(); // Vacía todos los modificadores
+                  }
+                });
+              },
+            ),
+
           if (widget.product.productVariants != null)
             _buildVariantSelector(widget.product.productVariants!),
-          ...widget.product.modifierTypes!
-              .map(_buildModifierTypeSection)
-              .toList(),
-          ...widget.product.productObservationTypes!
-              .map(_buildObservationTypeSection)
-              .toList(),
+          // Muestra los sabores de pizza solo si el producto es una pizza y _showPizzaIngredients es falso
+          if (!_showPizzaIngredients && isPizza)
+            _buildPizzaFlavorSelector(widget.product.pizzaFlavors!),
+          // Muestra los ingredientes de pizza solo si el producto es una pizza y _showPizzaIngredients es verdadero
+          if (_showPizzaIngredients && isPizza)
+            _buildPizzaIngredientSelector(widget.product.pizzaIngredients!),
+          if (widget.product.modifierTypes != null)
+            ...widget.product.modifierTypes!
+                .map(_buildModifierTypeSection)
+                .toList(),
+          if (widget.product.productObservationTypes != null)
+            ...widget.product.productObservationTypes!
+                .map(_buildObservationTypeSection)
+                .toList(),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextFormField(
@@ -108,6 +189,8 @@ class _ProductPersonalizationPageState
         productVariant: selectedVariant,
         selectedModifiers: selectedModifiers,
         selectedProductObservations: selectedObservations,
+        selectedPizzaFlavors: selectedPizzaFlavors,
+        selectedPizzaIngredients: selectedPizzaIngredients,
         comments: comments,
         price: price,
       );
@@ -116,6 +199,8 @@ class _ProductPersonalizationPageState
       BlocProvider.of<OrderCreationBloc>(context)
           .add(UpdateOrderItem(orderItem: updatedOrderItem));
     } else {
+      print(
+          'widget.product.productVariants: ${widget.product.productVariants}');
       // Creación del OrderItem con los datos necesarios, incluyendo el precio calculado
       final orderItem = OrderItem(
         tempId: tempId, // Usa el nuevo tempId generado
@@ -130,11 +215,18 @@ class _ProductPersonalizationPageState
                 productObservation:
                     selectedProductObservation.productObservation))
             .toList(),
+        selectedPizzaFlavors: selectedPizzaFlavors
+            .map((selectedPizzaFlavor) => SelectedPizzaFlavor(
+                pizzaFlavor: selectedPizzaFlavor.pizzaFlavor))
+            .toList(),
+        selectedPizzaIngredients: selectedPizzaIngredients
+            .map((selectedPizzaIngredient) => SelectedPizzaIngredient(
+                pizzaIngredient: selectedPizzaIngredient.pizzaIngredient))
+            .toList(),
         comments: comments,
         id: null,
         status: OrderItemStatus.created,
         order: null,
-        pizzaFlavor: null,
         price: price, // Asigna el precio calculado
         orderItemUpdates: [],
       );
@@ -158,6 +250,7 @@ class _ProductPersonalizationPageState
   }
 
   Widget _buildVariantSelector(List<ProductVariant> variants) {
+    print('selectedVariant en el selector: ${selectedVariant?.name}');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -170,7 +263,8 @@ class _ProductPersonalizationPageState
           ListTile(
             title: Text(variant.name),
             trailing: Text('\$${variant.price.toStringAsFixed(2)}'),
-            selected: selectedVariant == variant,
+            selected: selectedVariant?.id ==
+                variant.id, // Compara por ID o algún otro campo único
             selectedTileColor: Color.fromARGB(255, 33, 66,
                 82), // Cambia el color de fondo cuando está seleccionado
             onTap: () {
@@ -184,6 +278,33 @@ class _ProductPersonalizationPageState
   }
 
   Widget _buildModifierTypeSection(ModifierType modifierType) {
+    bool isPizza = widget.product.pizzaFlavors != null &&
+        widget.product.pizzaFlavors!.isNotEmpty &&
+        widget.product.pizzaIngredients != null &&
+        widget.product.pizzaIngredients!.isNotEmpty;
+
+    bool shouldShowModifier = false;
+    if (isPizza) {
+      if (_showPizzaModifiers) {
+        // Asegúrate de que el switch para modificadores esté activado
+        if (selectedPizzaFlavors.length == 2) {
+          shouldShowModifier = modifierType.name == 'Añadir en mitad 1' ||
+              modifierType.name == 'Añadir en mitad 2' ||
+              modifierType.name == 'Quitar en mitad 1' ||
+              modifierType.name == 'Quitar en mitad 2';
+        } else if (selectedPizzaFlavors.length == 1) {
+          shouldShowModifier =
+              modifierType.name == 'Añadir' || modifierType.name == 'Quitar';
+        }
+      }
+    } else {
+      shouldShowModifier = true;
+    }
+
+    if (!shouldShowModifier) {
+      return Container();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -196,20 +317,22 @@ class _ProductPersonalizationPageState
                   title: Text(modifier.name),
                   subtitle: Text('\$${modifier.price.toStringAsFixed(2)}'),
                   value: selectedModifiers.any((selectedModifier) =>
-                      selectedModifier.modifier == modifier),
+                      selectedModifier.modifier?.id ==
+                      modifier.id), // Compara por ID
                   onChanged: (bool? value) {
                     setState(() {
                       if (value == true) {
                         if (!modifierType.acceptsMultiple) {
+                          // Elimina otros modificadores del mismo tipo si no se aceptan múltiples
                           selectedModifiers.removeWhere((selectedModifier) =>
-                              modifierType.modifiers!
-                                  .contains(selectedModifier.modifier));
+                              modifierType.modifiers!.any((m) =>
+                                  m.id == selectedModifier.modifier?.id));
                         }
                         selectedModifiers
                             .add(SelectedModifier(modifier: modifier));
                       } else {
                         selectedModifiers.removeWhere((selectedModifier) =>
-                            selectedModifier.modifier == modifier);
+                            selectedModifier.modifier?.id == modifier.id);
                       }
                     });
                   },
@@ -228,33 +351,132 @@ class _ProductPersonalizationPageState
           child: Text(observationType.name,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         ),
-        ...(observationType.productObservations?.map((productObservation) =>
-                CheckboxListTile(
-                  title: Text(productObservation.name),
-                  value: selectedObservations.any((selectedObservation) =>
-                      selectedObservation.productObservation ==
-                      productObservation),
+        ...(observationType.productObservations
+                ?.map((productObservation) => CheckboxListTile(
+                      title: Text(productObservation.name),
+                      value: selectedObservations.any((selectedObservation) =>
+                          selectedObservation.productObservation?.id ==
+                          productObservation.id), // Compara por ID
+                      onChanged: (bool? value) {
+                        setState(() {
+                          if (value == true) {
+                            if (!observationType.acceptsMultiple) {
+                              // Si no se aceptan múltiples, primero elimina las observaciones existentes del mismo tipo
+                              selectedObservations.removeWhere(
+                                  (selectedObservation) => observationType
+                                      .productObservations!
+                                      .any((po) =>
+                                          po.id ==
+                                          selectedObservation
+                                              .productObservation?.id));
+                            }
+                            selectedObservations.add(SelectedProductObservation(
+                                productObservation: productObservation));
+                          } else {
+                            selectedObservations.removeWhere(
+                                (selectedObservation) =>
+                                    selectedObservation
+                                        .productObservation?.id ==
+                                    productObservation.id);
+                          }
+                        });
+                      },
+                    )) ??
+            []),
+      ],
+    );
+  }
+
+  Widget _buildPizzaFlavorSelector(List<PizzaFlavor> flavors) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!_showPizzaIngredients) ...[
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text('Sabores de Pizza (2 máximo)',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+          ...flavors.map((flavor) => CheckboxListTile(
+                title: Text(flavor.name),
+                value: selectedPizzaFlavors.any((selectedFlavor) =>
+                    selectedFlavor.pizzaFlavor?.id ==
+                    flavor.id), // Compara por ID
+                onChanged: (bool? value) {
+                  setState(() {
+                    if (value == true) {
+                      if (selectedPizzaFlavors.length < 2) {
+                        selectedPizzaFlavors
+                            .add(SelectedPizzaFlavor(pizzaFlavor: flavor));
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                'Solo puedes seleccionar hasta 2 sabores.'),
+                          ),
+                        );
+                      }
+                    } else {
+                      selectedPizzaFlavors.removeWhere((selectedFlavor) =>
+                          selectedFlavor.pizzaFlavor?.id == flavor.id);
+                    }
+                    // Reiniciar los modificadores cada vez que se hace una selección de sabores
+                    selectedModifiers.clear();
+                  });
+                },
+              )),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPizzaIngredientSelector(List<PizzaIngredient> ingredients) {
+    Widget buildIngredientList(PizzaHalf half) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: ingredients
+            .map((ingredient) => CheckboxListTile(
+                  title: Text(ingredient.name),
+                  value: selectedPizzaIngredients.any((selectedIngredient) =>
+                      selectedIngredient.pizzaIngredient?.id ==
+                          ingredient.id && // Compara por ID
+                      selectedIngredient.half == half),
                   onChanged: (bool? value) {
                     setState(() {
                       if (value == true) {
-                        if (!observationType.acceptsMultiple) {
-                          selectedObservations.removeWhere(
-                              (selectedObservation) =>
-                                  observationType.productObservations!.contains(
-                                      selectedObservation.productObservation));
-                        }
-                        selectedObservations.add(SelectedProductObservation(
-                            productObservation: productObservation));
+                        selectedPizzaIngredients.add(SelectedPizzaIngredient(
+                            pizzaIngredient: ingredient, half: half));
                       } else {
-                        selectedObservations.removeWhere(
-                            (selectedObservation) =>
-                                selectedObservation.productObservation ==
-                                productObservation);
+                        selectedPizzaIngredients.removeWhere(
+                            (selectedIngredient) =>
+                                selectedIngredient.pizzaIngredient?.id ==
+                                    ingredient.id && // Compara por ID
+                                selectedIngredient.half == half);
                       }
                     });
                   },
-                )) ??
-            []),
+                ))
+            .toList(),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text('Ingredientes de Pizza',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        ),
+        if (!_createTwoHalves) buildIngredientList(PizzaHalf.none),
+        if (_createTwoHalves) ...[
+          Text('Primera mitad:',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          buildIngredientList(PizzaHalf.left),
+          Text('Segunda mitad:',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          buildIngredientList(PizzaHalf.right),
+        ],
       ],
     );
   }

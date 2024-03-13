@@ -78,6 +78,12 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
   Future<void> _onOrderSelectedForUpdate(
       OrderSelectedForUpdate event, Emitter<OrderUpdateState> emit) async {
     await _onLoadAreas(LoadAreas(), emit);
+    // Wait for areas to be loaded before proceeding
+    await Future.doWhile(() async {
+      await Future.delayed(Duration(milliseconds: 100));
+      return state.areas == null || state.areas!.isEmpty;
+    });
+
     emit(state.copyWith(
       orderIdSelectedForUpdate: event.order.id,
       selectedOrderType: event.order.orderType,
@@ -96,8 +102,11 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
       orderItems: event.order.orderItems,
       // Aquí puedes copiar otros campos relevantes de la orden al estado, si es necesario
     ));
-    print(
-        'Orden seleccionada para actualizar: ${event.order.scheduledDeliveryTime?.hour}:${event.order.scheduledDeliveryTime?.minute}');
+
+    // Finalmente, emite el evento AreaSelected si hay un área seleccionada
+    if (state.selectedAreaId != null) {
+      add(AreaSelected(areaId: state.selectedAreaId!));
+    }
   }
 
   Future<void> _onPhoneNumberEntered(

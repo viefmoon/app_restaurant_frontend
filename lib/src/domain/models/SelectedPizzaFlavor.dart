@@ -1,22 +1,21 @@
-import 'package:app/src/domain/models/Modifier.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/PizzaFlavor.dart';
 
-class SelectedModifier {
+class SelectedPizzaFlavor {
   final int? id;
   final OrderItem? orderItem;
-  final Modifier? modifier;
+  final PizzaFlavor? pizzaFlavor;
 
-  SelectedModifier({
+  SelectedPizzaFlavor({
     this.id,
     this.orderItem,
-    this.modifier,
+    this.pizzaFlavor,
   });
 
-  factory SelectedModifier.fromJson(Map<String, dynamic> json) {
-    return SelectedModifier(
+  factory SelectedPizzaFlavor.fromJson(Map<String, dynamic> json) {
+    return SelectedPizzaFlavor(
       id: json['id'],
-      modifier:
-          json['modifier'] != null ? Modifier.fromJson(json['modifier']) : null,
+      pizzaFlavor: PizzaFlavor.fromJson(json['pizzaFlavor']),
       orderItem: json['orderItem'] != null
           ? OrderItem.fromJson(json['orderItem'])
           : null,
@@ -26,9 +25,7 @@ class SelectedModifier {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
     data['id'] = id;
-    if (modifier != null) {
-      data['modifier'] = modifier!.toJson();
-    }
+    data['pizzaFlavor'] = pizzaFlavor!.toJson();
     if (orderItem != null) {
       data['orderItem'] = orderItem!.toJson();
     }
