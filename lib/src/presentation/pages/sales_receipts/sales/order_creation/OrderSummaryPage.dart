@@ -505,9 +505,25 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
   }
 
   void _sendOrder(BuildContext context, OrderCreationState state) {
+    // Verificar si la lista de OrderItems está vacía o es nula
+    if (state.orderItems == null || state.orderItems!.isEmpty) {
+      // Mostrar un SnackBar con un mensaje indicando que se necesitan ítems para crear la orden
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se puede enviar la orden sin ítems.'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+      return; // Salir del método para evitar enviar la orden
+    }
+
+    // Si hay OrderItems, proceder con el envío de la orden
     BlocProvider.of<OrderCreationBloc>(context).add(SendOrder());
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Orden enviada con éxito')),
+      SnackBar(
+        content: Text('Orden enviada con éxito'),
+        duration: Duration(seconds: 1),
+      ),
     );
     Navigator.popUntil(context, ModalRoute.withName('salesHome'));
   }

@@ -1,7 +1,11 @@
 import 'package:app/src/domain/models/Area.dart';
+import 'package:app/src/domain/models/Category.dart';
 import 'package:app/src/domain/models/Order.dart';
+import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/Subcategory.dart';
 import 'package:app/src/domain/models/Table.dart' as appModel;
 import 'package:app/src/domain/useCases/areas/AreasUseCases.dart';
+import 'package:app/src/domain/useCases/categories/CategoriesUseCases.dart';
 import 'package:app/src/domain/useCases/orders/OrdersUseCases.dart';
 import 'package:app/src/domain/utils/Resource.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateEvent.dart';
@@ -12,8 +16,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
   final OrdersUseCases ordersUseCases;
   final AreasUseCases areasUseCases;
+  final CategoriesUseCases categoriesUseCases;
 
-  OrderUpdateBloc({required this.ordersUseCases, required this.areasUseCases})
+  OrderUpdateBloc(
+      {required this.ordersUseCases,
+      required this.areasUseCases,
+      required this.categoriesUseCases})
       : super(OrderUpdateState()) {
     on<LoadOrders>(_onLoadOrders);
     on<OrderTypeSelected>(_onOrderTypeSelected);
@@ -26,8 +34,14 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     on<LoadTables>(_onLoadTables);
     on<AreaSelected>(_onAreaSelected);
     on<TableSelected>(_onTableSelected);
+    on<AddOrderItem>(_onAddOrderItem);
+    on<UpdateOrderItem>(_onUpdateOrderItem);
     on<OrderSelectedForUpdate>(_onOrderSelectedForUpdate);
     on<ResetOrderUpdateState>(_onResetOrderUpdateState);
+    on<RemoveOrderItem>(_onRemoveOrderItem);
+    on<LoadCategoriesWithProducts>(_onLoadCategoriesWithProducts);
+    on<CategorySelected>(_onCategorySelected);
+    on<SubcategorySelected>(_onSubcategorySelected);
   }
 
   Future<void> _onResetOrderUpdateState(
@@ -182,5 +196,96 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     } catch (e) {
       emit(state.copyWith(tables: [], response: Error(e.toString())));
     }
+  }
+
+  Future<void> _onAddOrderItem(
+      AddOrderItem event, Emitter<OrderUpdateState> emit) async {
+    print('event.addorderItem: ${event.orderItem}');
+    // Añade el OrderItem proporcionado por el evento al estado actual
+    final updatedOrderItems = List<OrderItem>.from(state.orderItems ?? [])
+      ..add(event.orderItem);
+    emit(state.copyWith(orderItems: updatedOrderItems));
+    // Imprime los nombres de todos los OrderItems
+    for (var orderItem in updatedOrderItems) {
+      print('Nombre del OrderItem: ${orderItem.product?.name}');
+    }
+  }
+
+  Future<void> _onUpdateOrderItem(
+      UpdateOrderItem event, Emitter<OrderUpdateState> emit) async {
+    final updatedOrderItems = state.orderItems?.map((orderItem) {
+          return orderItem.tempId == event.orderItem.tempId
+              ? event.orderItem
+              : orderItem;
+        }).toList() ??
+        [];
+    emit(state.copyWith(orderItems: updatedOrderItems));
+  }
+
+  Future<void> _onRemoveOrderItem(
+      RemoveOrderItem event, Emitter<OrderUpdateState> emit) async {
+    // Filtra la lista de OrderItems para excluir el que tiene el tempId proporcionado
+    final updatedOrderItems = state.orderItems
+            ?.where((item) => item.tempId != event.tempId)
+            .toList() ??
+        [];
+
+    // Emite un nuevo estado con la lista actualizada de OrderItems
+    emit(state.copyWith(orderItems: updatedOrderItems));
+  }
+
+  Future<void> _onLoadCategoriesWithProducts(
+      LoadCategoriesWithProducts event, Emitter<OrderUpdateState> emit) async {
+    emit(state.copyWith(response: Loading()));
+    try {
+      Resource response =
+          await categoriesUseCases.getCategoriesWithProducts.run();
+      if (response is Success<List<Category>>) {
+        List<Category> categories = response.data;
+        emit(state.copyWith(
+            categories: categories, response: Success(categories)));
+      } else {
+        emit(state.copyWith(categories: [], response: response));
+      }
+    } catch (e) {
+      emit(state.copyWith(categories: [], response: Error(e.toString())));
+    }
+  }
+
+  Future<void> _onCategorySelected(
+      CategorySelected event, Emitter<OrderUpdateState> emit) async {
+    Category? selectedCategory;
+    try {
+      selectedCategory =
+          state.categories?.firstWhere((cat) => cat.id == event.categoryId);
+    } catch (e) {
+      // Si no se encuentra ninguna coincidencia, selectedCategory permanecerá como null.
+    }
+
+    final filteredSubcategories = selectedCategory?.subcategories ?? [];
+
+    emit(state.copyWith(
+      selectedCategoryId: event.categoryId,
+      filteredSubcategories: filteredSubcategories,
+      filteredProducts: [],
+      selectedSubcategoryId: null,
+    ));
+  }
+
+  Future<void> _onSubcategorySelected(
+      SubcategorySelected event, Emitter<OrderUpdateState> emit) async {
+    Subcategory? selectedSubcategory;
+    try {
+      selectedSubcategory = state.filteredSubcategories
+          ?.firstWhere((sub) => sub.id == event.subcategoryId);
+    } catch (e) {
+      // Si no se encuentra ninguna coincidencia, selectedSubcategory permanecerá como null.
+    }
+    final filteredProducts = selectedSubcategory?.products ?? [];
+
+    emit(state.copyWith(
+      selectedSubcategoryId: event.subcategoryId,
+      filteredProducts: filteredProducts,
+    ));
   }
 }

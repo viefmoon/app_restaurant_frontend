@@ -92,7 +92,6 @@ class _TableSelectionPageState extends State<TableSelectionPage> {
                   : null,
           isExpanded: true,
           onChanged: (int? newValue) {
-            print('newValuett: $newValue');
             if (newValue != null) {
               bloc.add(TableSelected(tableId: newValue));
             }

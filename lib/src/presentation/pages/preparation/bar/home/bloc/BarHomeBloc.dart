@@ -12,6 +12,7 @@ class BarHomeBloc extends Bloc<BarHomeEvent, BarHomeState> {
     on<LoadUser>(_onLoadUser);
     on<Logout>(_onLogout);
     on<InitEvent>(_onInitEvent);
+    on<ChangeOrderFilterType>(_onChangeOrderFilterType);
   }
 
   Future<void> _onInitEvent(InitEvent event, Emitter<BarHomeState> emit) async {
@@ -37,5 +38,10 @@ class BarHomeBloc extends Bloc<BarHomeEvent, BarHomeState> {
     if (userSession != null) {
       emit(state.copyWith(name: userSession.user?.name ?? ''));
     }
+  }
+
+  void _onChangeOrderFilterType(
+      ChangeOrderFilterType event, Emitter<BarHomeState> emit) {
+    emit(state.copyWith(filterType: event.filterType));
   }
 }

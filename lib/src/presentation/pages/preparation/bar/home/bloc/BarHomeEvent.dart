@@ -1,3 +1,4 @@
+import 'package:app/src/presentation/pages/preparation/bar/home/bloc/BarHomeState.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class BarHomeEvent extends Equatable {
@@ -23,4 +24,13 @@ class InitEvent extends BarHomeEvent {
 
 class Logout extends BarHomeEvent {
   const Logout();
+}
+
+class ChangeOrderFilterType extends BarHomeEvent {
+  final OrderFilterType filterType;
+
+  const ChangeOrderFilterType(this.filterType);
+
+  @override
+  List<Object> get props => [filterType];
 }

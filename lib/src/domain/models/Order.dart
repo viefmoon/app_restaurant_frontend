@@ -24,6 +24,10 @@ class Order {
   List<OrderItem>? orderItems;
   List<OrderUpdate>? orderUpdates;
 
+  void updateItems(List<OrderItem> newItems) {
+    orderItems = newItems;
+  }
+
   Order({
     this.id,
     this.orderType,

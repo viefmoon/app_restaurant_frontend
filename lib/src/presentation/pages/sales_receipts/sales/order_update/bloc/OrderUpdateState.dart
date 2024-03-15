@@ -1,6 +1,9 @@
 import 'package:app/src/domain/models/Area.dart';
+import 'package:app/src/domain/models/Category.dart';
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/Product.dart';
+import 'package:app/src/domain/models/Subcategory.dart';
 import 'package:app/src/domain/models/Table.dart' as TableModel;
 import 'package:equatable/equatable.dart';
 import 'package:app/src/domain/utils/Resource.dart';
@@ -25,6 +28,11 @@ class OrderUpdateState extends Equatable {
   final List<OrderItem>? orderItems;
   final String? errorMessage;
   final Resource? response;
+  final List<Category>? categories;
+  final int? selectedCategoryId;
+  final int? selectedSubcategoryId;
+  final List<Subcategory>? filteredSubcategories;
+  final List<Product>? filteredProducts;
 
   const OrderUpdateState({
     this.orders,
@@ -45,6 +53,11 @@ class OrderUpdateState extends Equatable {
     this.orderItems,
     this.errorMessage,
     this.response,
+    this.categories,
+    this.selectedCategoryId,
+    this.selectedSubcategoryId,
+    this.filteredSubcategories,
+    this.filteredProducts,
   });
 
   OrderUpdateState copyWith({
@@ -66,7 +79,11 @@ class OrderUpdateState extends Equatable {
     List<OrderItem>? orderItems,
     String? errorMessage,
     Resource? response,
-    bool? updateSuccess,
+    List<Category>? categories,
+    int? selectedCategoryId,
+    int? selectedSubcategoryId,
+    List<Subcategory>? filteredSubcategories,
+    List<Product>? filteredProducts,
   }) {
     return OrderUpdateState(
       orders: orders ?? this.orders,
@@ -89,6 +106,13 @@ class OrderUpdateState extends Equatable {
       orderItems: orderItems ?? this.orderItems,
       errorMessage: errorMessage ?? this.errorMessage,
       response: response ?? this.response,
+      categories: categories ?? this.categories,
+      selectedCategoryId: selectedCategoryId ?? this.selectedCategoryId,
+      selectedSubcategoryId:
+          selectedSubcategoryId ?? this.selectedSubcategoryId,
+      filteredSubcategories:
+          filteredSubcategories ?? this.filteredSubcategories,
+      filteredProducts: filteredProducts ?? this.filteredProducts,
     );
   }
 
@@ -112,5 +136,10 @@ class OrderUpdateState extends Equatable {
         orderItems,
         errorMessage,
         response,
+        categories,
+        selectedCategoryId,
+        selectedSubcategoryId,
+        filteredSubcategories,
+        filteredProducts,
       ];
 }

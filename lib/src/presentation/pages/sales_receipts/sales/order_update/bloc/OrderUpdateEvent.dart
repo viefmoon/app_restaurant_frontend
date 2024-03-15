@@ -1,4 +1,5 @@
 import 'package:app/src/domain/models/Order.dart';
+import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
@@ -115,4 +116,49 @@ class ResetOrderUpdateState extends OrderUpdateEvent {
 
   @override
   List<Object> get props => [];
+}
+
+class UpdateOrderItem extends OrderUpdateEvent {
+  final OrderItem orderItem;
+
+  const UpdateOrderItem({required this.orderItem});
+
+  @override
+  List<Object> get props => [orderItem];
+}
+
+class AddOrderItem extends OrderUpdateEvent {
+  final OrderItem orderItem;
+
+  const AddOrderItem({required this.orderItem});
+
+  @override
+  List<Object> get props => [orderItem];
+}
+
+class RemoveOrderItem extends OrderUpdateEvent {
+  final String tempId;
+
+  const RemoveOrderItem({required this.tempId});
+
+  @override
+  List<Object> get props => [tempId];
+}
+
+class LoadCategoriesWithProducts extends OrderUpdateEvent {
+  const LoadCategoriesWithProducts();
+}
+
+class CategorySelected extends OrderUpdateEvent {
+  final int categoryId;
+  const CategorySelected({required this.categoryId});
+  @override
+  List<Object> get props => [categoryId];
+}
+
+class SubcategorySelected extends OrderUpdateEvent {
+  final int subcategoryId;
+  const SubcategorySelected({required this.subcategoryId});
+  @override
+  List<Object> get props => [subcategoryId];
 }

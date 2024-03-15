@@ -9,27 +9,27 @@ import 'package:app/src/domain/models/SelectedModifier.dart';
 import 'package:app/src/domain/models/SelectedPizzaFlavor.dart';
 import 'package:app/src/domain/models/SelectedPizzaIngredient.dart';
 import 'package:app/src/domain/models/SelectedProductObservation.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationEvent.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateBloc.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateEvent.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 
-class ProductPersonalizationPage extends StatefulWidget {
+class UpdateProductPersonalizationPage extends StatefulWidget {
   final Product product;
   final OrderItem? existingOrderItem;
 
-  const ProductPersonalizationPage(
+  const UpdateProductPersonalizationPage(
       {Key? key, required this.product, this.existingOrderItem})
       : super(key: key);
 
   @override
-  _ProductPersonalizationPageState createState() =>
-      _ProductPersonalizationPageState();
+  _UpdateProductPersonalizationPageState createState() =>
+      _UpdateProductPersonalizationPageState();
 }
 
-class _ProductPersonalizationPageState
-    extends State<ProductPersonalizationPage> {
+class _UpdateProductPersonalizationPageState
+    extends State<UpdateProductPersonalizationPage> {
   ProductVariant? selectedVariant;
   List<SelectedModifier> selectedModifiers = [];
   List<SelectedProductObservation> selectedObservations = [];
@@ -201,7 +201,7 @@ class _ProductPersonalizationPageState
       );
 
       // Envía el evento de actualización a tu Bloc
-      BlocProvider.of<OrderCreationBloc>(context)
+      BlocProvider.of<OrderUpdateBloc>(context)
           .add(UpdateOrderItem(orderItem: updatedOrderItem));
     } else {
       // Creación del OrderItem con los datos necesarios, incluyendo el precio calculado
@@ -235,7 +235,7 @@ class _ProductPersonalizationPageState
       );
 
       // Obtener el OrderCreationBloc y enviar el evento para añadir el OrderItem
-      BlocProvider.of<OrderCreationBloc>(context)
+      BlocProvider.of<OrderUpdateBloc>(context)
           .add(AddOrderItem(orderItem: orderItem));
     }
 
@@ -284,7 +284,7 @@ class _ProductPersonalizationPageState
     final String tempId = widget.existingOrderItem!.tempId;
 
     // Utiliza el Bloc para disparar el evento RemoveOrderItem
-    BlocProvider.of<OrderCreationBloc>(context)
+    BlocProvider.of<OrderUpdateBloc>(context)
         .add(RemoveOrderItem(tempId: tempId));
 
     // Muestra un SnackBar como confirmación

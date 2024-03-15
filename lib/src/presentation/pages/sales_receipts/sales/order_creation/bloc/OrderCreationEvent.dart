@@ -157,3 +157,12 @@ class SendOrder extends OrderCreationEvent {
   @override
   List<Object> get props => [];
 }
+
+class RemoveOrderItem extends OrderCreationEvent {
+  final String tempId;
+
+  const RemoveOrderItem({required this.tempId});
+
+  @override
+  List<Object> get props => [tempId];
+}

@@ -44,6 +44,7 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
     on<ResetTableSelection>(_onResetTableSelection);
     on<SendOrder>(_onSendOrder);
     on<ResetOrder>(_onResetOrder);
+    on<RemoveOrderItem>(_onRemoveOrderItem);
   }
 
   Future<void> _onResetOrder(
@@ -82,6 +83,7 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
         break;
       case OrderType.pickUpWait:
         nextStep = OrderCreationStep.productSelection;
+        add(LoadCategoriesWithProducts());
         break;
       default:
         nextStep = OrderCreationStep.orderTypeSelection;
@@ -272,10 +274,6 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
     final updatedOrderItems = List<OrderItem>.from(state.orderItems ?? [])
       ..add(event.orderItem);
     emit(state.copyWith(orderItems: updatedOrderItems));
-    // Imprime los nombres de todos los OrderItems
-    for (var orderItem in updatedOrderItems) {
-      print('Nombre del OrderItem: ${orderItem.product?.name}');
-    }
   }
 
   Future<void> _onUpdateOrderItem(
@@ -286,6 +284,18 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
               : orderItem;
         }).toList() ??
         [];
+    emit(state.copyWith(orderItems: updatedOrderItems));
+  }
+
+  Future<void> _onRemoveOrderItem(
+      RemoveOrderItem event, Emitter<OrderCreationState> emit) async {
+    // Filtra la lista de OrderItems para excluir el que tiene el tempId proporcionado
+    final updatedOrderItems = state.orderItems
+            ?.where((item) => item.tempId != event.tempId)
+            .toList() ??
+        [];
+
+    // Emite un nuevo estado con la lista actualizada de OrderItems
     emit(state.copyWith(orderItems: updatedOrderItems));
   }
 

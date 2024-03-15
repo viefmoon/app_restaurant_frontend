@@ -1,22 +1,42 @@
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/utils/Resource.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/ProductPersonalizationPage.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/UpdateProductPersonalizationPage.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateBloc.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateState.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationEvent.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationState.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateEvent.dart';
 import 'package:uuid/uuid.dart';
 
-class ProductSelectionPage extends StatelessWidget {
-  const ProductSelectionPage({super.key});
+class AddProductPage extends StatefulWidget {
+  const AddProductPage({Key? key}) : super(key: key);
+
+  @override
+  _AddProductPageState createState() => _AddProductPageState();
+}
+
+class _AddProductPageState extends State<AddProductPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Dispara el evento para cargar las categorías al iniciar la página
+    BlocProvider.of<OrderUpdateBloc>(context, listen: false)
+        .add(LoadCategoriesWithProducts());
+  }
 
   @override
   Widget build(BuildContext context) {
-    final OrderCreationBloc bloc = BlocProvider.of<OrderCreationBloc>(context);
+    final OrderUpdateBloc bloc = BlocProvider.of<OrderUpdateBloc>(context);
 
     return Scaffold(
-      body: BlocBuilder<OrderCreationBloc, OrderCreationState>(
+      appBar: AppBar(
+        title: Text('Agregar Productos'), // Título de tu preferencia
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(), // Permite volver atrás
+        ),
+      ),
+      body: BlocBuilder<OrderUpdateBloc, OrderUpdateState>(
         builder: (context, state) {
           if (state.categories != null && state.categories!.isNotEmpty) {
             return Column(
@@ -69,7 +89,7 @@ class ProductSelectionPage extends StatelessWidget {
   }
 
   Widget _buildContentBasedOnSelection(
-      OrderCreationBloc bloc, OrderCreationState state) {
+      OrderUpdateBloc bloc, OrderUpdateState state) {
     if (state.selectedSubcategoryId != null &&
         state.filteredProducts != null &&
         state.filteredProducts!.isNotEmpty) {
@@ -82,7 +102,7 @@ class ProductSelectionPage extends StatelessWidget {
   }
 
   Widget _buildSubcategoryButtons(
-      OrderCreationBloc bloc, OrderCreationState state) {
+      OrderUpdateBloc bloc, OrderUpdateState state) {
     if (state.filteredSubcategories != null &&
         state.filteredSubcategories!.isNotEmpty) {
       return GridView.builder(
@@ -116,8 +136,7 @@ class ProductSelectionPage extends StatelessWidget {
     }
   }
 
-  Widget _buildProductButtons(
-      OrderCreationBloc bloc, OrderCreationState state) {
+  Widget _buildProductButtons(OrderUpdateBloc bloc, OrderUpdateState state) {
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
@@ -137,7 +156,8 @@ class ProductSelectionPage extends StatelessWidget {
                 (product.productVariants?.isNotEmpty ?? false) ||
                     (product.modifierTypes?.isNotEmpty ?? false) ||
                     (product.productObservationTypes?.isNotEmpty ?? false) ||
-                    (product.pizzaFlavors?.isNotEmpty ?? false);
+                    (product.pizzaFlavors?.isNotEmpty ?? false) ||
+                    (product.pizzaIngredients?.isNotEmpty ?? false);
 
             if (!requiresPersonalization) {
               final tempId = Uuid().v4();
@@ -152,6 +172,8 @@ class ProductSelectionPage extends StatelessWidget {
                 productVariant: null,
                 selectedModifiers: [],
                 selectedProductObservations: [],
+                selectedPizzaFlavors: [],
+                selectedPizzaIngredients: [],
                 price: product.price,
                 orderItemUpdates: [],
               );
@@ -169,7 +191,7 @@ class ProductSelectionPage extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                     builder: (context) =>
-                        ProductPersonalizationPage(product: product)),
+                        UpdateProductPersonalizationPage(product: product)),
               );
             }
           },

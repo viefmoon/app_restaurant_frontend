@@ -1,5 +1,6 @@
 import 'package:app/src/domain/models/OrderItem.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/ProductPersonalizationPage.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/AddProductPage.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/UpdateProductPersonalizationPage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateState.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -131,9 +132,6 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                       state.selectedAreaId != null &&
                       state.tables != null &&
                       state.selectedTableId != null) {
-                    print("selectedAreaId: ${state.selectedAreaId}");
-                    print("tables: ${state.tables}");
-                    print("selectedTableId: ${state.selectedTableId}");
                     headerDetails.add(_buildTableDropdown(context, state));
                   }
                   break;
@@ -289,9 +287,9 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
               );
 
               return ListView.builder(
-                itemCount: (state.orderItems?.length ?? 0) +
-                    3, // Añade +3 para incluir el total y el botón de enviar
+                itemCount: (state.orderItems?.length ?? 0) + 3,
                 itemBuilder: (context, index) {
+                  final totalItems = (state.orderItems?.length ?? 0) + 3;
                   if (index == 0) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -339,7 +337,8 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ProductPersonalizationPage(
+                            builder: (context) =>
+                                UpdateProductPersonalizationPage(
                               product: orderItem.product!,
                               existingOrderItem: orderItem,
                             ),
@@ -362,7 +361,7 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                         ),
                       ),
                     );
-                  } else if (index == (state.orderItems?.length ?? 0) + 1) {
+                  } else if (index == totalItems - 2) {
                     // Widget para mostrar el total
                     return ListTile(
                       title: Text(
@@ -380,22 +379,26 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                         ),
                       ),
                     );
-                  } else {
-                    // Nuevo widget para el botón de enviar orden
-                    // return Padding(
-                    //   padding: const EdgeInsets.all(10.0),
-                    //   child: ElevatedButton(
-                    //     onPressed: () => _sendOrder(context, state),
-                    //     child: Text('Enviar orden'),
-                    //     style: ElevatedButton.styleFrom(
-                    //       primary: Colors.blue,
-                    //       textStyle: TextStyle(fontSize: 20),
-                    //       padding: EdgeInsets.symmetric(vertical: 10),
-                    //     ),
-                    //   ),
-                    // );
+                  } else if (index == totalItems - 1) {
+                    // Aquí insertas el botón para agregar nuevos productos
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0, vertical: 20.0),
+                      child: ElevatedButton.icon(
+                        icon: Icon(Icons.add), // Icono de agregar
+                        label: Text('Agregar Productos'), // Texto del botón
+                        onPressed: () {
+                          // Aquí manejas la acción para agregar un nuevo producto
+                          // Por ejemplo, puedes navegar a una nueva página que permita seleccionar productos para añadir a la orden
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => AddProductPage()),
+                          );
+                        },
+                      ),
+                    );
                   }
-                  return null;
                 },
               );
             },

@@ -51,6 +51,8 @@ dependencies:
   collection: ^1.15.0
   uuid: ^3.0.4
   intl: ^0.17.0
+  socket_io_client: ^2.0.3+1
+  flutter_screenutil: ^5.0.0
 
 
 
