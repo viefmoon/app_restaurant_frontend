@@ -8,7 +8,8 @@ class OrdersService {
   Future<Resource<Order>> createOrder(Order order) async {
     print('order: $order');
     try {
-      Uri url = Uri.http(ApiConfig.API_ECOMMERCE, '/orders');
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/orders');
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
@@ -27,7 +28,8 @@ class OrdersService {
 
   Future<Resource<List<Order>>> getOpenOrders() async {
     try {
-      Uri url = Uri.http(ApiConfig.API_ECOMMERCE, '/orders/open');
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/orders/open');
       final response = await http.get(
         url,
         headers: {"Content-Type": "application/json"},

@@ -8,7 +8,8 @@ import 'package:app/src/domain/utils/Resource.dart';
 class AreasService {
   Future<Resource<List<Area>>> getAreas() async {
     try {
-      Uri url = Uri.http(ApiConfig.API_ECOMMERCE, '/areas');
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/areas');
       final response = await http.get(url);
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
@@ -25,7 +26,8 @@ class AreasService {
 
   Future<Resource<List<Table>>> getTablesFromArea(int areaId) async {
     try {
-      Uri url = Uri.http(ApiConfig.API_ECOMMERCE, 'areas/$areaId/tables');
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, 'areas/$areaId/tables');
       final response = await http.get(url);
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);

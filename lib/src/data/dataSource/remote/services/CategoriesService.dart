@@ -7,7 +7,8 @@ import 'package:app/src/domain/utils/Resource.dart';
 class CategoriesService {
   Future<Resource<List<Category>>> getCategoriesWithProducts() async {
     try {
-      Uri url = Uri.http(ApiConfig.API_ECOMMERCE, '/categories');
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/categories');
       final response = await http.get(url);
       if (response.statusCode == 200 || response.statusCode == 201) {
         List<dynamic> data = json.decode(response.body);

@@ -7,7 +7,8 @@ import 'package:app/src/domain/utils/Resource.dart';
 class RolesService {
   Future<Resource<List<Role>>> getRoles() async {
     try {
-      Uri url = Uri.http(ApiConfig.API_ECOMMERCE, '/roles');
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/roles');
       final response = await http.get(url);
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
