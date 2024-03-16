@@ -4,14 +4,14 @@ import 'package:app/src/domain/models/Product.dart';
 class ProductVariant {
   final int id;
   final String name;
-  final double price;
+  final double? price;
   Product? product; // Relación ManyToOne con Product
   List<OrderItem>? orderItems; // Relación OneToMany con OrderItem
 
   ProductVariant({
     required this.id,
     required this.name,
-    required this.price,
+    this.price, // Hacemos que 'price' sea opcional en el constructor
     this.product,
     this.orderItems,
   });
@@ -20,22 +20,23 @@ class ProductVariant {
     return ProductVariant(
       id: json['id'],
       name: json['name'],
-      price: double.parse(json['price']!),
+      price: json['price'] != null
+          ? double.tryParse(json['price'].toString())
+          : null,
       product:
           json['product'] != null ? Product.fromJson(json['product']) : null,
-      orderItems: json['orderItems'] != null
-          ? (json['orderItems'] as List)
-              .map((i) => OrderItem.fromJson(i))
-              .toList()
-          : null,
+      orderItems: (json['orderItems'] as List?)
+          ?.map((i) => OrderItem.fromJson(i))
+          .toList(),
     );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    data['name'] = name;
-    data['price'] = price;
+    final Map<String, dynamic> data = <String, dynamic>{
+      'id': id,
+      'name': name,
+      'price': price, // No es necesario cambiar nada aquí
+    };
     if (product != null) {
       data['product'] = product!.toJson();
     }

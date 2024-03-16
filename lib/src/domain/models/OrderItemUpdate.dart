@@ -2,7 +2,7 @@ import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/OrderUpdate.dart';
 
 class OrderItemUpdate {
-  final int id;
+  final int? id;
   OrderItem? orderItem; // Relación ManyToOne con OrderItem
   OrderUpdate? orderUpdate; // Relación ManyToOne con OrderUpdate
 

@@ -3,35 +3,39 @@ import 'Area.dart';
 enum Status { Disponible, Ocupada }
 
 class Table {
-  final int id;
-  final int number;
-  final Status status;
+  final int id; // 'id' ahora es no nulo
+  final int number; // 'number' ahora es no nulo
+  final Status? status;
   Area? area;
 
   Table({
     required this.id,
     required this.number,
-    required this.status,
+    this.status,
     this.area,
   });
 
   factory Table.fromJson(Map<String, dynamic> json) {
     return Table(
-      id: json['id'],
-      number: json['number'],
-      status: Status.values
-          .firstWhere((e) => e.toString().split('.').last == json['status']),
+      id: json['id'], // Asumimos que 'id' siempre está presente
+      number: json['number'], // Asumimos que 'number' siempre está presente
+      status: json['status'] != null
+          ? Status.values.firstWhere(
+              (e) => e.toString().split('.').last == json['status'],
+              orElse: () => Status.Disponible,
+            )
+          : null,
       area: json['area'] != null ? Area.fromJson(json['area']) : null,
     );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = Map<String, dynamic>();
     data['id'] = id;
     data['number'] = number;
-    data['status'] = status.toString().split('.').last;
+    data['status'] = status?.toString().split('.').last;
     if (area != null) {
-      data['area'] = area!.toJson();
+      data['area'] = area?.toJson();
     }
     return data;
   }

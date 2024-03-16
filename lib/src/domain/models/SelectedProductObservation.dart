@@ -2,38 +2,42 @@ import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/ProductObservation.dart';
 
 class SelectedProductObservation {
-  final int? id;
+  final int? id; // 'id' ahora puede ser nulo
   final OrderItem? orderItem;
-  final ProductObservation? productObservation;
+  final ProductObservation
+      productObservation; // 'productObservation' sigue siendo no nulo
 
   SelectedProductObservation({
-    this.id,
+    this.id, // 'id' ya no es requerido
     this.orderItem,
-    this.productObservation,
+    required this.productObservation, // 'productObservation' es requerido
   });
 
   factory SelectedProductObservation.fromJson(Map<String, dynamic> json) {
+    // No es necesario lanzar excepción para 'id' ya que puede ser nulo
+    if (json['productObservation'] == null) {
+      throw Exception("productObservation is required");
+    }
     return SelectedProductObservation(
       id: json['id'],
-      // Nota: Necesitarás definir la deserialización para OrderItem si planeas usarla directamente
       orderItem: json['orderItem'] != null
           ? OrderItem.fromJson(json['orderItem'])
           : null,
-      productObservation: json['productObservation'] != null
-          ? ProductObservation.fromJson(json['productObservation'])
-          : null,
+      productObservation:
+          ProductObservation.fromJson(json['productObservation']),
     );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    if (orderItem != null) {
-      // Nota: Asegúrate de tener un método toJson en OrderItem si planeas incluirlo
-      data['orderItem'] = orderItem!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (id != null) {
+      // Incluir 'id' solo si no es nulo
+      data['id'] = id;
     }
-    if (productObservation != null) {
-      data['productObservation'] = productObservation!.toJson();
+    // 'productObservation' siempre se incluye ya que es requerido
+    data['productObservation'] = productObservation.toJson();
+    if (orderItem != null) {
+      data['orderItem'] = orderItem!.toJson();
     }
     return data;
   }

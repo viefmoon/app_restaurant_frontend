@@ -1,5 +1,4 @@
 import 'package:app/src/domain/models/OrderItemUpdate.dart';
-import 'package:app/src/domain/models/PizzaFlavor.dart';
 import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/domain/models/ProductVariant.dart';
 import 'package:app/src/domain/models/SelectedModifier.dart';
@@ -13,7 +12,7 @@ enum OrderItemStatus { created, inPreparation, finished }
 
 class OrderItem {
   final int? id;
-  final String tempId;
+  final String? tempId;
   OrderItemStatus? status;
   String? comments;
   OrderModel.Order? order;
@@ -79,11 +78,11 @@ class OrderItem {
       price: json['price'] != null
           ? double.tryParse(json['price'].toString())
           : null,
-      orderItemUpdates: json['orderItemUpdates'] != null
-          ? (json['orderItemUpdates'] as List)
-              .map((i) => OrderItemUpdate.fromJson(i))
-              .toList()
-          : null,
+      // orderItemUpdates: json['orderItemUpdates'] != null
+      //     ? (json['orderItemUpdates'] as List)
+      //         .map((i) => OrderItemUpdate.fromJson(i))
+      //         .toList()
+      //     : null,
     );
   }
 

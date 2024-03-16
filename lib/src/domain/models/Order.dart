@@ -88,10 +88,12 @@ class Order {
       id: json['id'],
       orderType: OrderType.values.firstWhere(
           (e) => e.toString().split(".").last == json['orderType'],
-          orElse: () => OrderType.delivery),
+          orElse: () => OrderType
+              .delivery), // Asumiendo que siempre hay un valor predeterminado válido
       status: OrderStatus.values.firstWhere(
           (e) => e.toString().split(".").last == json['status'],
-          orElse: () => OrderStatus.finished), //
+          orElse: () => OrderStatus
+              .finished), // Asumiendo que siempre hay un valor predeterminado válido
       amountPaid: json['price'] != null ? double.tryParse(json['price']) : null,
       creationDate: json['creationDate'] != null
           ? DateTime.tryParse(json['creationDate'])
@@ -114,10 +116,9 @@ class Order {
               .map((i) => OrderItem.fromJson(i))
               .toList()
           : null,
+      // Comentado previamente, pero aquí está cómo manejarlo de manera segura si decides descomentarlo
       // orderUpdates: json['orderUpdates'] != null
-      //     ? (json['orderUpdates'] as List)
-      //         .map((i) => OrderUpdate.fromJson(i))
-      //         .toList()
+      //     ? (json['orderUpdates'] as List).map((i) => OrderUpdate.fromJson(i)).toList()
       //     : null,
     );
   }

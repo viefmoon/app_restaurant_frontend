@@ -2,28 +2,26 @@ import 'Table.dart';
 
 class Area {
   final int id;
-  final String name;
-  List<Table>? tables;
+  final String? name;
+  final List<Table>? tables;
 
-  Area({required this.id, required this.name, this.tables});
+  Area({required this.id, this.name, this.tables});
 
   factory Area.fromJson(Map<String, dynamic> json) {
     return Area(
       id: json['id'],
       name: json['name'],
-      tables: json['tables'] != null
-          ? (json['tables'] as List).map((i) => Table.fromJson(i)).toList()
-          : null,
+      // Simplificamos la inicialización de 'tables' para mejorar la legibilidad
+      tables: (json['tables'] as List?)?.map((i) => Table.fromJson(i)).toList(),
     );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    if (this.tables != null) {
-      data['tables'] = this.tables!.map((v) => v.toJson()).toList();
-    }
+    final Map<String, dynamic> data = Map<String, dynamic>();
+    data['id'] = id;
+    data['name'] = name;
+    // Usamos el operador '?.' para simplificar la comprobación de nulidad
+    data['tables'] = tables?.map((v) => v.toJson()).toList();
     return data;
   }
 }
