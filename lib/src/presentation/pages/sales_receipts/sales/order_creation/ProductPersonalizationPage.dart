@@ -176,7 +176,7 @@ class _ProductPersonalizationPageState
 
     // Si hay una variante seleccionada, usa el precio de la variante
     if (selectedVariant != null) {
-      price = selectedVariant!.price;
+      price = selectedVariant!.price!;
     }
 
     // Suma el precio de cada modificador seleccionado
@@ -263,8 +263,8 @@ class _ProductPersonalizationPageState
         ),
         for (var variant in variants)
           ListTile(
-            title: Text(variant.name),
-            trailing: Text('\$${variant.price.toStringAsFixed(2)}'),
+            title: Text(variant.name!),
+            trailing: Text('\$${variant.price!.toStringAsFixed(2)}'),
             selected: selectedVariant?.id ==
                 variant.id, // Compara por ID o algún otro campo único
             selectedTileColor: Color.fromARGB(255, 33, 66,
@@ -281,11 +281,11 @@ class _ProductPersonalizationPageState
 
   void _deleteOrderItem() {
     // Obtiene el tempId del OrderItem existente
-    final String tempId = widget.existingOrderItem!.tempId;
+    final String? tempId = widget.existingOrderItem!.tempId;
 
     // Utiliza el Bloc para disparar el evento RemoveOrderItem
     BlocProvider.of<OrderCreationBloc>(context)
-        .add(RemoveOrderItem(tempId: tempId));
+        .add(RemoveOrderItem(tempId: tempId!));
 
     // Muestra un SnackBar como confirmación
     ScaffoldMessenger.of(context).showSnackBar(
@@ -337,7 +337,7 @@ class _ProductPersonalizationPageState
         ),
         ...(modifierType.modifiers?.map((modifier) => CheckboxListTile(
                   title: Text(modifier.name),
-                  subtitle: Text('\$${modifier.price.toStringAsFixed(2)}'),
+                  subtitle: Text('\$${modifier.price!.toStringAsFixed(2)}'),
                   value: selectedModifiers.any((selectedModifier) =>
                       selectedModifier.modifier?.id ==
                       modifier.id), // Compara por ID

@@ -1,6 +1,7 @@
 import 'package:app/main.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderCreationContainer.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/sales_options/SalesOptionsPage.dart';
+import 'package:app/src/presentation/pages/setting/SettingsPage.dart';
 import 'package:flutter/material.dart';
 import 'bloc/SalesHomeBloc.dart';
 import 'bloc/SalesHomeEvent.dart';
@@ -21,6 +22,7 @@ class _SalesHomePageState extends State<SalesHomePage> {
   List<Widget> pageList = <Widget>[
     SalesOptionsPage(),
     ReceiptsPage(),
+    SettingsPage(),
   ];
 
   @override
@@ -74,6 +76,14 @@ class _SalesHomePageState extends State<SalesHomePage> {
                     selected: state.pageIndex == 1,
                     onTap: () {
                       _bloc?.add(SalesChangeDrawerPage(pageIndex: 1));
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    title: Text('Configuración'),
+                    selected: state.pageIndex == 1,
+                    onTap: () {
+                      _bloc?.add(SalesChangeDrawerPage(pageIndex: 2));
                       Navigator.pop(context);
                     },
                   ),

@@ -19,7 +19,9 @@ class SelectedPizzaIngredient {
   factory SelectedPizzaIngredient.fromJson(Map<String, dynamic> json) {
     return SelectedPizzaIngredient(
       id: json['id'],
-      pizzaIngredient: PizzaIngredient.fromJson(json['pizzaIngredient']),
+      pizzaIngredient: json['pizzaIngredient'] != null
+          ? PizzaIngredient.fromJson(json['pizzaIngredient'])
+          : null,
       orderItem: json['orderItem'] != null
           ? OrderItem.fromJson(json['orderItem'])
           : null,

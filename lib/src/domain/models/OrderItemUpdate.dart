@@ -15,7 +15,6 @@ class OrderItemUpdate {
   factory OrderItemUpdate.fromJson(Map<String, dynamic> json) {
     return OrderItemUpdate(
       id: json['id'],
-      // Asumiendo la existencia de métodos fromJson para OrderItem y OrderUpdate
       orderItem: json['orderItem'] != null
           ? OrderItem.fromJson(json['orderItem'])
           : null,

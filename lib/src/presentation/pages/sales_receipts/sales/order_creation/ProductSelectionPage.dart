@@ -41,7 +41,7 @@ class ProductSelectionPage extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              child: Text(category.name,
+                              child: Text(category.name!,
                                   style: TextStyle(fontSize: 20)),
                             ),
                           ),

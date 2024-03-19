@@ -17,9 +17,11 @@ class Category {
       name: json['name']
           as String, // Aseguramos que 'name' sea tratado como String no nulo
       // Simplificamos la inicialización de 'subcategories'
-      subcategories: (json['subcategories'] as List?)
-          ?.map((i) => Subcategory.fromJson(i))
-          .toList(),
+      subcategories: json['subcategories'] != null
+          ? (json['subcategories'] as List)
+              .map((i) => Subcategory.fromJson(i))
+              .toList()
+          : null,
     );
   }
 

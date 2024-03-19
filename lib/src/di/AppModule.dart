@@ -26,6 +26,10 @@ import 'package:app/src/domain/useCases/categories/GetCategoriesWithProductsUseC
 import 'package:app/src/domain/useCases/orders/CreateOrderUseCase.dart';
 import 'package:app/src/domain/useCases/orders/GetOpenOrdersUseCase.dart';
 import 'package:app/src/domain/useCases/orders/OrdersUseCases.dart';
+import 'package:app/src/domain/useCases/orders/SynchronizeDataUseCase.dart';
+import 'package:app/src/domain/useCases/orders/UpdateOrderItemStatusUseCase.dart';
+import 'package:app/src/domain/useCases/orders/UpdateOrderStatusUseCase.dart';
+import 'package:app/src/domain/useCases/orders/UpdateOrderUseCase.dart';
 import 'package:app/src/domain/useCases/roles/RolesUseCases.dart';
 import 'package:app/src/domain/useCases/auth/AuthUseCases.dart';
 import 'package:app/src/domain/useCases/auth/GetUserSessionUseCase.dart';
@@ -117,6 +121,11 @@ abstract class AppModule {
           GetCategoriesWithProductsUseCase(categoriesRepository));
 
   OrdersUseCases get ordersUseCases => OrdersUseCases(
-      createOrder: CreateOrderUseCase(ordersRepository),
-      getOpenOrders: GetOpenOrdersUseCase(ordersRepository));
+        createOrder: CreateOrderUseCase(ordersRepository),
+        getOpenOrders: GetOpenOrdersUseCase(ordersRepository),
+        updateOrder: UpdateOrderUseCase(ordersRepository),
+        updateOrderStatus: UpdateOrderStatusUseCase(ordersRepository),
+        updateOrderItemStatus: UpdateOrderItemStatusUseCase(ordersRepository),
+        synchronizeData: SynchronizeDataUseCase(ordersRepository),
+      );
 }

@@ -176,7 +176,7 @@ class _UpdateProductPersonalizationPageState
 
     // Si hay una variante seleccionada, usa el precio de la variante
     if (selectedVariant != null) {
-      price = selectedVariant!.price;
+      price = selectedVariant!.price!;
     }
 
     // Suma el precio de cada modificador seleccionado
@@ -264,7 +264,7 @@ class _UpdateProductPersonalizationPageState
         for (var variant in variants)
           ListTile(
             title: Text(variant.name),
-            trailing: Text('\$${variant.price.toStringAsFixed(2)}'),
+            trailing: Text('\$${variant.price?.toStringAsFixed(2) ?? '0.00'}'),
             selected: selectedVariant?.id ==
                 variant.id, // Compara por ID o algún otro campo único
             selectedTileColor: Color.fromARGB(255, 33, 66,
@@ -281,11 +281,11 @@ class _UpdateProductPersonalizationPageState
 
   void _deleteOrderItem() {
     // Obtiene el tempId del OrderItem existente
-    final String tempId = widget.existingOrderItem!.tempId;
+    final String? tempId = widget.existingOrderItem!.tempId;
 
     // Utiliza el Bloc para disparar el evento RemoveOrderItem
     BlocProvider.of<OrderUpdateBloc>(context)
-        .add(RemoveOrderItem(tempId: tempId));
+        .add(RemoveOrderItem(tempId: tempId!));
 
     // Muestra un SnackBar como confirmación
     ScaffoldMessenger.of(context).showSnackBar(
@@ -332,19 +332,20 @@ class _UpdateProductPersonalizationPageState
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Text(modifierType.name,
+          child: Text(modifierType.name!,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         ),
         ...(modifierType.modifiers?.map((modifier) => CheckboxListTile(
-                  title: Text(modifier.name),
-                  subtitle: Text('\$${modifier.price.toStringAsFixed(2)}'),
+                  title: Text(modifier.name!),
+                  subtitle: Text('\$${modifier.price!.toStringAsFixed(2)}'),
                   value: selectedModifiers.any((selectedModifier) =>
                       selectedModifier.modifier?.id ==
                       modifier.id), // Compara por ID
                   onChanged: (bool? value) {
                     setState(() {
                       if (value == true) {
-                        if (!modifierType.acceptsMultiple) {
+                        if (modifierType.acceptsMultiple != null &&
+                            !modifierType.acceptsMultiple!) {
                           // Elimina otros modificadores del mismo tipo si no se aceptan múltiples
                           selectedModifiers.removeWhere((selectedModifier) =>
                               modifierType.modifiers!.any((m) =>

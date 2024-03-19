@@ -9,7 +9,6 @@ import 'package:app/src/presentation/pages/auth/login/bloc/LoginEvent.dart';
 import 'package:app/src/presentation/pages/auth/register/bloc/RegisterBloc.dart';
 import 'package:app/src/presentation/pages/auth/register/bloc/RegisterEvent.dart';
 import 'package:app/src/presentation/pages/preparation/bar/bloc/BarPreparationBloc.dart';
-import 'package:app/src/presentation/pages/preparation/bar/bloc/BarPreparationEvent.dart';
 import 'package:app/src/presentation/pages/preparation/bar/home/bloc/BarHomeBloc.dart';
 import 'package:app/src/presentation/pages/preparation/hamburger/home/bloc/HamburgerHomeBloc.dart';
 import 'package:app/src/presentation/pages/preparation/kitchen/home/bloc/KitchenHomeBloc.dart';
@@ -18,7 +17,6 @@ import 'package:app/src/presentation/pages/sales_receipts/home/bloc/SalesHomeBlo
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateBloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 List<BlocProvider> blocProviders = [
   BlocProvider<LoginBloc>(
@@ -50,11 +48,7 @@ List<BlocProvider> blocProviders = [
       create: (context) => BarHomeBloc(locator<AuthUseCases>())),
   BlocProvider<BarPreparationBloc>(
     create: (context) => BarPreparationBloc(
-      socket: IO.io('http://192.168.100.32:3000', <String, dynamic>{
-        'transports': ['websocket'],
-        'autoConnect': false,
-        'query': {'screenType': 'barScreen'}
-      }),
-    )..add(ConnectToWebSocket()), // Cambio aquí para conectar manualmente
+      orderUseCases: locator<OrdersUseCases>(),
+    ),
   ),
 ];

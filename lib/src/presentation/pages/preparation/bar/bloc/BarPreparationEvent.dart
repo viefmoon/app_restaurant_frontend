@@ -1,4 +1,5 @@
-import 'package:app/src/presentation/pages/preparation/bar/bloc/BarPreparationState.dart';
+import 'package:app/src/domain/models/Order.dart';
+import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class BarPreparationEvent extends Equatable {
@@ -27,3 +28,26 @@ class OrderPreparationUpdated extends BarPreparationEvent {
   @override
   List<Object> get props => [orderUpdate];
 }
+
+class UpdateOrderStatusEvent extends BarPreparationEvent {
+  final int orderId;
+  final OrderStatus newStatus;
+
+  const UpdateOrderStatusEvent(this.orderId, this.newStatus);
+
+  @override
+  List<Object> get props => [orderId, newStatus];
+}
+
+class UpdateOrderItemStatusEvent extends BarPreparationEvent {
+  final int orderId;
+  final int orderItemId;
+  final OrderItemStatus newStatus;
+
+  const UpdateOrderItemStatusEvent(
+      {required this.orderId,
+      required this.orderItemId,
+      required this.newStatus});
+}
+
+class SynchronizeOrdersEvent extends BarPreparationEvent {}

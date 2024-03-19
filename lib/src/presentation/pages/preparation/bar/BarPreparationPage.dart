@@ -1,16 +1,20 @@
 import 'package:app/src/domain/models/Order.dart';
+import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/presentation/pages/preparation/bar/bloc/BarPreparationEvent.dart';
 import 'package:app/src/presentation/pages/preparation/bar/home/bloc/BarHomeState.dart';
 import 'package:app/src/presentation/widgets/OrderPreparationWidget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/services.dart'; // Importa flutter/services.dart
+import 'package:flutter/services.dart';
 import 'package:app/src/presentation/pages/preparation/bar/bloc/BarPreparationBloc.dart';
 import 'package:app/src/presentation/pages/preparation/bar/bloc/BarPreparationState.dart';
 
 class BarPreparationPage extends StatefulWidget {
-  final OrderFilterType filterType; // Usa el enum de BarHomeState
+  final OrderFilterType filterType;
+  final bool filterByPrepared;
 
-  const BarPreparationPage({Key? key, this.filterType = OrderFilterType.all})
+  const BarPreparationPage(
+      {Key? key, required this.filterType, this.filterByPrepared = false})
       : super(key: key);
 
   @override
@@ -18,9 +22,12 @@ class BarPreparationPage extends StatefulWidget {
 }
 
 class _BarPreparationPageState extends State<BarPreparationPage> {
+  BarPreparationBloc? bloc;
+
   @override
   void initState() {
     super.initState();
+    bloc = BlocProvider.of<BarPreparationBloc>(context, listen: false);
     // Establece la orientación preferida a horizontal al entrar a la página
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeRight,
@@ -30,12 +37,71 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
 
   @override
   void dispose() {
-    // Restablece la orientación a la predeterminada al salir de la página
+    bloc?.disconnectWebSocket();
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+
     super.dispose();
+  }
+
+  void synchronizeOrders() {
+    bloc?.add(SynchronizeOrdersEvent());
+  }
+
+  void _handleOrderGesture(Order order, String gesture) {
+    final bloc = BlocProvider.of<BarPreparationBloc>(context);
+    switch (gesture) {
+      case 'swipe_left':
+        bloc.add(UpdateOrderStatusEvent(order.id!, OrderStatus.in_preparation));
+        break;
+      case 'swipe_right':
+        bloc.add(UpdateOrderStatusEvent(order.id!, OrderStatus.created));
+        // Cambia el estado de todos los OrderItems visibles a creado
+        order.orderItems?.forEach((orderItem) {
+          bloc.add(UpdateOrderItemStatusEvent(
+              orderId: order.id!,
+              orderItemId: orderItem.id!,
+              newStatus: OrderItemStatus.created));
+        });
+        break;
+      case 'swipe_to_prepared':
+        bloc.add(UpdateOrderStatusEvent(order.id!, OrderStatus.prepared));
+        // Cambia el estado de todos los OrderItems visibles a preparado
+        order.orderItems?.forEach((orderItem) {
+          bloc.add(UpdateOrderItemStatusEvent(
+              orderId: order.id!,
+              orderItemId: orderItem.id!,
+              newStatus: OrderItemStatus.prepared));
+        });
+        break;
+      case 'swipe_to_in_preparation':
+        bloc.add(UpdateOrderStatusEvent(order.id!, OrderStatus.in_preparation));
+        // No cambia el estado de los OrderItems aquí
+        break;
+    }
+  }
+
+  void _handleOrderItemTap(Order order, OrderItem orderItem) {
+    final bloc = BlocProvider.of<BarPreparationBloc>(context);
+    // Verifica si el OrderItem ya está preparado
+    if (orderItem.status == OrderItemStatus.prepared) {
+      // Decide el nuevo estado basado en el estado de la Order
+      final newStatus = order.status == OrderStatus.in_preparation
+          ? OrderItemStatus.in_preparation
+          : OrderItemStatus.created;
+      bloc.add(UpdateOrderItemStatusEvent(
+          orderId: order.id!,
+          orderItemId: orderItem.id!,
+          newStatus: newStatus));
+    } else {
+      // Si el OrderItem no está preparado, procede como antes
+      bloc.add(UpdateOrderItemStatusEvent(
+          orderId: order.id!,
+          orderItemId: orderItem.id!,
+          newStatus: OrderItemStatus.prepared));
+    }
   }
 
   @override
@@ -45,19 +111,34 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
         builder: (context, state) {
           final orders = state.orders ?? [];
           final filteredOrders = orders.where((order) {
-            print("widget.filterType: ${widget.filterType}");
-            // Aquí usas widget.filterType para filtrar
+            // Primero, filtra por el tipo de orden
+            bool matchesType;
             switch (widget.filterType) {
               case OrderFilterType.delivery:
-                return order.orderType == OrderType.delivery;
+                matchesType = order.orderType == OrderType.delivery;
+                break;
               case OrderFilterType.dineIn:
-                return order.orderType == OrderType.dineIn;
+                matchesType = order.orderType == OrderType.dineIn;
+                break;
               case OrderFilterType.pickUpWait:
-                return order.orderType == OrderType.pickUpWait;
+                matchesType = order.orderType == OrderType.pickUpWait;
+                break;
               case OrderFilterType.all:
               default:
-                return true;
+                matchesType = true;
+                break;
             }
+
+            // Luego, filtra por el estado del pedido basado en filterByPrepared
+            bool matchesPreparedStatus;
+            if (widget.filterByPrepared) {
+              matchesPreparedStatus = order.status == OrderStatus.prepared;
+            } else {
+              matchesPreparedStatus = order.status == OrderStatus.created ||
+                  order.status == OrderStatus.in_preparation;
+            }
+
+            return matchesType && matchesPreparedStatus;
           }).toList();
 
           if (filteredOrders.isEmpty) {
@@ -66,16 +147,26 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
 
           return ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: filteredOrders.length, // Usa filteredOrders.length aquí
+            itemCount: filteredOrders.length,
             itemBuilder: (context, index) {
               final order = filteredOrders[
                   index]; // Usa filteredOrders para obtener la orden
               return OrderPreparationWidget(
-                  order:
-                      order); // Utiliza el widget personalizado para cada orden
+                order: order,
+                onOrderGesture: _handleOrderGesture,
+                onOrderItemTap:
+                    _handleOrderItemTap, // Pasa el método como callback
+              );
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          final bloc = BlocProvider.of<BarPreparationBloc>(context);
+          bloc.add(SynchronizeOrdersEvent());
+        },
+        child: Icon(Icons.sync),
       ),
     );
   }

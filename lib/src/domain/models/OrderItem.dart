@@ -8,7 +8,7 @@ import 'package:app/src/domain/models/SelectedProductObservation.dart';
 import 'package:app/src/domain/models/Order.dart' as OrderModel;
 import 'package:uuid/uuid.dart';
 
-enum OrderItemStatus { created, inPreparation, finished }
+enum OrderItemStatus { created, in_preparation, prepared, canceled }
 
 class OrderItem {
   final int? id;
@@ -44,12 +44,14 @@ class OrderItem {
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
       id: json['id'],
-      status: OrderItemStatus.values
-          .firstWhere((e) => e.toString().split(".").last == json['status']),
-      comments: json['comments'],
-      order: json['order'] != null
-          ? OrderModel.Order.fromJson(json['order'])
+      status: json['status'] != null
+          ? OrderItemStatus.values
+              .firstWhere((e) => e.toString().split(".").last == json['status'])
           : null,
+      comments: json['comments'],
+      // order: json['order'] != null
+      //     ? OrderModel.Order.fromJson(json['order'])
+      //     : null,
       product:
           json['product'] != null ? Product.fromJson(json['product']) : null,
       productVariant: json['productVariant'] != null
@@ -78,11 +80,11 @@ class OrderItem {
       price: json['price'] != null
           ? double.tryParse(json['price'].toString())
           : null,
-      // orderItemUpdates: json['orderItemUpdates'] != null
-      //     ? (json['orderItemUpdates'] as List)
-      //         .map((i) => OrderItemUpdate.fromJson(i))
-      //         .toList()
-      //     : null,
+      orderItemUpdates: json['orderItemUpdates'] != null
+          ? (json['orderItemUpdates'] as List)
+              .map((i) => OrderItemUpdate.fromJson(i))
+              .toList()
+          : null,
     );
   }
 

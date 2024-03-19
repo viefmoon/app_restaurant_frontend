@@ -20,9 +20,11 @@ class ModifierType {
           as String, // Aseguramos que 'name' sea tratado como String no nulo
       acceptsMultiple: json['acceptsMultiple']
           as bool, // Aseguramos que 'acceptsMultiple' sea tratado como bool no nulo
-      modifiers: (json['modifiers'] as List?)
-          ?.map((i) => Modifier.fromJson(i))
-          .toList(),
+      modifiers: json['modifiers'] != null
+          ? (json['modifiers'] as List)
+              .map((i) => Modifier.fromJson(i))
+              .toList()
+          : null,
     );
   }
 

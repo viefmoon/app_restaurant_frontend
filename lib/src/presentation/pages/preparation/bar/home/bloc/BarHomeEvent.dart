@@ -34,3 +34,10 @@ class ChangeOrderFilterType extends BarHomeEvent {
   @override
   List<Object> get props => [filterType];
 }
+
+class SynchronizeOrders extends BarHomeEvent {
+  const SynchronizeOrders();
+
+  @override
+  List<Object> get props => [];
+}

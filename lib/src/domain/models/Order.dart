@@ -86,20 +86,25 @@ class Order {
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
       id: json['id'],
-      orderType: OrderType.values.firstWhere(
-          (e) => e.toString().split(".").last == json['orderType'],
-          orElse: () => OrderType
-              .delivery), // Asumiendo que siempre hay un valor predeterminado válido
-      status: OrderStatus.values.firstWhere(
-          (e) => e.toString().split(".").last == json['status'],
-          orElse: () => OrderStatus
-              .finished), // Asumiendo que siempre hay un valor predeterminado válido
-      amountPaid: json['price'] != null ? double.tryParse(json['price']) : null,
+      orderType: json['orderType'] != null
+          ? OrderType.values.firstWhere(
+              (e) => e.toString().split(".").last == json['orderType'],
+              orElse: () => OrderType.delivery)
+          : OrderType.delivery,
+      status: json['status'] != null
+          ? OrderStatus.values.firstWhere(
+              (e) => e.toString().split(".").last == json['status'],
+              orElse: () => OrderStatus.created)
+          : OrderStatus.created,
+      amountPaid: json['price'] != null
+          ? double.tryParse(json['price'].toString())
+          : null,
       creationDate: json['creationDate'] != null
           ? DateTime.tryParse(json['creationDate'])
           : null,
-      totalCost:
-          json['totalCost'] != null ? double.tryParse(json['totalCost']) : null,
+      totalCost: json['totalCost'] != null
+          ? double.tryParse(json['totalCost'].toString())
+          : null,
       comments: json['comments'],
       scheduledDeliveryTime: json['scheduledDeliveryTime'] != null
           ? DateTime.tryParse(json['scheduledDeliveryTime'])
@@ -107,19 +112,22 @@ class Order {
       phoneNumber: json['phoneNumber'],
       deliveryAddress: json['deliveryAddress'],
       customerName: json['customerName'],
-      area: json['area'] != null ? Area.fromJson(json['area']) : null,
+      area: json['area'] != null
+          ? Area.fromJson(json['area'] as Map<String, dynamic>)
+          : null,
       table: json['table'] != null
-          ? TableModel.Table.fromJson(json['table'])
+          ? TableModel.Table.fromJson(json['table'] as Map<String, dynamic>)
           : null,
       orderItems: json['orderItems'] != null
           ? (json['orderItems'] as List)
               .map((i) => OrderItem.fromJson(i))
               .toList()
           : null,
-      // Comentado previamente, pero aquí está cómo manejarlo de manera segura si decides descomentarlo
-      // orderUpdates: json['orderUpdates'] != null
-      //     ? (json['orderUpdates'] as List).map((i) => OrderUpdate.fromJson(i)).toList()
-      //     : null,
+      orderUpdates: json['orderUpdates'] != null
+          ? (json['orderUpdates'] as List)
+              .map((i) => OrderUpdate.fromJson(i))
+              .toList()
+          : null,
     );
   }
 

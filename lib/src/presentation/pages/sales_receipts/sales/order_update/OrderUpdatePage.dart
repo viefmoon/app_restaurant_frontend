@@ -435,7 +435,7 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
             items: state.areas!.map<DropdownMenuItem<int>>((area) {
               return DropdownMenuItem<int>(
                 value: area.id,
-                child: Text(area.name),
+                child: Text(area.name!),
               );
             }).toList(),
           ),

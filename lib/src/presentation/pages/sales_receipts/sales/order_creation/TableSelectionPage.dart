@@ -68,8 +68,8 @@ class _TableSelectionPageState extends State<TableSelectionPage> {
           },
           items: state.areas?.map<DropdownMenuItem<int>>((area) {
                 return DropdownMenuItem<int>(
-                  value: area.id,
-                  child: Text(area.name),
+                  value: area.id!,
+                  child: Text(area.name!),
                 );
               }).toList() ??
               [],
@@ -97,7 +97,7 @@ class _TableSelectionPageState extends State<TableSelectionPage> {
             }
           },
           items: state.tables
-                  ?.where((table) => table.status.name == 'Disponible')
+                  ?.where((table) => table.status?.name == 'Disponible')
                   .map<DropdownMenuItem<int>>((table) {
                 return DropdownMenuItem<int>(
                   value: table.id,

@@ -25,12 +25,13 @@ class ProductVariant {
           : null,
       product:
           json['product'] != null ? Product.fromJson(json['product']) : null,
-      orderItems: (json['orderItems'] as List?)
-          ?.map((i) => OrderItem.fromJson(i))
-          .toList(),
+      orderItems: json['orderItems'] != null
+          ? (json['orderItems'] as List)
+              .map((i) => OrderItem.fromJson(i))
+              .toList()
+          : null,
     );
   }
-
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{
       'id': id,
