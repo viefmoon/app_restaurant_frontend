@@ -139,7 +139,7 @@ class ProductSelectionPage extends StatelessWidget {
                     (product.productObservationTypes?.isNotEmpty ?? false) ||
                     (product.pizzaFlavors?.isNotEmpty ?? false) ||
                     (product.pizzaIngredients?.isNotEmpty ?? false);
-
+            print(product.subcategory?.name);
             if (!requiresPersonalization) {
               final tempId = Uuid().v4();
 

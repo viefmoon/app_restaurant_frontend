@@ -29,14 +29,22 @@ class OrderPreparationUpdated extends BarPreparationEvent {
   List<Object> get props => [orderUpdate];
 }
 
-class UpdateOrderStatusEvent extends BarPreparationEvent {
-  final int orderId;
-  final OrderStatus newStatus;
+enum PreparationStatusType {
+  barPreparationStatus,
+  burgerPreparationStatus,
+  pizzaPreparationStatus
+}
 
-  const UpdateOrderStatusEvent(this.orderId, this.newStatus);
+class UpdateOrderPreparationStatusEvent extends BarPreparationEvent {
+  final int orderId;
+  final OrderPreparationStatus newStatus;
+  final PreparationStatusType statusType;
+
+  const UpdateOrderPreparationStatusEvent(
+      this.orderId, this.newStatus, this.statusType);
 
   @override
-  List<Object> get props => [orderId, newStatus];
+  List<Object> get props => [orderId, newStatus, statusType];
 }
 
 class UpdateOrderItemStatusEvent extends BarPreparationEvent {

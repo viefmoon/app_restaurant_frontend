@@ -10,20 +10,20 @@ abstract class OrderUpdateEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class LoadOrders extends OrderUpdateEvent {
-  const LoadOrders();
+class LoadOpenOrders extends OrderUpdateEvent {
+  const LoadOpenOrders();
 
   @override
   List<Object> get props => [];
 }
 
 class OrderSelectedForUpdate extends OrderUpdateEvent {
-  final Order order;
+  final int orderId;
 
-  const OrderSelectedForUpdate(this.order);
+  const OrderSelectedForUpdate(this.orderId);
 
   @override
-  List<Object> get props => [order];
+  List<Object> get props => [orderId];
 }
 
 class OrderTypeSelected extends OrderUpdateEvent {

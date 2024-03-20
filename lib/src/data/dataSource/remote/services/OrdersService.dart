@@ -48,23 +48,50 @@ class OrdersService {
     }
   }
 
-  Future<Resource<Order>> updateOrder(
-      int orderId, Map<String, dynamic> updateData) async {
+  Future<Resource<Order>> getOrderForUpdate(int orderId) async {
     try {
       String apiEcommerce = await ApiConfig.getApiEcommerce();
       Uri url = Uri.http(apiEcommerce, '/orders/$orderId');
-      final response = await http.put(
+      final response = await http.get(
         url,
         headers: {"Content-Type": "application/json"},
-        body: json.encode(updateData),
       );
       if (response.statusCode == 200) {
+        Order order = Order.fromJson(json.decode(response.body));
+        return Success(order);
+      } else {
+        return Error(
+            "Error al obtener la orden para actualizar: ${response.body}");
+      }
+    } catch (e) {
+      return Error(e.toString());
+    }
+  }
+
+  Future<Resource<Order>> updateOrder(Order order) async {
+    try {
+      print('Updating order');
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      // Aquí se extrae el id de la orden y se incluye en la URL
+      Uri url = Uri.http(apiEcommerce, '/orders/${order.id}');
+      print('url: $url');
+      final response = await http.patch(
+        url,
+        headers: {"Content-Type": "application/json"},
+        // Se usa order.toJson() para enviar la orden completa como JSON
+        body: json.encode(order.toJson()),
+      );
+      print('response: $response');
+      if (response.statusCode == 200) {
+        print('response.statusCode == 200');
+        print('response.body: ${response.body}');
         Order updatedOrder = Order.fromJson(json.decode(response.body));
         return Success(updatedOrder);
       } else {
         return Error("Error al actualizar la orden: ${response.body}");
       }
     } catch (e) {
+      print('Errors: $e');
       return Error(e.toString());
     }
   }

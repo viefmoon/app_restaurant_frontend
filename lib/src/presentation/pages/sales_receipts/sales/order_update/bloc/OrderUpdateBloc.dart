@@ -18,12 +18,12 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
   final AreasUseCases areasUseCases;
   final CategoriesUseCases categoriesUseCases;
 
-  OrderUpdateBloc(
-      {required this.ordersUseCases,
-      required this.areasUseCases,
-      required this.categoriesUseCases})
-      : super(OrderUpdateState()) {
-    on<LoadOrders>(_onLoadOrders);
+  OrderUpdateBloc({
+    required this.ordersUseCases,
+    required this.areasUseCases,
+    required this.categoriesUseCases,
+  }) : super(OrderUpdateState()) {
+    on<LoadOpenOrders>(_onLoadOpenOrders);
     on<OrderTypeSelected>(_onOrderTypeSelected);
     on<PhoneNumberEntered>(_onPhoneNumberEntered);
     on<DeliveryAddressEntered>(_onDeliveryAddressEntered);
@@ -42,84 +42,101 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     on<LoadCategoriesWithProducts>(_onLoadCategoriesWithProducts);
     on<CategorySelected>(_onCategorySelected);
     on<SubcategorySelected>(_onSubcategorySelected);
+    on<UpdateOrder>(_onUpdateOrder);
   }
 
   Future<void> _onResetOrderUpdateState(
       ResetOrderUpdateState event, Emitter<OrderUpdateState> emit) async {
+    print("RESET");
     emit(state.copyWith(
+      orders: [],
       orderIdSelectedForUpdate: null,
       selectedOrderType: null,
       areas: [],
       tables: [],
       selectedAreaId: null,
-      selectedAreaName: null,
+      selectedAreaName: "",
       selectedTableId: null,
       selectedTableNumber: null,
-      phoneNumber: null,
-      deliveryAddress: null,
-      customerName: null,
-      comments: null,
+      phoneNumber: "",
+      deliveryAddress: "",
+      customerName: "",
+      comments: "",
       scheduledDeliveryTime: null,
       totalCost: null,
       orderItems: [],
       errorMessage: null,
       response: null,
+      categories: [],
+      selectedCategoryId: null,
+      filteredSubcategories: [],
+      selectedSubcategoryId: null,
+      filteredProducts: [],
     ));
+    await _onLoadOpenOrders(LoadOpenOrders(), emit);
   }
 
-  Future<void> _onLoadOrders(
-      LoadOrders event, Emitter<OrderUpdateState> emit) async {
+  Future<void> _onLoadOpenOrders(
+      LoadOpenOrders event, Emitter<OrderUpdateState> emit) async {
     emit(state.copyWith(response: Loading()));
-    try {
-      Resource response = await ordersUseCases.getOpenOrders.run();
-      if (response is Success<List<Order>>) {
-        List<Order> orders = response.data;
-        print(orders);
-        emit(state.copyWith(orders: orders, response: Success(orders)));
-      } else {
-        emit(state.copyWith(orders: [], response: response));
+    await _handleLoadingEvent<List<Order>>(
+      emit,
+      () => ordersUseCases.getOpenOrders.run(),
+      (data) => state.copyWith(orders: data, response: Success(data)),
+    );
+  }
+
+  Future<void> _onOrderSelectedForUpdate(
+      OrderSelectedForUpdate event, Emitter<OrderUpdateState> emit) async {
+    emit(state.copyWith(
+        response:
+            Loading())); // Añadir esta línea para manejar el estado de carga
+    // Recuperar la orden usando el ID proporcionado
+    final Resource<Order> orderResource =
+        await ordersUseCases.getOrderForUpdate.run(event.orderId);
+
+    if (orderResource is Success<Order>) {
+      final Order order = orderResource.data;
+
+      emit(state.copyWith(selectedOrderType: order.orderType));
+
+      emit(state.copyWith(
+        orderIdSelectedForUpdate: order.id,
+        selectedAreaId: order.area?.id,
+        selectedTableId: order.table?.id,
+        phoneNumber: order.phoneNumber,
+        deliveryAddress: order.deliveryAddress,
+        customerName: order.customerName,
+        scheduledDeliveryTime: order.scheduledDeliveryTime != null
+            ? TimeOfDay(
+                hour: order.scheduledDeliveryTime!.hour,
+                minute: order.scheduledDeliveryTime!.minute)
+            : null,
+        comments: order.comments,
+        totalCost: order.totalCost,
+        orderItems: order.orderItems,
+      ));
+
+      // Emitir el evento AreaSelected solo si hay un área seleccionada y el tipo de orden es DineIn
+      if (order.orderType == OrderType.dineIn && state.selectedAreaId != null) {
+        add(AreaSelected(areaId: state.selectedAreaId!));
       }
-    } catch (e) {
-      emit(state.copyWith(orders: [], response: Error(e.toString())));
+    } else {
+      // Manejar el caso de error
+      _handleError(emit, orderResource);
     }
   }
 
   Future<void> _onOrderTypeSelected(
       OrderTypeSelected event, Emitter<OrderUpdateState> emit) async {
+    print(event.selectedOrderType);
     emit(state.copyWith(selectedOrderType: event.selectedOrderType));
-  }
-
-  Future<void> _onOrderSelectedForUpdate(
-      OrderSelectedForUpdate event, Emitter<OrderUpdateState> emit) async {
-    await _onLoadAreas(LoadAreas(), emit);
-    // Wait for areas to be loaded before proceeding
-    await Future.doWhile(() async {
-      await Future.delayed(Duration(milliseconds: 100));
-      return state.areas == null || state.areas!.isEmpty;
-    });
-
-    emit(state.copyWith(
-      orderIdSelectedForUpdate: event.order.id,
-      selectedOrderType: event.order.orderType,
-      selectedAreaId: event.order.area?.id,
-      selectedTableId: event.order.table?.id,
-      phoneNumber: event.order.phoneNumber,
-      deliveryAddress: event.order.deliveryAddress,
-      customerName: event.order.customerName,
-      scheduledDeliveryTime: event.order.scheduledDeliveryTime != null
-          ? TimeOfDay(
-              hour: event.order.scheduledDeliveryTime!.hour,
-              minute: event.order.scheduledDeliveryTime!.minute)
-          : null,
-      comments: event.order.comments,
-      totalCost: event.order.totalCost,
-      orderItems: event.order.orderItems,
-      // Aquí puedes copiar otros campos relevantes de la orden al estado, si es necesario
-    ));
-
-    // Finalmente, emite el evento AreaSelected si hay un área seleccionada
-    if (state.selectedAreaId != null) {
-      add(AreaSelected(areaId: state.selectedAreaId!));
+    if (event.selectedOrderType == OrderType.dineIn) {
+      await _onLoadAreas(LoadAreas(), emit);
+      await Future.doWhile(() async {
+        await Future.delayed(Duration(milliseconds: 100));
+        return state.areas == null || state.areas!.isEmpty;
+      });
     }
   }
 
@@ -167,48 +184,28 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
 
   Future<void> _onLoadAreas(
       LoadAreas event, Emitter<OrderUpdateState> emit) async {
-    emit(state.copyWith(response: Loading()));
-    try {
-      Resource response = await areasUseCases.getAreas.run();
-      if (response is Success<List<Area>>) {
-        List<Area> areas = response.data;
-        emit(state.copyWith(areas: areas, response: Success(areas)));
-      } else {
-        emit(state.copyWith(areas: [], response: response));
-      }
-    } catch (e) {
-      emit(state.copyWith(areas: [], response: Error(e.toString())));
-    }
+    await _handleLoadingEvent<List<Area>>(
+      emit,
+      () => areasUseCases.getAreas.run(),
+      (data) => state.copyWith(areas: data, response: Success(data)),
+    );
   }
 
   Future<void> _onLoadTables(
       LoadTables event, Emitter<OrderUpdateState> emit) async {
-    emit(state.copyWith(response: Loading()));
-    try {
-      Resource response =
-          await areasUseCases.getTablesFromArea.run(event.areaId);
-      if (response is Success<List<appModel.Table>>) {
-        List<appModel.Table> tables = response.data;
-        emit(state.copyWith(tables: tables, response: Success(tables)));
-      } else {
-        emit(state.copyWith(tables: [], response: response));
-      }
-    } catch (e) {
-      emit(state.copyWith(tables: [], response: Error(e.toString())));
-    }
+    await _handleLoadingEvent<List<appModel.Table>>(
+      emit,
+      () => areasUseCases.getTablesFromArea.run(event.areaId),
+      (data) => state.copyWith(tables: data, response: Success(data)),
+    );
   }
 
   Future<void> _onAddOrderItem(
       AddOrderItem event, Emitter<OrderUpdateState> emit) async {
-    print('event.addorderItem: ${event.orderItem}');
-    // Añade el OrderItem proporcionado por el evento al estado actual
+    print('AddOrderItem');
     final updatedOrderItems = List<OrderItem>.from(state.orderItems ?? [])
       ..add(event.orderItem);
     emit(state.copyWith(orderItems: updatedOrderItems));
-    // Imprime los nombres de todos los OrderItems
-    for (var orderItem in updatedOrderItems) {
-      print('Nombre del OrderItem: ${orderItem.product?.name}');
-    }
   }
 
   Future<void> _onUpdateOrderItem(
@@ -224,32 +221,20 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
 
   Future<void> _onRemoveOrderItem(
       RemoveOrderItem event, Emitter<OrderUpdateState> emit) async {
-    // Filtra la lista de OrderItems para excluir el que tiene el tempId proporcionado
     final updatedOrderItems = state.orderItems
             ?.where((item) => item.tempId != event.tempId)
             .toList() ??
         [];
-
-    // Emite un nuevo estado con la lista actualizada de OrderItems
     emit(state.copyWith(orderItems: updatedOrderItems));
   }
 
   Future<void> _onLoadCategoriesWithProducts(
       LoadCategoriesWithProducts event, Emitter<OrderUpdateState> emit) async {
-    emit(state.copyWith(response: Loading()));
-    try {
-      Resource response =
-          await categoriesUseCases.getCategoriesWithProducts.run();
-      if (response is Success<List<Category>>) {
-        List<Category> categories = response.data;
-        emit(state.copyWith(
-            categories: categories, response: Success(categories)));
-      } else {
-        emit(state.copyWith(categories: [], response: response));
-      }
-    } catch (e) {
-      emit(state.copyWith(categories: [], response: Error(e.toString())));
-    }
+    await _handleLoadingEvent<List<Category>>(
+      emit,
+      () => categoriesUseCases.getCategoriesWithProducts.run(),
+      (data) => state.copyWith(categories: data, response: Success(data)),
+    );
   }
 
   Future<void> _onCategorySelected(
@@ -259,7 +244,7 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
       selectedCategory =
           state.categories?.firstWhere((cat) => cat.id == event.categoryId);
     } catch (e) {
-      // Si no se encuentra ninguna coincidencia, selectedCategory permanecerá como null.
+      // If no match is found, selectedCategory remains null.
     }
 
     final filteredSubcategories = selectedCategory?.subcategories ?? [];
@@ -279,7 +264,7 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
       selectedSubcategory = state.filteredSubcategories
           ?.firstWhere((sub) => sub.id == event.subcategoryId);
     } catch (e) {
-      // Si no se encuentra ninguna coincidencia, selectedSubcategory permanecerá como null.
+      // If no match is found, selectedSubcategory remains null.
     }
     final filteredProducts = selectedSubcategory?.products ?? [];
 
@@ -287,5 +272,41 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
       selectedSubcategoryId: event.subcategoryId,
       filteredProducts: filteredProducts,
     ));
+  }
+
+  Future<void> _onUpdateOrder(
+      UpdateOrder event, Emitter<OrderUpdateState> emit) async {
+    print('UpdateOrder');
+    print(event.order.orderItems);
+    await _handleLoadingEvent<Order>(
+      emit,
+      () => ordersUseCases.updateOrder.run(event.order),
+      (data) => state.copyWith(response: Success(data)),
+    );
+    add(ResetOrderUpdateState());
+  }
+
+  // High-order function to handle loading events
+  Future<void> _handleLoadingEvent<T>(
+    Emitter<OrderUpdateState> emit,
+    Future<Resource> Function() action,
+    OrderUpdateState Function(T data) onSuccess,
+  ) async {
+    emit(state.copyWith(response: Loading()));
+    try {
+      final response = await action();
+      if (response is Success<T>) {
+        emit(onSuccess(response.data));
+      } else {
+        _handleError(emit, response);
+      }
+    } catch (e) {
+      _handleError(emit, Error(e.toString()));
+    }
+  }
+
+  // Centralized error handling
+  void _handleError(Emitter<OrderUpdateState> emit, Resource response) {
+    emit(state.copyWith(response: response));
   }
 }

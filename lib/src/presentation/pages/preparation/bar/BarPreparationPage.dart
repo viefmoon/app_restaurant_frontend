@@ -54,10 +54,16 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
     final bloc = BlocProvider.of<BarPreparationBloc>(context);
     switch (gesture) {
       case 'swipe_left':
-        bloc.add(UpdateOrderStatusEvent(order.id!, OrderStatus.in_preparation));
+        bloc.add(UpdateOrderPreparationStatusEvent(
+            order.id!,
+            OrderPreparationStatus.in_preparation,
+            PreparationStatusType.barPreparationStatus));
         break;
       case 'swipe_right':
-        bloc.add(UpdateOrderStatusEvent(order.id!, OrderStatus.created));
+        bloc.add(UpdateOrderPreparationStatusEvent(
+            order.id!,
+            OrderPreparationStatus.created,
+            PreparationStatusType.barPreparationStatus));
         // Cambia el estado de todos los OrderItems visibles a creado
         order.orderItems?.forEach((orderItem) {
           bloc.add(UpdateOrderItemStatusEvent(
@@ -67,7 +73,10 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
         });
         break;
       case 'swipe_to_prepared':
-        bloc.add(UpdateOrderStatusEvent(order.id!, OrderStatus.prepared));
+        bloc.add(UpdateOrderPreparationStatusEvent(
+            order.id!,
+            OrderPreparationStatus.prepared,
+            PreparationStatusType.barPreparationStatus));
         // Cambia el estado de todos los OrderItems visibles a preparado
         order.orderItems?.forEach((orderItem) {
           bloc.add(UpdateOrderItemStatusEvent(
@@ -77,7 +86,10 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
         });
         break;
       case 'swipe_to_in_preparation':
-        bloc.add(UpdateOrderStatusEvent(order.id!, OrderStatus.in_preparation));
+        bloc.add(UpdateOrderPreparationStatusEvent(
+            order.id!,
+            OrderPreparationStatus.in_preparation,
+            PreparationStatusType.barPreparationStatus));
         // No cambia el estado de los OrderItems aquí
         break;
     }
@@ -132,10 +144,13 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
             // Luego, filtra por el estado del pedido basado en filterByPrepared
             bool matchesPreparedStatus;
             if (widget.filterByPrepared) {
-              matchesPreparedStatus = order.status == OrderStatus.prepared;
+              matchesPreparedStatus =
+                  order.barPreparationStatus == OrderPreparationStatus.prepared;
             } else {
-              matchesPreparedStatus = order.status == OrderStatus.created ||
-                  order.status == OrderStatus.in_preparation;
+              matchesPreparedStatus = order.barPreparationStatus ==
+                      OrderPreparationStatus.created ||
+                  order.barPreparationStatus ==
+                      OrderPreparationStatus.in_preparation;
             }
 
             return matchesType && matchesPreparedStatus;

@@ -12,7 +12,7 @@ class OpenOrdersPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final OrderUpdateBloc bloc = BlocProvider.of<OrderUpdateBloc>(context);
-    bloc.add(LoadOrders());
+    bloc.add(LoadOpenOrders());
 
     return Scaffold(
       appBar: AppBar(
@@ -76,7 +76,7 @@ class OpenOrdersPage extends StatelessWidget {
                       style: TextStyle(color: statusColor)),
                   onTap: () {
                     // Emitir el evento al BLoC con la orden seleccionada
-                    bloc.add(OrderSelectedForUpdate(order));
+                    bloc.add(OrderSelectedForUpdate(order.id ?? 0));
 
                     // Navegar a la página de actualización de la orden sin pasar la orden como parámetro
                     Navigator.push(

@@ -20,6 +20,11 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }
 
   @override
+  Future<Resource<Order>> getOrderForUpdate(int orderId) {
+    return ordersService.getOrderForUpdate(orderId);
+  }
+
+  @override
   Future<Resource<Order>> updateOrderStatus(Order order) {
     return ordersService.updateOrderStatus(order);
   }
@@ -30,9 +35,8 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }
 
   @override
-  Future<Resource<Order>> updateOrder(
-      int orderId, Map<String, dynamic> updateData) {
-    return ordersService.updateOrder(orderId, updateData);
+  Future<Resource<Order>> updateOrder(Order order) {
+    return ordersService.updateOrder(order);
   }
 
   @override

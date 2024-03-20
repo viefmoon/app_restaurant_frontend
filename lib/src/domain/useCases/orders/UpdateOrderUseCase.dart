@@ -7,6 +7,6 @@ class UpdateOrderUseCase {
 
   UpdateOrderUseCase(this.ordersRepository);
 
-  Future<Resource<Order>> run(int orderId, Map<String, dynamic> updateData) =>
-      ordersRepository.updateOrder(orderId, updateData);
+  Future<Resource<Order>> run(Order order) =>
+      ordersRepository.updateOrder(order);
 }

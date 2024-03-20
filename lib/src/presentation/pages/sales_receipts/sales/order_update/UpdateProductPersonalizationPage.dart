@@ -332,11 +332,11 @@ class _UpdateProductPersonalizationPageState
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Text(modifierType.name!,
+          child: Text(modifierType.name,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         ),
         ...(modifierType.modifiers?.map((modifier) => CheckboxListTile(
-                  title: Text(modifier.name!),
+                  title: Text(modifier.name),
                   subtitle: Text('\$${modifier.price!.toStringAsFixed(2)}'),
                   value: selectedModifiers.any((selectedModifier) =>
                       selectedModifier.modifier?.id ==
@@ -344,8 +344,7 @@ class _UpdateProductPersonalizationPageState
                   onChanged: (bool? value) {
                     setState(() {
                       if (value == true) {
-                        if (modifierType.acceptsMultiple != null &&
-                            !modifierType.acceptsMultiple!) {
+                        if (!modifierType.acceptsMultiple) {
                           // Elimina otros modificadores del mismo tipo si no se aceptan múltiples
                           selectedModifiers.removeWhere((selectedModifier) =>
                               modifierType.modifiers!.any((m) =>

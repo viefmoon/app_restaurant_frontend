@@ -55,7 +55,7 @@ class BarPreparationBloc
     on<ConnectToWebSocket>(_onConnectToWebSocket);
     on<WebSocketMessageReceived>(_onWebSocketMessageReceived);
     on<OrderPreparationUpdated>(_onOrderPreparationUpdated);
-    on<UpdateOrderStatusEvent>(_onUpdateOrderStatusEvent);
+    on<UpdateOrderPreparationStatusEvent>(_onUpdateOrderPreparationStatusEvent);
     on<UpdateOrderItemStatusEvent>(_onUpdateOrderItemStatusEvent);
     on<SynchronizeOrdersEvent>(_onSynchronizeOrdersEvent);
   }
@@ -84,7 +84,8 @@ class BarPreparationBloc
         data.containsKey('orderItemId') &&
         data.containsKey('status')) {
       _handleOrderItemStatusUpdate(data, emit);
-    } else if (data.containsKey('orderId') && data.containsKey('status')) {
+    } else if (data.containsKey('orderId') &&
+        data.containsKey('barPreparationStatus')) {
       // Verifica si es una actualización de estado de una orden
       _handleOrderStatusUpdate(data, emit);
     } else {
@@ -96,12 +97,12 @@ class BarPreparationBloc
   void _handleOrderStatusUpdate(
       Map<String, dynamic> data, Emitter<BarPreparationState> emit) {
     final orderId = data['orderId'];
-    final newStatus = _parseOrderStatus(data['status']);
+    final newStatus = _parseOrderStatus(data['barPreparationStatus']);
     bool orderExists = false;
     final updatedOrders = state.orders?.map((existingOrder) {
       if (existingOrder.id == orderId) {
         orderExists = true;
-        return existingOrder.copyWith(status: newStatus);
+        return existingOrder.copyWith(barPreparationStatus: newStatus);
       }
       return existingOrder;
     }).toList();
@@ -167,11 +168,30 @@ class BarPreparationBloc
     emit(state.copyWith(orders: updatedOrders as List<Order>));
   }
 
-  Future<void> _onUpdateOrderStatusEvent(
-      UpdateOrderStatusEvent event, Emitter<BarPreparationState> emit) async {
+  Future<void> _onUpdateOrderPreparationStatusEvent(
+      UpdateOrderPreparationStatusEvent event,
+      Emitter<BarPreparationState> emit) async {
     try {
-      final orderToUpdate = Order(id: event.orderId, status: event.newStatus);
+      Order orderToUpdate;
+      switch (event.statusType) {
+        case PreparationStatusType.barPreparationStatus:
+          orderToUpdate =
+              Order(id: event.orderId, barPreparationStatus: event.newStatus);
+          break;
+        case PreparationStatusType.burgerPreparationStatus:
+          orderToUpdate = Order(
+              id: event.orderId, burgerPreparationStatus: event.newStatus);
+          break;
+        case PreparationStatusType.pizzaPreparationStatus:
+          orderToUpdate =
+              Order(id: event.orderId, pizzaPreparationStatus: event.newStatus);
+          break;
+        default:
+          throw Exception("Tipo de estado no válido");
+      }
+
       final result = await orderUseCases.updateOrderStatus.run(orderToUpdate);
+
       if (result is Success<Order>) {
         // Opcional: Emitir un estado de éxito
       } else {
@@ -218,10 +238,10 @@ class BarPreparationBloc
     }
   }
 
-  OrderStatus _parseOrderStatus(String status) {
-    return OrderStatus.values.firstWhere(
+  OrderPreparationStatus _parseOrderStatus(String status) {
+    return OrderPreparationStatus.values.firstWhere(
       (e) => e.toString().split(".").last == status,
-      orElse: () => OrderStatus.created, // Valor por defecto
+      orElse: () => OrderPreparationStatus.not_required, // Valor por defecto
     );
   }
 

@@ -79,7 +79,7 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
   Widget build(BuildContext context) {
     final String timeSinceCreation =
         '${_timeSinceCreation.inHours.toString().padLeft(2, '0')}:${_timeSinceCreation.inMinutes.remainder(60).toString().padLeft(2, '0')}';
-
+    print(widget.order.id);
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.25,
       child: Card(
@@ -108,7 +108,7 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              _getColorByOrderState(widget.order.status),
+              _getColorByOrderState(widget.order.barPreparationStatus),
               _getColorByOrderType(widget.order.orderType),
             ],
             begin: Alignment.centerLeft,
@@ -133,7 +133,7 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
                           fontFamily: 'Arial'),
                     ),
                     Text(
-                      _displayOrderStatus(widget.order.status),
+                      _displayOrderStatus(widget.order.barPreparationStatus),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Colors.black, fontStyle: FontStyle.italic),
                     ),
@@ -208,18 +208,14 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
     }
   }
 
-  Color _getColorByOrderState(OrderStatus? status) {
+  Color _getColorByOrderState(OrderPreparationStatus? status) {
     switch (status) {
-      case OrderStatus.created:
+      case OrderPreparationStatus.created:
         return Colors.lightBlue[100]!;
-      case OrderStatus.in_preparation:
+      case OrderPreparationStatus.in_preparation:
         return Colors.lightGreen[100]!;
-      case OrderStatus.prepared:
+      case OrderPreparationStatus.prepared:
         return Colors.amber[100]!;
-      case OrderStatus.finished:
-        return Colors.grey[100]!;
-      case OrderStatus.canceled:
-        return Colors.red[100]!;
       default:
         return Colors.white;
     }
@@ -238,10 +234,10 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
     // Aquí implementas la lógica para cambiar el estado del pedido
     // basado en su estado actual
     String newStatus;
-    if (order.status == OrderStatus.created ||
-        order.status == OrderStatus.in_preparation) {
+    if (order.barPreparationStatus == OrderPreparationStatus.created ||
+        order.barPreparationStatus == OrderPreparationStatus.in_preparation) {
       newStatus = 'swipe_to_prepared'; // Define un nuevo tipo de gesto
-    } else if (order.status == OrderStatus.prepared) {
+    } else if (order.barPreparationStatus == OrderPreparationStatus.prepared) {
       newStatus = 'swipe_to_in_preparation'; // Define otro tipo de gesto
     } else {
       return; // No hagas nada si el pedido no está en un estado que pueda cambiar
@@ -384,18 +380,15 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
     }
   }
 
-  String _displayOrderStatus(OrderStatus? status) {
+  String _displayOrderStatus(OrderPreparationStatus? status) {
+    print(status);
     switch (status) {
-      case OrderStatus.created:
+      case OrderPreparationStatus.created:
         return 'Creada';
-      case OrderStatus.in_preparation:
+      case OrderPreparationStatus.in_preparation:
         return 'En preparación';
-      case OrderStatus.prepared:
+      case OrderPreparationStatus.prepared:
         return 'Preparada';
-      case OrderStatus.finished:
-        return 'Finalizada';
-      case OrderStatus.canceled:
-        return 'Cancelada';
       default:
         return 'Desconocido';
     }

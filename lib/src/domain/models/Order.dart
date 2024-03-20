@@ -7,10 +7,15 @@ enum OrderType { delivery, dineIn, pickUpWait }
 
 enum OrderStatus { created, in_preparation, prepared, finished, canceled }
 
+enum OrderPreparationStatus { created, in_preparation, prepared, not_required }
+
 class Order {
   final int? id;
   final OrderType? orderType;
   final OrderStatus? status;
+  final OrderPreparationStatus? barPreparationStatus;
+  final OrderPreparationStatus? burgerPreparationStatus;
+  final OrderPreparationStatus? pizzaPreparationStatus;
   final double? amountPaid;
   final DateTime? creationDate;
   final double? totalCost;
@@ -32,6 +37,9 @@ class Order {
     this.id,
     this.orderType,
     this.status,
+    this.barPreparationStatus = OrderPreparationStatus.not_required,
+    this.burgerPreparationStatus = OrderPreparationStatus.not_required,
+    this.pizzaPreparationStatus = OrderPreparationStatus.not_required,
     this.amountPaid,
     this.creationDate,
     this.totalCost,
@@ -50,6 +58,9 @@ class Order {
     int? id,
     OrderType? orderType,
     OrderStatus? status,
+    OrderPreparationStatus? barPreparationStatus,
+    OrderPreparationStatus? burgerPreparationStatus,
+    OrderPreparationStatus? pizzaPreparationStatus,
     double? amountPaid,
     DateTime? creationDate,
     double? totalCost,
@@ -67,6 +78,11 @@ class Order {
       id: id ?? this.id,
       orderType: orderType ?? this.orderType,
       status: status ?? this.status,
+      barPreparationStatus: barPreparationStatus ?? this.barPreparationStatus,
+      burgerPreparationStatus:
+          burgerPreparationStatus ?? this.burgerPreparationStatus,
+      pizzaPreparationStatus:
+          pizzaPreparationStatus ?? this.pizzaPreparationStatus,
       amountPaid: amountPaid ?? this.amountPaid,
       creationDate: creationDate ?? this.creationDate,
       totalCost: totalCost ?? this.totalCost,
@@ -96,6 +112,26 @@ class Order {
               (e) => e.toString().split(".").last == json['status'],
               orElse: () => OrderStatus.created)
           : OrderStatus.created,
+      barPreparationStatus: json['barPreparationStatus'] != null
+          ? OrderPreparationStatus.values.firstWhere(
+              (e) =>
+                  e.toString().split(".").last == json['barPreparationStatus'],
+              orElse: () => OrderPreparationStatus.created)
+          : OrderPreparationStatus.created,
+      burgerPreparationStatus: json['burgerPreparationStatus'] != null
+          ? OrderPreparationStatus.values.firstWhere(
+              (e) =>
+                  e.toString().split(".").last ==
+                  json['burgerPreparationStatus'],
+              orElse: () => OrderPreparationStatus.created)
+          : OrderPreparationStatus.created,
+      pizzaPreparationStatus: json['pizzaPreparationStatus'] != null
+          ? OrderPreparationStatus.values.firstWhere(
+              (e) =>
+                  e.toString().split(".").last ==
+                  json['pizzaPreparationStatus'],
+              orElse: () => OrderPreparationStatus.created)
+          : OrderPreparationStatus.created,
       amountPaid: json['price'] != null
           ? double.tryParse(json['price'].toString())
           : null,
@@ -136,6 +172,12 @@ class Order {
     data['id'] = id;
     data['orderType'] = orderType.toString().split(".").last;
     data['status'] = status.toString().split(".").last;
+    data['barPreparationStatus'] =
+        barPreparationStatus.toString().split(".").last;
+    data['burgerPreparationStatus'] =
+        burgerPreparationStatus.toString().split(".").last;
+    data['pizzaPreparationStatus'] =
+        pizzaPreparationStatus.toString().split(".").last;
     data['amountPaid'] = amountPaid;
     data['creationDate'] = creationDate?.toIso8601String();
     data['totalCost'] = totalCost;
