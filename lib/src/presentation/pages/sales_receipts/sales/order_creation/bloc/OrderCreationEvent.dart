@@ -68,6 +68,15 @@ class OrderCommentsEntered extends OrderCreationEvent {
   List<Object> get props => [comments];
 }
 
+class TimePickerEnabled extends OrderCreationEvent {
+  final bool isTimePickerEnabled;
+
+  const TimePickerEnabled({required this.isTimePickerEnabled});
+
+  @override
+  List<Object> get props => [isTimePickerEnabled];
+}
+
 class TimeSelected extends OrderCreationEvent {
   final TimeOfDay time;
 

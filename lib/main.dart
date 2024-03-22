@@ -1,6 +1,5 @@
 import 'package:app/src/presentation/pages/preparation/bar/home/BarHomePage.dart';
 import 'package:app/src/presentation/pages/preparation/hamburger/home/HamburgerHomePage.dart';
-import 'package:app/src/presentation/pages/preparation/kitchen/home/KitchenHomePage.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/home/PizzaHomePage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/home/SalesHomePage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderCreationContainer.dart';
@@ -30,17 +29,17 @@ class MyApp extends StatelessWidget {
       useMaterial3: true, // Habilita Material 3
       colorScheme: ColorScheme.fromSeed(
         seedColor:
-            Colors.white, // Color semilla utilizado para generar la paleta
+            Colors.brown, // Color semilla utilizado para generar la paleta
         brightness: Brightness.dark, // Prefiere el modo claro
         primary: Colors.white, // Color principal para elementos interactivos
-        secondary: Colors
-            .tealAccent, // Color secundario para complementar al principal
+        secondary:
+            Colors.blueGrey, // Color secundario para complementar al principal
         error: Colors.redAccent, // Color para indicaciones de errores
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.grey[800], // Color de fondo para la AppBar
+        backgroundColor: Colors.grey[850], // Color de fondo para la AppBar
         foregroundColor:
-            Colors.green, // Color del texto y los iconos en la AppBar
+            Colors.orange, // Color del texto y los iconos en la AppBar
       ),
 
       // Añade más personalizaciones según sea necesario
@@ -62,7 +61,6 @@ class MyApp extends StatelessWidget {
           'hamburgerHome': (BuildContext context) => HamburgerHomePage(),
           'pizzaHome': (BuildContext context) => PizzaHomePage(),
           'barHome': (BuildContext context) => BarHomePage(),
-          'kitchenHome': (BuildContext context) => KitchenHomePage(),
           'settings': (BuildContext context) =>
               SettingsPage(), // Added route for SettingsPage
         },

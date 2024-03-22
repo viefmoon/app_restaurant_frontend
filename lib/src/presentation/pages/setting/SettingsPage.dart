@@ -66,7 +66,6 @@ class _SettingsScreenState extends State<SettingsPage> {
               child: ElevatedButton(
                 onPressed: () {
                   _saveServerIP();
-                  // No necesitas Navigator.of(context).pop();
                 },
                 child: Text('Guardar',
                     style:
