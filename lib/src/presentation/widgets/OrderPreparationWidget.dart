@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/OrderUpdate.dart';
 import 'package:flutter/material.dart';
 import 'package:app/src/domain/models/Order.dart';
 import 'package:intl/intl.dart';
+import 'package:collection/collection.dart';
 
 class OrderPreparationWidget extends StatefulWidget {
   final Order order;
@@ -66,20 +68,29 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
   }
 
   Color _getColorBasedOnTime(Duration duration) {
-    if (duration.inMinutes < 30) {
-      return Colors.green;
-    } else if (duration.inMinutes < 60) {
-      return Colors.orange;
+    if (duration.inMinutes < 20) {
+      return const Color.fromARGB(255, 29, 126, 32);
+    } else if (duration.inMinutes < 50) {
+      return const Color.fromARGB(255, 202, 143, 54);
     } else {
-      return Colors.deepOrange;
+      return const Color.fromARGB(255, 226, 72, 25);
     }
   }
+
+  List<Color> _updateColors = [
+    Colors.blue,
+    const Color.fromARGB(255, 102, 66, 13),
+    const Color.fromARGB(255, 104, 17, 119),
+    const Color.fromARGB(255, 88, 59, 48),
+    const Color.fromARGB(255, 163, 14, 63),
+    const Color.fromARGB(255, 172, 139, 42),
+    const Color.fromARGB(255, 4, 78, 42)
+  ];
 
   @override
   Widget build(BuildContext context) {
     final String timeSinceCreation =
         '${_timeSinceCreation.inHours.toString().padLeft(2, '0')}:${_timeSinceCreation.inMinutes.remainder(60).toString().padLeft(2, '0')}';
-    print(widget.order.id);
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.25,
       child: Card(
@@ -113,7 +124,7 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
             ],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
-            stops: const [0.8, 0.2],
+            stops: const [0.90, 0.10],
           ),
         ),
         child: Row(
@@ -139,27 +150,14 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                              text:
-                                  'Creado: ${DateFormat('HH:mm').format(widget.order.creationDate!)}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(color: Colors.black54),
-                            ),
-                            TextSpan(
-                              text:
-                                  '  - $timeSinceCreation', // Usa el parámetro aquí
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(color: Colors.black),
-                            ),
-                          ],
-                        ),
+                      child: Text(
+                        'Creado hace: $timeSinceCreation',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
+                                color:
+                                    _getColorBasedOnTime(_timeSinceCreation)),
                       ),
                     ),
                     if (widget.order.scheduledDeliveryTime != null)
@@ -176,7 +174,7 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
                             ),
                             TextSpan(
                               text:
-                                  ' - Falta: ${_formatDuration(_timeUntilScheduled)}',
+                                  ' - En: ${_formatDuration(_timeUntilScheduled)}',
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
@@ -185,6 +183,7 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
                           ],
                         ),
                       ),
+                    ..._buildOrderUpdatesList(widget.order.orderUpdates),
                   ],
                 ),
               ),
@@ -193,6 +192,27 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildOrderUpdatesList(List<OrderUpdate>? updates) {
+    if (updates == null || updates.isEmpty) {
+      return [SizedBox.shrink()];
+    }
+    return updates.map((update) {
+      final timeAgo = DateTime.now().difference(update.updateAt);
+      final formattedTimeAgo = _formatDuration(timeAgo);
+      // Asignar un color basado en el número de actualización
+      final color = _updateColors[update.updateNumber % _updateColors.length];
+      return Text(
+        'Actualizado hace: $formattedTimeAgo',
+        style: TextStyle(
+          fontSize: 14,
+          fontStyle: FontStyle.italic,
+          color: color,
+          height: 1, // Ajusta este valor para controlar el espacio entre líneas
+        ),
+      );
+    }).toList();
   }
 
   Color _getColorByOrderType(OrderType? type) {
@@ -290,6 +310,21 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
 
     // Añadir detalles de los OrderItems
     widget.order.orderItems?.asMap().forEach((index, orderItem) {
+      // Encuentra la actualización más reciente para este OrderItem
+      OrderUpdate? latestUpdateForItem =
+          widget.order.orderUpdates?.lastWhereOrNull(
+        (update) =>
+            update.orderItemUpdates?.any(
+                (itemUpdate) => itemUpdate.orderItem?.id == orderItem.id) ??
+            false,
+      );
+
+      // Si existe, obtén el color basado en el OrderItemUpdate
+      Color colorForItem = latestUpdateForItem != null
+          ? _updateColors[
+              latestUpdateForItem.updateNumber % _updateColors.length]
+          : Colors.black;
+
       if (index > 0) {
         // Añadir un Divider antes de cada OrderItem, excepto el primero
         orderDetails.add(Divider(color: Colors.black));
@@ -310,40 +345,44 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
       TextStyle textStyle = orderItem.status == OrderItemStatus.prepared
           ? baseTextStyle.copyWith(
               decoration: TextDecoration.lineThrough,
-              decorationColor: Colors.red,
-              decorationThickness: 4,
+              decorationColor: Colors.black,
+              decorationThickness: 3,
               decorationStyle: TextDecorationStyle.solid,
+              color: colorForItem,
             )
-          : baseTextStyle;
+          : baseTextStyle.copyWith(color: colorForItem);
 
       TextStyle smallerDecoratedTextStyle =
           orderItem.status == OrderItemStatus.prepared
               ? smallerTextStyle.copyWith(
                   decoration: TextDecoration.lineThrough,
-                  decorationColor: Colors.red,
-                  decorationThickness: 4,
+                  decorationColor: Colors.black,
+                  decorationThickness: 2,
                   decorationStyle: TextDecorationStyle.solid,
+                  color: colorForItem,
                 )
-              : smallerTextStyle;
+              : smallerTextStyle.copyWith(color: colorForItem);
 
       List<Widget> itemWidgets = [
         Text(
           orderItem.product?.name ?? 'Producto desconocido',
-          style: textStyle,
+          style: textStyle.copyWith(color: colorForItem),
         ),
         if (orderItem.productVariant != null)
           Text(
             orderItem.productVariant!.name,
-            style: smallerDecoratedTextStyle,
+            style: smallerDecoratedTextStyle.copyWith(color: colorForItem),
           ),
         ...orderItem.selectedModifiers?.map((modifier) => Text(
                   modifier.modifier!.name,
-                  style: smallerDecoratedTextStyle,
+                  style:
+                      smallerDecoratedTextStyle.copyWith(color: colorForItem),
                 )) ??
             [],
         ...orderItem.selectedProductObservations?.map((observation) => Text(
                   observation.productObservation!.name,
-                  style: smallerDecoratedTextStyle,
+                  style:
+                      smallerDecoratedTextStyle.copyWith(color: colorForItem),
                 )) ??
             [],
       ];
@@ -381,7 +420,6 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
   }
 
   String _displayOrderStatus(OrderPreparationStatus? status) {
-    print(status);
     switch (status) {
       case OrderPreparationStatus.created:
         return 'Creada';

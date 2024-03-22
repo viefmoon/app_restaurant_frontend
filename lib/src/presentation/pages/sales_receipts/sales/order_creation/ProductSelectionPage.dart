@@ -28,7 +28,7 @@ class ProductSelectionPage extends StatelessWidget {
                     children: state.categories!.map((category) {
                       return Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.all(15.0),
+                          padding: const EdgeInsets.all(25.0),
                           child: AspectRatio(
                             aspectRatio: 2,
                             child: ElevatedButton(
@@ -41,8 +41,8 @@ class ProductSelectionPage extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              child: Text(category.name!,
-                                  style: TextStyle(fontSize: 20)),
+                              child: Text(category.name,
+                                  style: TextStyle(fontSize: 40)),
                             ),
                           ),
                         ),
@@ -85,31 +85,36 @@ class ProductSelectionPage extends StatelessWidget {
       OrderCreationBloc bloc, OrderCreationState state) {
     if (state.filteredSubcategories != null &&
         state.filteredSubcategories!.isNotEmpty) {
-      return GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 2 / 1,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-        ),
-        itemCount: state.filteredSubcategories!.length,
-        itemBuilder: (context, index) {
-          final subcategory = state.filteredSubcategories![index];
-          return ElevatedButton(
-            onPressed: () {
-              bloc.add(SubcategorySelected(subcategoryId: subcategory.id));
-            },
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+      return Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 2 / 1,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 20,
+          ),
+          itemCount: state.filteredSubcategories!.length,
+          itemBuilder: (context, index) {
+            final subcategory = state.filteredSubcategories![index];
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  bloc.add(SubcategorySelected(subcategoryId: subcategory.id));
+                },
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Text(subcategory.name, style: TextStyle(fontSize: 26)),
               ),
-              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-            ),
-            child: Text(subcategory.name),
-          );
-        },
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
+            );
+          },
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+        ),
       );
     } else {
       return Container();
@@ -122,8 +127,8 @@ class ProductSelectionPage extends StatelessWidget {
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         childAspectRatio: 1,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
+        crossAxisSpacing: 20,
+        mainAxisSpacing: 20,
       ),
       itemCount: state.filteredProducts!.length,
       itemBuilder: (context, index) {
@@ -199,7 +204,8 @@ class ProductSelectionPage extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: const Color.fromARGB(221, 112, 71, 71),
-                            fontSize: 14,
+                            fontSize: 45,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       );
@@ -212,7 +218,7 @@ class ProductSelectionPage extends StatelessWidget {
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                       colors: [
-                        Colors.black.withOpacity(0.5),
+                        Colors.black.withOpacity(0.6),
                         Colors.transparent
                       ],
                     ),
@@ -225,7 +231,7 @@ class ProductSelectionPage extends StatelessWidget {
                     product.name,
                     style: TextStyle(
                       color: Colors.white, // Color blanco para contraste
-                      fontSize: 16,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),
                     overflow: TextOverflow

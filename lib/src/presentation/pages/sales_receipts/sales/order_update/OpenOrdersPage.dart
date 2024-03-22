@@ -8,7 +8,14 @@ import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/blo
 import 'package:app/src/domain/utils/Resource.dart';
 import 'package:intl/intl.dart';
 
-class OpenOrdersPage extends StatelessWidget {
+class OpenOrdersPage extends StatefulWidget {
+  @override
+  _OpenOrdersPageState createState() => _OpenOrdersPageState();
+}
+
+class _OpenOrdersPageState extends State<OpenOrdersPage> {
+  OrderType? selectedFilter; // null representa el filtro "Todas"
+
   @override
   Widget build(BuildContext context) {
     final OrderUpdateBloc bloc = BlocProvider.of<OrderUpdateBloc>(context);
@@ -16,20 +23,72 @@ class OpenOrdersPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Órdenes Abiertas'),
+        title: Text('Órdenes Abiertas', style: TextStyle(fontSize: 24)),
+        actions: <Widget>[
+          DropdownButton<OrderType?>(
+            value: selectedFilter,
+            onChanged: (OrderType? newValue) {
+              setState(() {
+                selectedFilter = newValue;
+              });
+            },
+            iconSize: 60, // Ajusta el tamaño del ícono del dropdown
+            style: TextStyle(
+                fontSize: 20,
+                color: Colors.white), // Ajusta el estilo global del texto
+            dropdownColor:
+                Colors.black, // Cambia el color de fondo del men desplegable
+            underline: Container(
+              // Personaliza la línea debajo del dropdown
+              height: 2,
+              color: Colors.white,
+            ),
+            items: OrderType.values.map((orderType) {
+              String displayText;
+              switch (orderType) {
+                case OrderType.delivery:
+                  displayText = "A domicilio";
+                  break;
+                case OrderType.dineIn:
+                  displayText = "Cenar";
+                  break;
+                case OrderType.pickUpWait:
+                  displayText = "Pasan/Esperan";
+                  break;
+                default:
+                  displayText = "Todas";
+              }
+              return DropdownMenuItem<OrderType?>(
+                value: orderType,
+                child: Text(displayText, style: TextStyle(fontSize: 20)),
+              );
+            }).toList()
+              ..insert(
+                  0,
+                  DropdownMenuItem(
+                    value: null,
+                    child: Text("Todas", style: TextStyle(fontSize: 20)),
+                  )),
+          ),
+        ],
       ),
       body: BlocBuilder<OrderUpdateBloc, OrderUpdateState>(
         builder: (context, state) {
           if (state.response is Loading) {
             return Center(child: CircularProgressIndicator());
           } else if (state.orders?.isNotEmpty ?? false) {
-            // Utiliza directamente las órdenes del estado
+            List<Order> filteredOrders = selectedFilter == null
+                ? state.orders!
+                : state.orders!
+                    .where((order) => order.orderType == selectedFilter)
+                    .toList();
+
             return ListView.builder(
-              itemCount: state.orders?.length ?? 0,
+              itemCount: filteredOrders.length,
               itemBuilder: (context, index) {
-                final order = state.orders![index];
+                final order = filteredOrders[index];
                 String title =
-                    'ID: ${order.id ?? ""}'; // Asegura que el ID siempre esté presente
+                    '#${order.id ?? ""}'; // Asegura que el ID siempre esté presente
 
                 // Formatea la fecha de creación para mostrarla solo hasta los minutos
                 String formattedDate = DateFormat('yyyy-MM-dd HH:mm')
@@ -71,9 +130,9 @@ class OpenOrdersPage extends StatelessWidget {
                 Color statusColor = _getStatusColor(order.status);
 
                 return ListTile(
-                  title: Text(title),
+                  title: Text(title, style: TextStyle(fontSize: 20)),
                   subtitle: Text(subtitle + statusText,
-                      style: TextStyle(color: statusColor)),
+                      style: TextStyle(color: statusColor, fontSize: 18)),
                   onTap: () {
                     // Emitir el evento al BLoC con la orden seleccionada
                     bloc.add(OrderSelectedForUpdate(order.id ?? 0));

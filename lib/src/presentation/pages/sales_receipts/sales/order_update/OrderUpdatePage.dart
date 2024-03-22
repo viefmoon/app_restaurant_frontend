@@ -74,7 +74,7 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
       ),
       actions: [
         IconButton(
-          icon: Icon(Icons.save),
+          icon: Icon(Icons.save, size: 40),
           onPressed: () => _updateOrder(),
         ),
       ],
@@ -254,7 +254,7 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                   ? _selectedTime!.format(context)
                   : 'No seleccionada',
             ),
-            leading: Icon(Icons.access_time),
+            leading: Icon(Icons.access_time, size: 30),
             onTap: _isTimePickerEnabled ? () => _selectTime(context) : null,
           ),
         ),
@@ -393,8 +393,9 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
       child: ElevatedButton.icon(
-        icon: Icon(Icons.add),
-        label: Text('Agregar Productos'),
+        icon: Icon(Icons.add, size: 30.0), // Icono más grande
+        label: Text('Agregar Productos',
+            style: TextStyle(fontSize: 18.0)), // Texto más grande
         onPressed: () {
           Navigator.push(
             context,

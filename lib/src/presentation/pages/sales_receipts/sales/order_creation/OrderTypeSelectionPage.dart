@@ -11,12 +11,12 @@ class OrderTypeSelectionPage extends StatelessWidget {
 
     // Estilo personalizado para los botones
     final ButtonStyle buttonStyle = ElevatedButton.styleFrom(
-      textStyle: TextStyle(fontSize: 35), // Tamaño de letra más grande
+      textStyle: TextStyle(fontSize: 45), // Tamaño de letra más grande
       padding: EdgeInsets.symmetric(
           horizontal: 50,
-          vertical: 20), // Padding para hacer el botón más grande
+          vertical: 30), // Padding para hacer el botón más grande
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8), // Bordes rectangulares
+        borderRadius: BorderRadius.circular(14), // Bordes rectangulares
       ),
     );
 
@@ -33,7 +33,7 @@ class OrderTypeSelectionPage extends StatelessWidget {
               style: buttonStyle, // Aplicar el estilo personalizado
               child: Text('Para llevar'),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
                 bloc.add(
@@ -42,7 +42,7 @@ class OrderTypeSelectionPage extends StatelessWidget {
               style: buttonStyle,
               child: Text('Pasan/Esperan'),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
                 bloc.add(

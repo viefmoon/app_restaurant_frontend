@@ -19,29 +19,34 @@ class OrderCreationContainer extends StatelessWidget {
             // Cambia el título según el paso en el proceso de creación de la orden
             switch (state.step) {
               case OrderCreationStep.orderTypeSelection:
-                return Text('Selecciona el tipo de orden');
+                return Text('Selecciona el tipo de orden',
+                    style: TextStyle(fontSize: 26));
               case OrderCreationStep.phoneNumberInput:
-                return Text('Ingresa tu número de teléfono');
+                return Text('Ingresa tu número de teléfono',
+                    style: TextStyle(fontSize: 26));
               case OrderCreationStep.tableSelection:
-                return Text('Selecciona una mesa');
+                return Text('Selecciona una mesa',
+                    style: TextStyle(fontSize: 26));
               case OrderCreationStep.productSelection:
                 if (state.selectedOrderType == OrderType.dineIn) {
                   String area = state.selectedAreaName ?? 'N/A';
                   String table = state.selectedTableNumber?.toString() ?? 'N/A';
-                  return Text('$area: $table');
+                  return Text('$area: $table', style: TextStyle(fontSize: 26));
                 } else if (state.selectedOrderType == OrderType.delivery) {
                   String phoneNumber = state.phoneNumber ?? 'N/A';
-                  return Text('Teléfono: $phoneNumber');
+                  return Text('Teléfono: $phoneNumber',
+                      style: TextStyle(fontSize: 26));
                 }
                 break;
               case OrderCreationStep.orderSummary:
-                return Text('Resumen de la orden');
+                return Text('Resumen de la orden',
+                    style: TextStyle(fontSize: 26));
               default:
                 // Maneja el caso null y cualquier otro no contemplado
-                return Text('Selecciona el tipo de orden');
+                return Text('Crear orden', style: TextStyle(fontSize: 26));
             }
             // Retorno por defecto para manejar cualquier caso no contemplado
-            return Text('Selecciona el tipo de orden');
+            return Text('Pasan/Esperan', style: TextStyle(fontSize: 26));
           },
         ),
         actions: <Widget>[
@@ -50,7 +55,8 @@ class OrderCreationContainer extends StatelessWidget {
               if (state.step == OrderCreationStep.productSelection) {
                 // Solo muestra el botón en el paso de selección de productos
                 return IconButton(
-                  icon: Icon(Icons.shopping_cart),
+                  icon: Icon(Icons.shopping_cart,
+                      size: 40), // Tamaño del icono aumentado
                   onPressed: () {
                     Navigator.push(
                       context,

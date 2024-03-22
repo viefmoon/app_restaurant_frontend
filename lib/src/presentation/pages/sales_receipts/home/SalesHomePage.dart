@@ -1,5 +1,4 @@
 import 'package:app/main.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderCreationContainer.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/sales_options/SalesOptionsPage.dart';
 import 'package:app/src/presentation/pages/setting/SettingsPage.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +38,7 @@ class _SalesHomePageState extends State<SalesHomePage> {
 
     return Scaffold(
         appBar: AppBar(
-          title: Text('ORDENES'),
+          title: Text('ORDENES', style: TextStyle(fontSize: 24)),
         ),
         drawer: BlocBuilder<SalesHomeBloc, SalesHomeState>(
           builder: (context, state) {
@@ -59,12 +58,12 @@ class _SalesHomePageState extends State<SalesHomePage> {
                           ),
                           Text(
                             state.role ?? "Rol no disponible",
-                            style: TextStyle(color: Colors.white, fontSize: 16),
+                            style: TextStyle(color: Colors.white, fontSize: 18),
                           ),
                         ],
                       )),
                   ListTile(
-                    title: Text('Ventas'),
+                    title: Text('Ventas', style: TextStyle(fontSize: 22)),
                     selected: state.pageIndex == 0,
                     onTap: () {
                       _bloc?.add(SalesChangeDrawerPage(pageIndex: 0));
@@ -72,7 +71,7 @@ class _SalesHomePageState extends State<SalesHomePage> {
                     },
                   ),
                   ListTile(
-                    title: Text('Recibos'),
+                    title: Text('Recibos', style: TextStyle(fontSize: 22)),
                     selected: state.pageIndex == 1,
                     onTap: () {
                       _bloc?.add(SalesChangeDrawerPage(pageIndex: 1));
@@ -80,15 +79,19 @@ class _SalesHomePageState extends State<SalesHomePage> {
                     },
                   ),
                   ListTile(
-                    title: Text('Configuración'),
+                    title:
+                        Text('Configuración', style: TextStyle(fontSize: 22)),
                     selected: state.pageIndex == 1,
                     onTap: () {
                       _bloc?.add(SalesChangeDrawerPage(pageIndex: 2));
                       Navigator.pop(context);
                     },
                   ),
+                  SizedBox(
+                      height: 50), // Espaciado antes del botón de cerrar sesión
                   ListTile(
-                    title: Text('Cerrar sesión'),
+                    title:
+                        Text('Cerrar sesión', style: TextStyle(fontSize: 22)),
                     onTap: () {
                       _bloc?.add(Logout());
                       Navigator.pushAndRemoveUntil(

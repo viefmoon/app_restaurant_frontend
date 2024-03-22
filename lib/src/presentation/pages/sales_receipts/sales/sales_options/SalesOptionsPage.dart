@@ -29,9 +29,9 @@ class _SalesOptionsPageState extends State<SalesOptionsPage> {
               });
             },
             style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 70, vertical: 20),
+              padding: EdgeInsets.symmetric(horizontal: 70, vertical: 40),
             ),
-            child: Text('Crear orden', style: TextStyle(fontSize: 20)),
+            child: Text('Crear orden', style: TextStyle(fontSize: 40)),
           ),
           SizedBox(height: 20), // Espacio entre botones
           ElevatedButton(
@@ -42,9 +42,9 @@ class _SalesOptionsPageState extends State<SalesOptionsPage> {
               );
             },
             style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 70, vertical: 20),
+              padding: EdgeInsets.symmetric(horizontal: 70, vertical: 40),
             ),
-            child: Text('Órdenes abiertas', style: TextStyle(fontSize: 20)),
+            child: Text('Órdenes abiertas', style: TextStyle(fontSize: 40)),
           ),
         ],
       ),

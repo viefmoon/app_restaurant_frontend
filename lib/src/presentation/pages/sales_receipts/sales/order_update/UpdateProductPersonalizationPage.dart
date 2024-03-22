@@ -71,12 +71,12 @@ class _UpdateProductPersonalizationPageState
         title: Text(widget.product.name),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.save),
+            icon: Icon(Icons.save, size: 40),
             onPressed: selectedVariant != null ? _saveOrderItem : null,
           ),
           if (widget.existingOrderItem != null)
             IconButton(
-              icon: Icon(Icons.delete),
+              icon: Icon(Icons.delete, size: 40),
               onPressed: _deleteOrderItem,
             ),
         ],
