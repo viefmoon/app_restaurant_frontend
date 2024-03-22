@@ -4,6 +4,7 @@ import 'package:app/src/domain/models/Order.dart' as OrderModel;
 class OrderUpdate {
   final int id;
   final DateTime updateAt; // Uso de DateTime para fechas
+  final int updateNumber;
   OrderModel.Order? order; // Relación ManyToOne con Order
   List<OrderItemUpdate>?
       orderItemUpdates; // Relación OneToMany con OrderItemUpdate
@@ -11,6 +12,7 @@ class OrderUpdate {
   OrderUpdate({
     required this.id,
     required this.updateAt,
+    required this.updateNumber,
     this.order,
     this.orderItemUpdates,
   });
@@ -20,6 +22,7 @@ class OrderUpdate {
       id: json['id'],
       updateAt: DateTime.parse(json['updateAt']),
       // Asumiendo la existencia de método fromJson para Order
+      updateNumber: json['updateNumber'],
       order: json['order'] != null
           ? OrderModel.Order.fromJson(json['order'])
           : null,
@@ -35,6 +38,7 @@ class OrderUpdate {
     final Map<String, dynamic> data = {};
     data['id'] = id;
     data['updateAt'] = updateAt.toIso8601String();
+    data['updateNumber'] = updateNumber;
     if (order != null) data['order'] = order!.toJson();
     if (orderItemUpdates != null) {
       data['orderItemUpdates'] =

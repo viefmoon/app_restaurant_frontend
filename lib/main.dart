@@ -4,6 +4,7 @@ import 'package:app/src/presentation/pages/preparation/kitchen/home/KitchenHomeP
 import 'package:app/src/presentation/pages/preparation/pizza/home/PizzaHomePage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/home/SalesHomePage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderCreationContainer.dart';
+import 'package:app/src/presentation/pages/setting/SettingsPage.dart';
 import 'injection.dart';
 import 'src/blocProviders.dart';
 import 'src/presentation/pages/auth/login/LoginPage.dart';
@@ -62,6 +63,8 @@ class MyApp extends StatelessWidget {
           'pizzaHome': (BuildContext context) => PizzaHomePage(),
           'barHome': (BuildContext context) => BarHomePage(),
           'kitchenHome': (BuildContext context) => KitchenHomePage(),
+          'settings': (BuildContext context) =>
+              SettingsPage(), // Added route for SettingsPage
         },
       ),
     );

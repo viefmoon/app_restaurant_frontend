@@ -40,7 +40,8 @@ class LoginContent extends StatelessWidget {
                 _textFieldPassword(),
                 _buttonLogin(context),
                 _textDontHaveAccount(),
-                _buttonGoToRegister(context)
+                _buttonGoToRegister(context),
+                _buttonGoToSettings(context) // Added button to go to settings
               ],
             ),
           ),
@@ -161,5 +162,24 @@ class LoginContent extends StatelessWidget {
             return state.username.error;
           },
         ));
+  }
+
+  Widget _buttonGoToSettings(BuildContext context) {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      height: 55,
+      margin: EdgeInsets.only(left: 25, right: 25, top: 15),
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.pushNamed(context,
+              'settings'); // Make sure '/settings' is the correct route for SettingsPage
+        },
+        style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+        child: Text(
+          'CONFIGURACION',
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
+    );
   }
 }

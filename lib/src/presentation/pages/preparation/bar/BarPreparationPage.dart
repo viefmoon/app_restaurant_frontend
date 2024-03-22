@@ -164,8 +164,7 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
             scrollDirection: Axis.horizontal,
             itemCount: filteredOrders.length,
             itemBuilder: (context, index) {
-              final order = filteredOrders[
-                  index]; // Usa filteredOrders para obtener la orden
+              final order = filteredOrders[index];
               return OrderPreparationWidget(
                 order: order,
                 onOrderGesture: _handleOrderGesture,
