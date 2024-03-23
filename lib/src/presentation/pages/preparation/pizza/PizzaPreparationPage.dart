@@ -2,7 +2,7 @@ import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationEvent.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationState.dart';
-import 'package:app/src/presentation/pages/preparation/pizza/bloc/pizzaPreparationBloc.dart';
+import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationBloc.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/home/bloc/PizzaHomeState.dart';
 import 'package:app/src/presentation/widgets/OrderPizzaPreparationWidget.dart';
 import 'package:flutter/material.dart';
