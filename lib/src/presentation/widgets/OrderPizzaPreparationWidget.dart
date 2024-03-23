@@ -95,7 +95,7 @@ class _OrderPizzaPreparationWidgetState
     final String timeSinceCreation =
         '${_timeSinceCreation.inHours.toString().padLeft(2, '0')}:${_timeSinceCreation.inMinutes.remainder(60).toString().padLeft(2, '0')}';
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.25,
+      width: MediaQuery.of(context).size.width * 0.17,
       child: Card(
         margin: EdgeInsets.all(8.0),
         child: SingleChildScrollView(
@@ -568,7 +568,7 @@ class _OrderPizzaPreparationWidgetState
 
   void _handleHorizontalDragEnd(DragEndDetails details) {
     const double velocityThreshold =
-        10.0; // Ajusta este valor según tus necesidades
+        2.0; // Ajusta este valor según tus necesidades
     if (details.primaryVelocity! > velocityThreshold) {
       widget.onOrderGesture(widget.order, 'swipe_right');
     } else if (details.primaryVelocity! < -velocityThreshold) {
@@ -578,7 +578,7 @@ class _OrderPizzaPreparationWidgetState
 
   void _handleVerticalDragEnd(DragEndDetails details) {
     const double velocityThreshold =
-        10.0; // Ajusta este valor segn tus necesidades
+        2.0; // Ajusta este valor segn tus necesidades
     if (details.primaryVelocity! > velocityThreshold) {
       widget.onOrderGesture(widget.order, 'swipe_down');
     } else if (details.primaryVelocity! < -velocityThreshold) {
