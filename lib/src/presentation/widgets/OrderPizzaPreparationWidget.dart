@@ -30,6 +30,10 @@ class _OrderPizzaPreparationWidgetState
   Duration _timeSinceCreation = Duration.zero;
   Duration _timeUntilScheduled = Duration.zero; // Añadir esta línea
   final ScrollController _scrollController = ScrollController();
+  double _initialSwipeX = 0.0;
+  double _swipeDistanceX = 0.0;
+  final double _swipeThreshold =
+      50.0; // Define un umbral para considerar un deslizamiento como válido
 
   @override
   void initState() {
@@ -252,9 +256,23 @@ class _OrderPizzaPreparationWidgetState
 
   Widget _OrderHeaderGestureDetector({required Widget child}) {
     return GestureDetector(
-      onHorizontalDragEnd: _handleHorizontalDragEnd,
-      onVerticalDragEnd: _handleVerticalDragEnd,
-      onLongPress: () => _handleLongPress(widget.order), // Añade esto
+      onPanStart: (details) {
+        _initialSwipeX = details.globalPosition.dx;
+      },
+      onPanUpdate: (details) {
+        _swipeDistanceX = details.globalPosition.dx - _initialSwipeX;
+      },
+      onPanEnd: (details) {
+        if (_swipeDistanceX.abs() > _swipeThreshold) {
+          if (_swipeDistanceX > 0) {
+            widget.onOrderGesture(widget.order, 'swipe_right');
+          } else {
+            widget.onOrderGesture(widget.order, 'swipe_left');
+          }
+        }
+        _swipeDistanceX = 0.0;
+      },
+      onLongPress: () => _handleLongPress(widget.order),
       child: child,
     );
   }
@@ -564,25 +582,5 @@ class _OrderPizzaPreparationWidgetState
     final hours = twoDigits(duration.inHours);
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     return "$hours:$minutes";
-  }
-
-  void _handleHorizontalDragEnd(DragEndDetails details) {
-    const double velocityThreshold =
-        2.0; // Ajusta este valor según tus necesidades
-    if (details.primaryVelocity! > velocityThreshold) {
-      widget.onOrderGesture(widget.order, 'swipe_right');
-    } else if (details.primaryVelocity! < -velocityThreshold) {
-      widget.onOrderGesture(widget.order, 'swipe_left');
-    }
-  }
-
-  void _handleVerticalDragEnd(DragEndDetails details) {
-    const double velocityThreshold =
-        2.0; // Ajusta este valor segn tus necesidades
-    if (details.primaryVelocity! > velocityThreshold) {
-      widget.onOrderGesture(widget.order, 'swipe_down');
-    } else if (details.primaryVelocity! < -velocityThreshold) {
-      widget.onOrderGesture(widget.order, 'swipe_up');
-    }
   }
 }
