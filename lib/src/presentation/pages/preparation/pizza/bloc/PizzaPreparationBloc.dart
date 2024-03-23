@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:app/src/data/api/ApiConfig.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/OrderItemSummary.dart';
 import 'package:app/src/domain/useCases/orders/OrdersUseCases.dart';
 import 'package:app/src/domain/utils/Resource.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationEvent.dart';
@@ -60,6 +61,8 @@ class PizzaPreparationBloc
     on<UpdateOrderPreparationStatusEvent>(_onUpdateOrderPreparationStatusEvent);
     on<UpdateOrderItemStatusEvent>(_onUpdateOrderItemStatusEvent);
     on<SynchronizeOrdersEvent>(_onSynchronizeOrdersEvent);
+    on<FetchOrderItemsSummaryEvent>(
+        _onFetchOrderItemsSummaryEvent); // Nuevo manejador
   }
 
   void _onConnectToWebSocket(
@@ -216,6 +219,37 @@ class PizzaPreparationBloc
     } catch (e) {
       emit(
           state.copyWith(errorMessage: "Error al sincronizar los pedidos: $e"));
+    }
+  }
+
+  Future<void> _onFetchOrderItemsSummaryEvent(
+    FetchOrderItemsSummaryEvent event,
+    Emitter<PizzaPreparationState> emit,
+  ) async {
+    print("fetching summary");
+    try {
+      // Asegúrate de que el tipo de retorno aquí sea correcto, es decir, Resource<List<OrderItemSummary>>
+      final Resource<List<OrderItemSummary>> result =
+          await orderUseCases.findOrderItemsWithCounts.run(
+        subcategories: ["Entradas", "Pizzas"],
+        ordersLimit: 10,
+      );
+
+      // Manejo basado en el tipo de resultado (éxito o error)
+      if (result is Success<List<OrderItemSummary>>) {
+        // Aquí manejas el caso de éxito
+        List<OrderItemSummary> summaries = result.data;
+        // Emites un estado con la lista de resmenes obtenida
+        print("Resmenes de OrderItems por Preparar: $summaries");
+        emit(state.copyWith(orderItemsSummary: summaries));
+      } else if (result is Error) {
+        // Aquí manejas el caso de error
+        //emit(state.copyWith(errorMessage: result.message));
+      }
+    } catch (e) {
+      // Manejo de errores inesperados
+      emit(state.copyWith(
+          errorMessage: "Error al obtener el resumen de OrderItems: $e"));
     }
   }
 

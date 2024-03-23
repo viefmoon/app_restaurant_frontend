@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:app/src/data/api/ApiConfig.dart';
 import 'package:app/src/domain/utils/Resource.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app/src/domain/models/OrderItemSummary.dart'; // Asegúrate de definir este modelo
 
 class OrdersService {
   Future<Resource<Order>> createOrder(Order order) async {
@@ -162,6 +163,41 @@ class OrdersService {
             null); // No hay objeto de respuesta específico, así que devolvemos null con Success.
       } else {
         return Error("Error al sincronizar los datos: ${response.body}");
+      }
+    } catch (e) {
+      return Error(e.toString());
+    }
+  }
+
+  Future<Resource<List<OrderItemSummary>>> findOrderItemsWithCounts(
+      {List<String>? subcategories, int? ordersLimit}) async {
+    print("fetching summary2");
+    try {
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Map<String, dynamic> queryParams = {};
+      if (subcategories != null && subcategories.isNotEmpty) {
+        queryParams['subcategories'] = subcategories.join(',');
+      }
+      if (ordersLimit != null) {
+        queryParams['ordersLimit'] = ordersLimit.toString();
+      }
+      Uri url = Uri.http(apiEcommerce, '/orders/items/counts', queryParams);
+
+      final response = await http.get(
+        url,
+        headers: {"Content-Type": "application/json"},
+      );
+      print("response: ${response.statusCode}");
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        List<OrderItemSummary> summaries = data
+            .map((itemJson) => OrderItemSummary.fromJson(itemJson))
+            .toList();
+        print("summariesssss: $summaries");
+        return Success(summaries);
+      } else {
+        return Error(
+            "Error al obtener el resumen de los ítems de la orden: ${response.body}");
       }
     } catch (e) {
       return Error(e.toString());

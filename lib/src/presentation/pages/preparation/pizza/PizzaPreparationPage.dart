@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/OrderItemSummary.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationEvent.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationState.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationBloc.dart';
@@ -27,6 +30,8 @@ class PizzaPreparationPage extends StatefulWidget {
 
 class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
   PizzaPreparationBloc? bloc;
+  bool _isDialogShown =
+      false; // Añade esta variable para rastrear si el diálogo está abierto
 
   @override
   void initState() {
@@ -120,6 +125,81 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
     }
   }
 
+  void _fetchAndShowOrderItemsSummary() {
+    final currentState = BlocProvider.of<PizzaPreparationBloc>(context).state;
+    if (currentState.orderItemsSummary != null &&
+        currentState.orderItemsSummary!.isNotEmpty) {
+      // Si ya hay datos disponibles, muestra el diálogo directamente
+      _showOrderItemsSummaryDialog(currentState.orderItemsSummary!);
+    } else {
+      // Si no hay datos, dispara el evento para obtenerlos
+      final bloc = BlocProvider.of<PizzaPreparationBloc>(context);
+      bloc.add(FetchOrderItemsSummaryEvent());
+
+      StreamSubscription<PizzaPreparationState>? subscription;
+      // Escucha solo una vez al Bloc para obtener el nuevo estado con los datos
+      subscription = bloc.stream.listen((state) {
+        if (state.orderItemsSummary != null &&
+            state.orderItemsSummary!.isNotEmpty) {
+          _showOrderItemsSummaryDialog(state.orderItemsSummary!);
+          subscription?.cancel(); // No olvides cancelar la suscripción
+        }
+      });
+    }
+  }
+
+  void _showOrderItemsSummaryDialog(List<OrderItemSummary> summaries) {
+    if (!_isDialogShown) {
+      _isDialogShown = true;
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          // Construcción de tu diálogo...
+          return AlertDialog(
+            title: Text('Proximos a preparar',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: summaries
+                    .map((summary) => ExpansionTile(
+                          title: Text(summary.subcategoryName,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 22)),
+                          children: summary.products
+                              .map((product) => ListTile(
+                                    title: Text(
+                                      product.name,
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18),
+                                    ),
+                                    trailing: Text('${product.count}',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20)),
+                                  ))
+                              .toList(),
+                        ))
+                    .toList(),
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Cerrar',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _isDialogShown = false; // Marca que el diálogo se ha cerrado
+                },
+              ),
+            ],
+          );
+        },
+      ).then((_) => _isDialogShown =
+          false); // Restablece _isDialogShown cuando el diálogo se cierra
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -184,12 +264,26 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          final bloc = BlocProvider.of<PizzaPreparationBloc>(context);
-          bloc.add(SynchronizeOrdersEvent());
-        },
-        child: Icon(Icons.sync),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            onPressed: () {
+              _fetchAndShowOrderItemsSummary();
+            },
+            child: Icon(Icons.list),
+            heroTag: 'orderItemsSummary',
+          ),
+          SizedBox(height: 10), // Espacio entre botones
+          FloatingActionButton(
+            onPressed: () {
+              final bloc = BlocProvider.of<PizzaPreparationBloc>(context);
+              bloc.add(SynchronizeOrdersEvent());
+            },
+            child: Icon(Icons.sync),
+            heroTag: 'synchronizeOrders',
+          ),
+        ],
       ),
     );
   }

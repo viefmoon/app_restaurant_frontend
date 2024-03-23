@@ -1,6 +1,7 @@
 import 'package:app/src/data/dataSource/remote/services/OrdersService.dart';
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/OrderItemSummary.dart';
 import 'package:app/src/domain/repositories/OrdersRepository.dart';
 import 'package:app/src/domain/utils/Resource.dart';
 
@@ -42,5 +43,12 @@ class OrdersRepositoryImpl implements OrdersRepository {
   @override
   Future<Resource<void>> synchronizeData() async {
     return ordersService.synchronizeData();
+  }
+
+  @override
+  Future<Resource<List<OrderItemSummary>>> findOrderItemsWithCounts(
+      {List<String>? subcategories, int? ordersLimit}) {
+    return ordersService.findOrderItemsWithCounts(
+        subcategories: subcategories, ordersLimit: ordersLimit);
   }
 }

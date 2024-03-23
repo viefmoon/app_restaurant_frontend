@@ -1,4 +1,5 @@
 import 'package:app/src/domain/useCases/orders/CreateOrderUseCase.dart';
+import 'package:app/src/domain/useCases/orders/FindOrderItemsWithCounts.dart';
 import 'package:app/src/domain/useCases/orders/GetOpenOrdersUseCase.dart';
 import 'package:app/src/domain/useCases/orders/GetOrderForUpdateUseCase.dart';
 import 'package:app/src/domain/useCases/orders/SynchronizeDataUseCase.dart';
@@ -14,6 +15,7 @@ class OrdersUseCases {
   UpdateOrderStatusUseCase updateOrderStatus;
   UpdateOrderItemStatusUseCase updateOrderItemStatus;
   SynchronizeDataUseCase synchronizeData;
+  FindOrderItemsWithCountsUseCase findOrderItemsWithCounts;
 
   OrdersUseCases({
     required this.createOrder,
@@ -23,5 +25,6 @@ class OrdersUseCases {
     required this.updateOrderStatus,
     required this.updateOrderItemStatus,
     required this.synchronizeData,
+    required this.findOrderItemsWithCounts,
   });
 }

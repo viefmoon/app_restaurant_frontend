@@ -1,4 +1,5 @@
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/OrderItemSummary.dart';
 import 'package:app/src/domain/utils/Resource.dart';
 import 'package:app/src/domain/models/Order.dart';
 
@@ -10,4 +11,6 @@ abstract class OrdersRepository {
   Future<Resource<OrderItem>> updateOrderItemStatus(OrderItem orderItem);
   Future<Resource<Order>> updateOrder(Order order);
   Future<Resource<void>> synchronizeData();
+  Future<Resource<List<OrderItemSummary>>> findOrderItemsWithCounts(
+      {List<String>? subcategories, int? ordersLimit});
 }
