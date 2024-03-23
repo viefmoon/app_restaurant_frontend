@@ -12,7 +12,7 @@ import 'package:app/src/presentation/pages/preparation/bar/bloc/BarPreparationBl
 import 'package:app/src/presentation/pages/preparation/bar/home/bloc/BarHomeBloc.dart';
 import 'package:app/src/presentation/pages/preparation/burger/bloc/BurgerPreparationBloc.dart';
 import 'package:app/src/presentation/pages/preparation/burger/home/bloc/BurgerHomeBloc.dart';
-import 'package:app/src/presentation/pages/preparation/pizza/bloc/pizzaPreparationBloc.dart';
+import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationBloc.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/home/bloc/PizzaHomeBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/home/bloc/SalesHomeBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
