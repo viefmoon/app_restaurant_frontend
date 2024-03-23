@@ -24,6 +24,7 @@ class Order {
   final String? phoneNumber;
   final String? deliveryAddress;
   final String? customerName;
+  final String? createdBy;
   Area? area;
   TableModel.Table? table;
   List<OrderItem>? orderItems;
@@ -48,6 +49,7 @@ class Order {
     this.phoneNumber,
     this.deliveryAddress,
     this.customerName,
+    this.createdBy,
     this.area,
     this.table,
     this.orderItems,
@@ -69,6 +71,7 @@ class Order {
     String? phoneNumber,
     String? deliveryAddress,
     String? customerName,
+    String? createdBy,
     Area? area,
     TableModel.Table? table,
     List<OrderItem>? orderItems,
@@ -92,6 +95,7 @@ class Order {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       deliveryAddress: deliveryAddress ?? this.deliveryAddress,
       customerName: customerName ?? this.customerName,
+      createdBy: createdBy ?? this.createdBy,
       area: area ?? this.area,
       table: table ?? this.table,
       orderItems: orderItems ?? this.orderItems,
@@ -148,6 +152,7 @@ class Order {
       phoneNumber: json['phoneNumber'],
       deliveryAddress: json['deliveryAddress'],
       customerName: json['customerName'],
+      createdBy: json['createdBy'],
       area: json['area'] != null
           ? Area.fromJson(json['area'] as Map<String, dynamic>)
           : null,
@@ -186,6 +191,7 @@ class Order {
     data['phoneNumber'] = phoneNumber;
     data['deliveryAddress'] = deliveryAddress;
     data['customerName'] = customerName;
+    data['createdBy'] = createdBy;
     data['area'] = area?.toJson();
     if (table != null) data['table'] = table!.toJson();
     if (orderItems != null) {

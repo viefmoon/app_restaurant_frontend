@@ -44,6 +44,8 @@ class BarPreparationBloc
     socket?.on('pendingOrderItems', _handleSocketData);
     socket?.on('orderStatusUpdated', _handleSocketData);
     socket?.on('orderItemStatusUpdated', _handleSocketData);
+    socket?.on('newOrderItems', _handleSocketData);
+    socket?.on('orderUpdated', _handleSocketData);
   }
 
   void _handleSocketData(data) {
@@ -79,18 +81,26 @@ class BarPreparationBloc
       WebSocketMessageReceived event, Emitter<BarPreparationState> emit) {
     final data = json.decode(event.message);
     print('data: $data');
-    // Verifica si es una actualización de estado de un ítem de orden
-    if (data.containsKey('orderId') &&
-        data.containsKey('orderItemId') &&
-        data.containsKey('status')) {
-      _handleOrderItemStatusUpdate(data, emit);
-    } else if (data.containsKey('orderId') &&
-        data.containsKey('barPreparationStatus')) {
-      // Verifica si es una actualización de estado de una orden
-      _handleOrderStatusUpdate(data, emit);
-    } else {
-      // Maneja la recepción de una nueva orden
-      _handleNewOrder(data, emit);
+    final messageType = data['messageType'];
+
+    switch (messageType) {
+      case 'orderItemStatusUpdated':
+        _handleOrderItemStatusUpdate(data, emit);
+        break;
+      case 'orderStatusUpdated':
+        _handleOrderStatusUpdate(data, emit);
+        break;
+      case 'newOrderItems':
+        _handleNewOrder(data, emit);
+        break;
+      case 'pendingOrderItems':
+        _handleNewOrder(data, emit);
+        break;
+      case 'orderUpdated':
+        _handleNewOrder(data, emit);
+        break;
+      default:
+        print('Tipo de mensaje desconocido: $messageType');
     }
   }
 
@@ -102,7 +112,17 @@ class BarPreparationBloc
     final updatedOrders = state.orders?.map((existingOrder) {
       if (existingOrder.id == orderId) {
         orderExists = true;
-        return existingOrder.copyWith(barPreparationStatus: newStatus);
+        final updatedOrderItems = existingOrder.orderItems?.map((existingItem) {
+          final updateInfo = data['orderItems'].firstWhere(
+              (item) => item['id'] == existingItem.id,
+              orElse: () => null);
+          return updateInfo != null
+              ? existingItem.copyWith(
+                  status: _parseOrderItemStatus(updateInfo['status']))
+              : existingItem;
+        }).toList();
+        return existingOrder.copyWith(
+            barPreparationStatus: newStatus, orderItems: updatedOrderItems);
       }
       return existingOrder;
     }).toList();
@@ -116,8 +136,7 @@ class BarPreparationBloc
       Map<String, dynamic> data, Emitter<BarPreparationState> emit) {
     final orderId = data['orderId'];
     final orderItemId = data['orderItemId'];
-    final newStatus = _parseOrderItemStatus(
-        data['status']); // Asegúrate de tener esta función implementada
+    final newStatus = _parseOrderItemStatus(data['status']);
 
     bool orderItemUpdated = false;
     final updatedOrders = state.orders?.map((existingOrder) {
@@ -143,10 +162,9 @@ class BarPreparationBloc
   void _handleNewOrder(
       Map<String, dynamic> data, Emitter<BarPreparationState> emit) {
     final order = _parseOrderFromMessage(data);
-    List<Order> updatedOrders = state.orders ?? [];
+    List<Order> updatedOrders = List<Order>.from(state.orders ?? []);
     bool orderExists =
         updatedOrders.any((existingOrder) => existingOrder.id == order.id);
-
     if (!orderExists) {
       updatedOrders.add(order);
     } else {
@@ -172,23 +190,10 @@ class BarPreparationBloc
       UpdateOrderPreparationStatusEvent event,
       Emitter<BarPreparationState> emit) async {
     try {
-      Order orderToUpdate;
-      switch (event.statusType) {
-        case PreparationStatusType.barPreparationStatus:
-          orderToUpdate =
-              Order(id: event.orderId, barPreparationStatus: event.newStatus);
-          break;
-        case PreparationStatusType.burgerPreparationStatus:
-          orderToUpdate = Order(
-              id: event.orderId, burgerPreparationStatus: event.newStatus);
-          break;
-        case PreparationStatusType.pizzaPreparationStatus:
-          orderToUpdate =
-              Order(id: event.orderId, pizzaPreparationStatus: event.newStatus);
-          break;
-        default:
-          throw Exception("Tipo de estado no válido");
-      }
+      Order orderToUpdate = Order(
+        id: event.orderId,
+        barPreparationStatus: event.newStatus,
+      );
 
       final result = await orderUseCases.updateOrderStatus.run(orderToUpdate);
 
@@ -206,12 +211,9 @@ class BarPreparationBloc
   Future<void> _onSynchronizeOrdersEvent(
       SynchronizeOrdersEvent event, Emitter<BarPreparationState> emit) async {
     try {
-      // Aquí va tu lógica para solicitar los pedidos al servidor
-      // Por ejemplo, una llamada a una función que obtiene los pedidos desde una API REST
       final orders = await orderUseCases.synchronizeData.run();
       emit(state.copyWith(orders: orders));
     } catch (e) {
-      // Manejo de errores
       emit(
           state.copyWith(errorMessage: "Error al sincronizar los pedidos: $e"));
     }

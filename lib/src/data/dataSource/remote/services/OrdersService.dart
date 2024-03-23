@@ -4,6 +4,7 @@ import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:http/http.dart' as http;
 import 'package:app/src/data/api/ApiConfig.dart';
 import 'package:app/src/domain/utils/Resource.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OrdersService {
   Future<Resource<Order>> createOrder(Order order) async {
@@ -70,20 +71,25 @@ class OrdersService {
 
   Future<Resource<Order>> updateOrder(Order order) async {
     try {
-      print('Updating order');
       String apiEcommerce = await ApiConfig.getApiEcommerce();
-      // Aquí se extrae el id de la orden y se incluye en la URL
-      Uri url = Uri.http(apiEcommerce, '/orders/${order.id}');
-      print('url: $url');
+
+      final prefs = await SharedPreferences.getInstance();
+      final userDataString = prefs.getString('user');
+
+      // Deserializar userData desde JSON
+      final userData = json.decode(userDataString!);
+      final userName = userData['user']['name'];
+
+      // Incluir el nombre del usuario como parámetro de consulta en la URL
+      Uri url =
+          Uri.http(apiEcommerce, '/orders/${order.id}', {'userName': userName});
+
       final response = await http.patch(
         url,
         headers: {"Content-Type": "application/json"},
-        // Se usa order.toJson() para enviar la orden completa como JSON
         body: json.encode(order.toJson()),
       );
-      print('response: $response');
       if (response.statusCode == 200) {
-        print('response.statusCode == 200');
         print('response.body: ${response.body}');
         Order updatedOrder = Order.fromJson(json.decode(response.body));
         return Success(updatedOrder);

@@ -33,6 +33,9 @@ class _BarHomePageState extends State<BarHomePage> {
     IconButton _buildIconButton(IconData icon, OrderFilterType filterType) {
       return IconButton(
         icon: Icon(icon),
+        color: _currentFilter == filterType
+            ? Colors.black
+            : Colors.white, // Cambia el color aquí
         iconSize: 40,
         onPressed: () {
           setState(() {
@@ -110,46 +113,56 @@ class _BarHomePageState extends State<BarHomePage> {
                 padding: EdgeInsets.zero,
                 children: [
                   DrawerHeader(
-                      decoration: BoxDecoration(color: Colors.black),
+                      decoration: BoxDecoration(
+                          color: Colors.brown), // Cambia el color aquí
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             state.name ?? "Usuario",
-                            style: TextStyle(color: Colors.white, fontSize: 24),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 28), // Tamaño de letra aumentado
                           ),
                           Text(
                             state.role ?? "Rol no disponible",
-                            style: TextStyle(color: Colors.white, fontSize: 16),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20), // Tamaño de letra aumentado
                           ),
                         ],
                       )),
                   ListTile(
-                    title: Text('Bar'),
+                    title: Text('Bar',
+                        style: TextStyle(
+                            fontSize: 24)), // Tamaño de letra aumentado
                     selected: _currentPageIndex == 0,
                     onTap: () {
                       setState(() {
-                        _currentPageIndex =
-                            0; // Actualiza el índice de la página actual a 0
+                        _currentPageIndex = 0;
                       });
                       _bloc?.add(BarChangeDrawerPage(pageIndex: 0));
                       Navigator.pop(context);
                     },
                   ),
                   ListTile(
-                    title: Text('Configuración'),
+                    title: Text('Configuración',
+                        style: TextStyle(
+                            fontSize: 24)), // Tamaño de letra aumentado
                     selected: _currentPageIndex == 1,
                     onTap: () {
                       setState(() {
-                        _currentPageIndex =
-                            1; // Cambia el índice de la página actual a 1
+                        _currentPageIndex = 1;
                       });
                       Navigator.pop(context);
                     },
                   ),
+                  SizedBox(height: 50),
                   ListTile(
-                    title: Text('Cerrar sesión'),
+                    title: Text('Cerrar sesión',
+                        style: TextStyle(
+                            fontSize: 24)), // Tamaño de letra aumentado
                     onTap: () {
                       _bloc?.add(Logout());
                       Navigator.pushAndRemoveUntil(

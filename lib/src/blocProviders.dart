@@ -31,12 +31,14 @@ List<BlocProvider> blocProviders = [
       create: (context) => OrderCreationBloc(
           categoriesUseCases: locator<CategoriesUseCases>(),
           areasUseCases: locator<AreasUseCases>(),
-          ordersUseCases: locator<OrdersUseCases>())),
+          ordersUseCases: locator<OrdersUseCases>(),
+          authUseCases: locator<AuthUseCases>())),
   BlocProvider<OrderUpdateBloc>(
       create: (context) => OrderUpdateBloc(
           ordersUseCases: locator<OrdersUseCases>(),
           areasUseCases: locator<AreasUseCases>(),
-          categoriesUseCases: locator<CategoriesUseCases>())),
+          categoriesUseCases: locator<CategoriesUseCases>(),
+          authUseCases: locator<AuthUseCases>())),
   BlocProvider<PizzaHomeBloc>(
       create: (context) => PizzaHomeBloc(locator<AuthUseCases>())),
   BlocProvider<HamburgerHomeBloc>(

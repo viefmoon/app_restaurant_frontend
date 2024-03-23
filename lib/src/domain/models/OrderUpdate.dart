@@ -5,6 +5,7 @@ class OrderUpdate {
   final int id;
   final DateTime updateAt; // Uso de DateTime para fechas
   final int updateNumber;
+  final String? updatedBy;
   OrderModel.Order? order; // Relación ManyToOne con Order
   List<OrderItemUpdate>?
       orderItemUpdates; // Relación OneToMany con OrderItemUpdate
@@ -13,6 +14,7 @@ class OrderUpdate {
     required this.id,
     required this.updateAt,
     required this.updateNumber,
+    required this.updatedBy,
     this.order,
     this.orderItemUpdates,
   });
@@ -23,6 +25,7 @@ class OrderUpdate {
       updateAt: DateTime.parse(json['updateAt']),
       // Asumiendo la existencia de método fromJson para Order
       updateNumber: json['updateNumber'],
+      updatedBy: json['updatedBy'],
       order: json['order'] != null
           ? OrderModel.Order.fromJson(json['order'])
           : null,
@@ -39,6 +42,7 @@ class OrderUpdate {
     data['id'] = id;
     data['updateAt'] = updateAt.toIso8601String();
     data['updateNumber'] = updateNumber;
+    data['updatedBy'] = updatedBy;
     if (order != null) data['order'] = order!.toJson();
     if (orderItemUpdates != null) {
       data['orderItemUpdates'] =

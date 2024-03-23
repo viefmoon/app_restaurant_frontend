@@ -78,9 +78,9 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
   }
 
   List<Color> _updateColors = [
-    Colors.blue,
-    const Color.fromARGB(255, 102, 66, 13),
-    const Color.fromARGB(255, 104, 17, 119),
+    Color.fromRGBO(212, 17, 203, 1),
+    Color.fromARGB(255, 161, 106, 23),
+    Color.fromARGB(255, 134, 24, 153),
     const Color.fromARGB(255, 88, 59, 48),
     const Color.fromARGB(255, 163, 14, 63),
     const Color.fromARGB(255, 172, 139, 42),
@@ -132,7 +132,7 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
             Expanded(
               flex: 7,
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(3.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -141,23 +141,52 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
+                          fontSize: 20,
                           fontFamily: 'Arial'),
                     ),
                     Text(
                       _displayOrderStatus(widget.order.barPreparationStatus),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.black, fontStyle: FontStyle.italic),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Colors.black,
+                          fontSize: 18,
+                          fontFamily: 'Arial',
+                          fontStyle: FontStyle.italic),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Text(
-                        'Creado hace: $timeSinceCreation',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(
-                                color:
-                                    _getColorBasedOnTime(_timeSinceCreation)),
+                      padding: const EdgeInsets.symmetric(vertical: 1.0),
+                      child: Text.rich(
+                        TextSpan(
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: 'Creado hace: ',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            TextSpan(
+                              text: '$timeSinceCreation',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                      fontSize: 18,
+                                      fontStyle: FontStyle.italic,
+                                      color: _getColorBasedOnTime(
+                                          _timeSinceCreation)),
+                            ),
+                            TextSpan(
+                              text: '- ${widget.order.createdBy}',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                                fontStyle: FontStyle.italic,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     if (widget.order.scheduledDeliveryTime != null)
@@ -204,9 +233,9 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
       // Asignar un color basado en el número de actualización
       final color = _updateColors[update.updateNumber % _updateColors.length];
       return Text(
-        'Actualizado hace: $formattedTimeAgo',
+        'Actualizado: $formattedTimeAgo por ${update.updatedBy}',
         style: TextStyle(
-          fontSize: 14,
+          fontSize: 15,
           fontStyle: FontStyle.italic,
           color: color,
           height: 1, // Ajusta este valor para controlar el espacio entre líneas
@@ -275,13 +304,14 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
         width: double.infinity,
         color: Colors.blueGrey,
         margin: EdgeInsets.only(bottom: 8.0),
-        padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
+        padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 2.0),
         child: Text(
           text,
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(color: Colors.white),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontFamily: 'Calibri',
+          ),
         ),
       );
     }
@@ -332,13 +362,15 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
 
       TextStyle baseTextStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize: 18,
+                fontSize: 22,
+                fontFamily: 'Arial',
               ) ??
           TextStyle();
 
       TextStyle smallerTextStyle =
           Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.bold,
+                    fontSize: 15,
                   ) ??
               TextStyle();
 
@@ -364,14 +396,15 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
               : smallerTextStyle.copyWith(color: colorForItem);
 
       List<Widget> itemWidgets = [
-        Text(
-          orderItem.product?.name ?? 'Producto desconocido',
-          style: textStyle.copyWith(color: colorForItem),
-        ),
         if (orderItem.productVariant != null)
           Text(
             orderItem.productVariant!.name,
-            style: smallerDecoratedTextStyle.copyWith(color: colorForItem),
+            style: textStyle.copyWith(color: colorForItem),
+          ),
+        if (orderItem.productVariant == null)
+          Text(
+            orderItem.product?.name ?? 'Producto desconocido',
+            style: textStyle.copyWith(color: colorForItem),
           ),
         ...orderItem.selectedModifiers?.map((modifier) => Text(
                   modifier.modifier!.name,
