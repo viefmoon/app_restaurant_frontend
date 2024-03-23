@@ -1,3 +1,4 @@
+import 'package:app/src/presentation/pages/preparation/pizza/home/bloc/PizzaHomeState.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class PizzaHomeEvent extends Equatable {
@@ -23,4 +24,20 @@ class InitEvent extends PizzaHomeEvent {
 
 class Logout extends PizzaHomeEvent {
   const Logout();
+}
+
+class ChangeOrderFilterType extends PizzaHomeEvent {
+  final OrderFilterType filterType;
+
+  const ChangeOrderFilterType(this.filterType);
+
+  @override
+  List<Object> get props => [filterType];
+}
+
+class SynchronizeOrders extends PizzaHomeEvent {
+  const SynchronizeOrders();
+
+  @override
+  List<Object> get props => [];
 }

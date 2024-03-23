@@ -2,7 +2,7 @@ import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/presentation/pages/preparation/bar/bloc/BarPreparationEvent.dart';
 import 'package:app/src/presentation/pages/preparation/bar/home/bloc/BarHomeState.dart';
-import 'package:app/src/presentation/widgets/OrderPreparationWidget.dart';
+import 'package:app/src/presentation/widgets/OrderBarPreparationWidget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
@@ -145,13 +145,17 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
             }
 
             bool matchesPreparedStatus =
-                true; // Por defecto, no filtrar por estado preparado
+                true; // Inicializa como true para incluir todos los pedidos por defecto.
             if (widget.filterByPrepared) {
+              // Si el filtro por preparados está activo, solo incluye los pedidos que están preparados.
               matchesPreparedStatus =
                   order.barPreparationStatus == OrderPreparationStatus.prepared;
+            } else {
+              // Si el filtro por preparados está desactivado, excluye los pedidos que están preparados.
+              matchesPreparedStatus =
+                  order.barPreparationStatus != OrderPreparationStatus.prepared;
             }
 
-            // Ajusta la lógica para esconder los pedidos programados cuando el filtro esté activo
             bool matchesScheduledDelivery = true; // Por defecto, mostrar todos
             if (widget.filterByScheduledDelivery) {
               matchesScheduledDelivery = order.scheduledDeliveryTime == null;
@@ -171,7 +175,7 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
             itemCount: filteredOrders.length,
             itemBuilder: (context, index) {
               final order = filteredOrders[index];
-              return OrderPreparationWidget(
+              return OrderBarPreparationWidget(
                 order: order,
                 onOrderGesture: _handleOrderGesture,
                 onOrderItemTap: _handleOrderItemTap,

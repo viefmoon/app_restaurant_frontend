@@ -10,7 +10,9 @@ import 'package:app/src/presentation/pages/auth/register/bloc/RegisterBloc.dart'
 import 'package:app/src/presentation/pages/auth/register/bloc/RegisterEvent.dart';
 import 'package:app/src/presentation/pages/preparation/bar/bloc/BarPreparationBloc.dart';
 import 'package:app/src/presentation/pages/preparation/bar/home/bloc/BarHomeBloc.dart';
-import 'package:app/src/presentation/pages/preparation/hamburger/home/bloc/HamburgerHomeBloc.dart';
+import 'package:app/src/presentation/pages/preparation/burger/bloc/BurgerPreparationBloc.dart';
+import 'package:app/src/presentation/pages/preparation/burger/home/bloc/BurgerHomeBloc.dart';
+import 'package:app/src/presentation/pages/preparation/pizza/bloc/pizzaPreparationBloc.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/home/bloc/PizzaHomeBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/home/bloc/SalesHomeBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
@@ -41,12 +43,22 @@ List<BlocProvider> blocProviders = [
           authUseCases: locator<AuthUseCases>())),
   BlocProvider<PizzaHomeBloc>(
       create: (context) => PizzaHomeBloc(locator<AuthUseCases>())),
-  BlocProvider<HamburgerHomeBloc>(
-      create: (context) => HamburgerHomeBloc(locator<AuthUseCases>())),
+  BlocProvider<BurgerHomeBloc>(
+      create: (context) => BurgerHomeBloc(locator<AuthUseCases>())),
   BlocProvider<BarHomeBloc>(
       create: (context) => BarHomeBloc(locator<AuthUseCases>())),
   BlocProvider<BarPreparationBloc>(
     create: (context) => BarPreparationBloc(
+      orderUseCases: locator<OrdersUseCases>(),
+    ),
+  ),
+  BlocProvider<PizzaPreparationBloc>(
+    create: (context) => PizzaPreparationBloc(
+      orderUseCases: locator<OrdersUseCases>(),
+    ),
+  ),
+  BlocProvider<BurgerPreparationBloc>(
+    create: (context) => BurgerPreparationBloc(
       orderUseCases: locator<OrdersUseCases>(),
     ),
   ),

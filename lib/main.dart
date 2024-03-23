@@ -1,5 +1,5 @@
 import 'package:app/src/presentation/pages/preparation/bar/home/BarHomePage.dart';
-import 'package:app/src/presentation/pages/preparation/hamburger/home/HamburgerHomePage.dart';
+import 'package:app/src/presentation/pages/preparation/burger/home/BurgerHomePage.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/home/PizzaHomePage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/home/SalesHomePage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderCreationContainer.dart';
@@ -58,7 +58,7 @@ class MyApp extends StatelessWidget {
           'register': (BuildContext context) => RegisterPage(),
           'salesHome': (BuildContext context) => SalesHomePage(),
           'order/create': (BuildContext context) => OrderCreationContainer(),
-          'hamburgerHome': (BuildContext context) => HamburgerHomePage(),
+          'hamburgerHome': (BuildContext context) => BurgerHomePage(),
           'pizzaHome': (BuildContext context) => PizzaHomePage(),
           'barHome': (BuildContext context) => BarHomePage(),
           'settings': (BuildContext context) =>

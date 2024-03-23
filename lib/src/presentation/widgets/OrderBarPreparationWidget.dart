@@ -6,12 +6,12 @@ import 'package:app/src/domain/models/Order.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
 
-class OrderPreparationWidget extends StatefulWidget {
+class OrderBarPreparationWidget extends StatefulWidget {
   final Order order;
   final Function(Order, String) onOrderGesture;
   final Function(Order, OrderItem) onOrderItemTap;
 
-  const OrderPreparationWidget({
+  const OrderBarPreparationWidget({
     //Key? key,
     required this.order,
     required this.onOrderGesture,
@@ -19,10 +19,11 @@ class OrderPreparationWidget extends StatefulWidget {
   });
 
   @override
-  _OrderPreparationWidgetState createState() => _OrderPreparationWidgetState();
+  _OrderBarPreparationWidgetState createState() =>
+      _OrderBarPreparationWidgetState();
 }
 
-class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
+class _OrderBarPreparationWidgetState extends State<OrderBarPreparationWidget> {
   Timer? _timer;
   Duration _timeSinceCreation = Duration.zero;
   Duration _timeUntilScheduled = Duration.zero; // Añadir esta línea
@@ -158,7 +159,7 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
                               text: 'Creado hace: ',
                               style: TextStyle(
                                 color: Colors.black,
-                                fontSize: 18,
+                                fontSize: 16,
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
@@ -168,7 +169,7 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
                                   .textTheme
                                   .titleMedium
                                   ?.copyWith(
-                                      fontSize: 18,
+                                      fontSize: 16,
                                       fontStyle: FontStyle.italic,
                                       color: _getColorBasedOnTime(
                                           _timeSinceCreation)),
@@ -177,7 +178,7 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
                               text: '- ${widget.order.createdBy}',
                               style: TextStyle(
                                 color: Colors.black,
-                                fontSize: 18,
+                                fontSize: 16,
                                 fontStyle: FontStyle.italic,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -195,7 +196,7 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
                                   'Programado: ${DateFormat('HH:mm').format(widget.order.scheduledDeliveryTime!)}',
                               style: TextStyle(
                                 color: Colors.black,
-                                fontSize: 16,
+                                fontSize: 15,
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
@@ -204,7 +205,7 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
                                   ' - En: ${_formatDuration(_timeUntilScheduled)}',
                               style: TextStyle(
                                 color: Colors.black,
-                                fontSize: 16,
+                                fontSize: 15,
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
@@ -492,6 +493,7 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
   }
 
   String _displayOrderStatus(OrderPreparationStatus? status) {
+    print("status: $status");
     switch (status) {
       case OrderPreparationStatus.created:
         return 'Creada';

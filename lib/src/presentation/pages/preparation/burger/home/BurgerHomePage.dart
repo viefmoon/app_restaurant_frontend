@@ -1,21 +1,21 @@
 import 'package:app/main.dart';
-import 'package:app/src/presentation/pages/preparation/pizza/PizzaPreparationPage.dart';
+import 'package:app/src/presentation/pages/preparation/burger/BurgerPreparationPage.dart';
 import 'package:app/src/presentation/pages/setting/SettingsPage.dart'; // Added import for SettingsPage
 import 'package:flutter/material.dart';
-import 'bloc/PizzaHomeBloc.dart';
-import 'bloc/PizzaHomeEvent.dart';
-import 'bloc/PizzaHomeState.dart';
+import 'bloc/BurgerHomeBloc.dart';
+import 'bloc/BurgerHomeEvent.dart';
+import 'bloc/BurgerHomeState.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class PizzaHomePage extends StatefulWidget {
-  const PizzaHomePage({super.key});
+class BurgerHomePage extends StatefulWidget {
+  const BurgerHomePage({super.key});
 
   @override
-  State<PizzaHomePage> createState() => _PizzaHomePageState();
+  State<BurgerHomePage> createState() => _BurgerHomePageState();
 }
 
-class _PizzaHomePageState extends State<PizzaHomePage> {
-  PizzaHomeBloc? _bloc;
+class _BurgerHomePageState extends State<BurgerHomePage> {
+  BurgerHomeBloc? _bloc;
   OrderFilterType _currentFilter = OrderFilterType.all;
   int _currentPageIndex = 0;
   bool _filterByPrepared = false;
@@ -24,7 +24,7 @@ class _PizzaHomePageState extends State<PizzaHomePage> {
   @override
   void initState() {
     super.initState();
-    _bloc = BlocProvider.of<PizzaHomeBloc>(context, listen: false);
+    _bloc = BlocProvider.of<BurgerHomeBloc>(context, listen: false);
     _bloc!.add(InitEvent());
   }
 
@@ -49,7 +49,7 @@ class _PizzaHomePageState extends State<PizzaHomePage> {
 
     return AppBar(
       title: Text(
-        'Pizza',
+        'HAMBURGUESAS',
         style: TextStyle(
           fontFamily: 'Roboto',
           fontSize: 26,
@@ -103,7 +103,7 @@ class _PizzaHomePageState extends State<PizzaHomePage> {
   @override
   Widget build(BuildContext context) {
     List<Widget> pageList = <Widget>[
-      PizzaPreparationPage(
+      BurgerPreparationPage(
           filterType: _currentFilter,
           filterByPrepared: _filterByPrepared,
           filterByScheduledDelivery: _filterByScheduledDelivery),
@@ -123,7 +123,7 @@ class _PizzaHomePageState extends State<PizzaHomePage> {
       ),
       child: Scaffold(
         appBar: _buildAppBar(),
-        drawer: BlocBuilder<PizzaHomeBloc, PizzaHomeState>(
+        drawer: BlocBuilder<BurgerHomeBloc, BurgerHomeState>(
           builder: (context, state) {
             return Drawer(
               child: ListView(
@@ -151,7 +151,7 @@ class _PizzaHomePageState extends State<PizzaHomePage> {
                         ],
                       )),
                   ListTile(
-                    title: Text('Pizza',
+                    title: Text('Hamburguesas',
                         style: TextStyle(
                             fontSize: 24)), // Tamaño de letra aumentado
                     selected: _currentPageIndex == 0,
@@ -159,7 +159,7 @@ class _PizzaHomePageState extends State<PizzaHomePage> {
                       setState(() {
                         _currentPageIndex = 0;
                       });
-                      _bloc?.add(PizzaChangeDrawerPage(pageIndex: 0));
+                      _bloc?.add(BurgerChangeDrawerPage(pageIndex: 0));
                       Navigator.pop(context);
                     },
                   ),

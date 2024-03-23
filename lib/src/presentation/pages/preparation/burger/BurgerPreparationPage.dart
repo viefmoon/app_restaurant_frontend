@@ -1,20 +1,20 @@
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
-import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationEvent.dart';
-import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationState.dart';
-import 'package:app/src/presentation/pages/preparation/pizza/bloc/pizzaPreparationBloc.dart';
-import 'package:app/src/presentation/pages/preparation/pizza/home/bloc/PizzaHomeState.dart';
-import 'package:app/src/presentation/widgets/OrderPizzaPreparationWidget.dart';
+import 'package:app/src/presentation/pages/preparation/burger/bloc/BurgerPreparationBloc.dart';
+import 'package:app/src/presentation/pages/preparation/burger/bloc/BurgerPreparationEvent.dart';
+import 'package:app/src/presentation/pages/preparation/burger/bloc/BurgerPreparationState.dart';
+import 'package:app/src/presentation/pages/preparation/burger/home/bloc/BurgerHomeState.dart';
+import 'package:app/src/presentation/widgets/OrderBurgerPreparationWidget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 
-class PizzaPreparationPage extends StatefulWidget {
+class BurgerPreparationPage extends StatefulWidget {
   final OrderFilterType filterType;
   final bool filterByPrepared;
   final bool filterByScheduledDelivery; // Nuevo parámetro
 
-  const PizzaPreparationPage(
+  const BurgerPreparationPage(
       {Key? key,
       required this.filterType,
       this.filterByPrepared = false,
@@ -22,16 +22,16 @@ class PizzaPreparationPage extends StatefulWidget {
       : super(key: key);
 
   @override
-  _PizzaPreparationPageState createState() => _PizzaPreparationPageState();
+  _BurgerPreparationPageState createState() => _BurgerPreparationPageState();
 }
 
-class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
-  PizzaPreparationBloc? bloc;
+class _BurgerPreparationPageState extends State<BurgerPreparationPage> {
+  BurgerPreparationBloc? bloc;
 
   @override
   void initState() {
     super.initState();
-    bloc = BlocProvider.of<PizzaPreparationBloc>(context, listen: false);
+    bloc = BlocProvider.of<BurgerPreparationBloc>(context, listen: false);
     // Establece la orientación preferida a horizontal al entrar a la página
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeRight,
@@ -55,19 +55,19 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
   }
 
   void _handleOrderGesture(Order order, String gesture) {
-    final bloc = BlocProvider.of<PizzaPreparationBloc>(context);
+    final bloc = BlocProvider.of<BurgerPreparationBloc>(context);
     switch (gesture) {
       case 'swipe_left':
         bloc.add(UpdateOrderPreparationStatusEvent(
             order.id!,
             OrderPreparationStatus.in_preparation,
-            PreparationStatusType.pizzaPreparationStatus));
+            PreparationStatusType.burgerPreparationStatus));
         break;
       case 'swipe_right':
         bloc.add(UpdateOrderPreparationStatusEvent(
             order.id!,
             OrderPreparationStatus.created,
-            PreparationStatusType.pizzaPreparationStatus));
+            PreparationStatusType.burgerPreparationStatus));
         // Cambia el estado de todos los OrderItems visibles a creado
         order.orderItems?.forEach((orderItem) {
           bloc.add(UpdateOrderItemStatusEvent(
@@ -80,7 +80,7 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
         bloc.add(UpdateOrderPreparationStatusEvent(
             order.id!,
             OrderPreparationStatus.prepared,
-            PreparationStatusType.pizzaPreparationStatus));
+            PreparationStatusType.burgerPreparationStatus));
         // Cambia el estado de todos los OrderItems visibles a preparado
         order.orderItems?.forEach((orderItem) {
           bloc.add(UpdateOrderItemStatusEvent(
@@ -93,14 +93,14 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
         bloc.add(UpdateOrderPreparationStatusEvent(
             order.id!,
             OrderPreparationStatus.in_preparation,
-            PreparationStatusType.pizzaPreparationStatus));
+            PreparationStatusType.burgerPreparationStatus));
         // No cambia el estado de los OrderItems aquí
         break;
     }
   }
 
   void _handleOrderItemTap(Order order, OrderItem orderItem) {
-    final bloc = BlocProvider.of<PizzaPreparationBloc>(context);
+    final bloc = BlocProvider.of<BurgerPreparationBloc>(context);
     // Verifica si el OrderItem ya está preparado
     if (orderItem.status == OrderItemStatus.prepared) {
       // Decide el nuevo estado basado en el estado de la Order
@@ -123,7 +123,7 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<PizzaPreparationBloc, PizzaPreparationState>(
+      body: BlocBuilder<BurgerPreparationBloc, BurgerPreparationState>(
         builder: (context, state) {
           final orders = state.orders ?? [];
           final filteredOrders = orders.where((order) {
@@ -148,11 +148,11 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
                 true; // Inicializa como true para incluir todos los pedidos por defecto.
             if (widget.filterByPrepared) {
               // Si el filtro por preparados está activo, solo incluye los pedidos que están preparados.
-              matchesPreparedStatus = order.pizzaPreparationStatus ==
+              matchesPreparedStatus = order.burgerPreparationStatus ==
                   OrderPreparationStatus.prepared;
             } else {
               // Si el filtro por preparados está desactivado, excluye los pedidos que están preparados.
-              matchesPreparedStatus = order.pizzaPreparationStatus !=
+              matchesPreparedStatus = order.burgerPreparationStatus !=
                   OrderPreparationStatus.prepared;
             }
 
@@ -175,7 +175,7 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
             itemCount: filteredOrders.length,
             itemBuilder: (context, index) {
               final order = filteredOrders[index];
-              return OrderPizzaPreparationWidget(
+              return OrderBurgerPreparationWidget(
                 order: order,
                 onOrderGesture: _handleOrderGesture,
                 onOrderItemTap: _handleOrderItemTap,
@@ -186,7 +186,7 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          final bloc = BlocProvider.of<PizzaPreparationBloc>(context);
+          final bloc = BlocProvider.of<BurgerPreparationBloc>(context);
           bloc.add(SynchronizeOrdersEvent());
         },
         child: Icon(Icons.sync),
