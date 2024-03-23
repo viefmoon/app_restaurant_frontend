@@ -39,6 +39,7 @@ class OrderCreationState extends Equatable {
   final double? totalCost;
   final Resource? response;
   final OrderCreationStep? step;
+  final bool? isTimePickerEnabled;
 
   const OrderCreationState({
     this.selectedOrderType,
@@ -62,6 +63,7 @@ class OrderCreationState extends Equatable {
     this.totalCost,
     this.response,
     this.step,
+    this.isTimePickerEnabled = false,
   });
 
   OrderCreationState copyWith({
@@ -86,6 +88,7 @@ class OrderCreationState extends Equatable {
     double? totalCost,
     Resource? response,
     OrderCreationStep? step,
+    bool? isTimePickerEnabled,
   }) {
     return OrderCreationState(
       selectedOrderType: selectedOrderType ?? this.selectedOrderType,
@@ -112,6 +115,7 @@ class OrderCreationState extends Equatable {
       totalCost: totalCost ?? this.totalCost,
       response: response ?? this.response,
       step: step ?? this.step,
+      isTimePickerEnabled: isTimePickerEnabled ?? this.isTimePickerEnabled,
     );
   }
 
@@ -138,5 +142,6 @@ class OrderCreationState extends Equatable {
         totalCost,
         response,
         step,
+        isTimePickerEnabled,
       ];
 }

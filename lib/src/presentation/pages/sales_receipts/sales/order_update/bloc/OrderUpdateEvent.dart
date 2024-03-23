@@ -17,6 +17,15 @@ class LoadOpenOrders extends OrderUpdateEvent {
   List<Object> get props => [];
 }
 
+class TimePickerEnabled extends OrderUpdateEvent {
+  final bool isTimePickerEnabled;
+
+  const TimePickerEnabled({required this.isTimePickerEnabled});
+
+  @override
+  List<Object> get props => [isTimePickerEnabled];
+}
+
 class OrderSelectedForUpdate extends OrderUpdateEvent {
   final int orderId;
 
@@ -44,12 +53,10 @@ class LoadTables extends OrderUpdateEvent {
 }
 
 class UpdateOrder extends OrderUpdateEvent {
-  final Order order;
-
-  const UpdateOrder(this.order);
+  const UpdateOrder();
 
   @override
-  List<Object> get props => [order];
+  List<Object> get props => [];
 }
 
 class PhoneNumberEntered extends OrderUpdateEvent {

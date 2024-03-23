@@ -90,16 +90,25 @@ class _OpenOrdersPageState extends State<OpenOrdersPage> {
                 String title =
                     '#${order.id ?? ""}'; // Asegura que el ID siempre esté presente
 
-                // Formatea la fecha de creación para mostrarla solo hasta los minutos
+                // Convierte la fecha de creación a la zona horaria local y la formatea
                 String formattedDate = DateFormat('yyyy-MM-dd HH:mm')
-                    .format(order.creationDate ?? DateTime.now());
+                    .format(order.creationDate?.toLocal() ?? DateTime.now());
                 String subtitle =
                     formattedDate; // Usa la fecha formateada como subtítulo
+
+                // Agrega el scheduledDeliveryTime si está disponible, convirtiéndolo a la zona horaria local
+                String scheduledDeliveryTimeText = '';
+                if (order.scheduledDeliveryTime != null) {
+                  String formattedScheduledDeliveryTime =
+                      DateFormat('yyyy-MM-dd HH:mm')
+                          .format(order.scheduledDeliveryTime!.toLocal());
+                  scheduledDeliveryTimeText =
+                      ' - programada: $formattedScheduledDeliveryTime';
+                }
 
                 // Agrega el tipo de pedido y detalles específicos según el tipo
                 switch (order.orderType) {
                   case OrderType.delivery:
-                    title += '';
                     title += order.deliveryAddress != null
                         ? ' - ${order.deliveryAddress}'
                         : '';
@@ -131,7 +140,8 @@ class _OpenOrdersPageState extends State<OpenOrdersPage> {
 
                 return ListTile(
                   title: Text(title, style: TextStyle(fontSize: 20)),
-                  subtitle: Text(subtitle + statusText,
+                  subtitle: Text(
+                      subtitle + scheduledDeliveryTimeText + statusText,
                       style: TextStyle(color: statusColor, fontSize: 18)),
                   onTap: () {
                     // Emitir el evento al BLoC con la orden seleccionada

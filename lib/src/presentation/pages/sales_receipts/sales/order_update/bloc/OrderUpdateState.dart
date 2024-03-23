@@ -33,6 +33,7 @@ class OrderUpdateState extends Equatable {
   final int? selectedSubcategoryId;
   final List<Subcategory>? filteredSubcategories;
   final List<Product>? filteredProducts;
+  final bool? isTimePickerEnabled;
 
   const OrderUpdateState({
     this.orders,
@@ -58,6 +59,7 @@ class OrderUpdateState extends Equatable {
     this.selectedSubcategoryId,
     this.filteredSubcategories,
     this.filteredProducts,
+    this.isTimePickerEnabled,
   });
 
   OrderUpdateState copyWith({
@@ -84,6 +86,7 @@ class OrderUpdateState extends Equatable {
     int? selectedSubcategoryId,
     List<Subcategory>? filteredSubcategories,
     List<Product>? filteredProducts,
+    bool? isTimePickerEnabled,
   }) {
     return OrderUpdateState(
       orders: orders ?? this.orders,
@@ -113,6 +116,7 @@ class OrderUpdateState extends Equatable {
       filteredSubcategories:
           filteredSubcategories ?? this.filteredSubcategories,
       filteredProducts: filteredProducts ?? this.filteredProducts,
+      isTimePickerEnabled: isTimePickerEnabled ?? this.isTimePickerEnabled,
     );
   }
 
@@ -141,5 +145,6 @@ class OrderUpdateState extends Equatable {
         selectedSubcategoryId,
         filteredSubcategories,
         filteredProducts,
+        isTimePickerEnabled,
       ];
 }

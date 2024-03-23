@@ -1,5 +1,6 @@
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/SelectedPizzaIngredient.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationEvent.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,9 +26,6 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
   late TextEditingController _addressController;
   late TextEditingController _customerNameController;
   late TextEditingController _commentsController;
-
-  TimeOfDay? _selectedTime;
-  bool _isTimePickerEnabled = false;
 
   @override
   void initState() {
@@ -197,11 +195,61 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                   decoration: InputDecoration(
                     labelText: 'Nombre del Cliente',
                     hintText: 'Ingresa el nombre del cliente',
-                    border: OutlineInputBorder(),
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: BorderSide(
+                        color: Colors.blue,
+                        width: 2.0,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: BorderSide(
+                        color: Colors.green,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   onChanged: (value) {
                     BlocProvider.of<OrderCreationBloc>(context).add(
                       CustomerNameEntered(customerName: value),
+                    );
+                  },
+                ),
+              ));
+              headerDetails.add(Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10.0,
+                    vertical:
+                        10.0), // Reducir el margen vertical para hacerlo menos ancho
+                child: TextField(
+                  controller:
+                      _phoneController, // Usar el controlador inicializado
+                  decoration: InputDecoration(
+                    labelText: 'Teléfono',
+                    hintText: 'Ingresa el número de teléfono',
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: BorderSide(
+                        color: Colors.blue,
+                        width: 2.0,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: BorderSide(
+                        color: Colors.green,
+                        width: 2.0,
+                      ),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    BlocProvider.of<OrderCreationBloc>(context).add(
+                      PhoneNumberEntered(phoneNumber: value),
                     );
                   },
                 ),
@@ -236,43 +284,42 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
               },
             ),
           ));
-          headerDetails.add(
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  flex: 2, // Ajusta la proporción si es necesario
-                  child: Switch(
-                    value: _isTimePickerEnabled,
-                    onChanged: (bool value) {
-                      setState(() {
-                        _isTimePickerEnabled = value;
-                        if (!value) {
-                          _selectedTime =
-                              null; // Resetear _selectedTime si el selector está deshabilitado
-                        }
-                      });
-                    },
-                  ),
-                ),
-                Expanded(
-                  flex: 8, // Ajusta la proporción si es necesario
-                  child: ListTile(
-                    title: Text('Seleccionar Hora'),
-                    subtitle: Text(
-                      _isTimePickerEnabled && _selectedTime != null
-                          ? _selectedTime!.format(context)
-                          : 'No seleccionada',
+          headerDetails.add(BlocBuilder<OrderCreationBloc, OrderCreationState>(
+            builder: (context, state) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    flex: 2, // Ajusta la proporción si es necesario
+                    child: Switch(
+                      value: state.isTimePickerEnabled ?? false,
+                      onChanged: (bool value) {
+                        // Envía el evento para habilitar/deshabilitar el TimePicker
+                        BlocProvider.of<OrderCreationBloc>(context)
+                            .add(TimePickerEnabled(isTimePickerEnabled: value));
+                      },
                     ),
-                    leading: Icon(Icons.access_time),
-                    onTap: _isTimePickerEnabled
-                        ? () => _selectTime(context)
-                        : null,
                   ),
-                ),
-              ],
-            ),
-          );
+                  Expanded(
+                    flex: 8, // Ajusta la proporción si es necesario
+                    child: ListTile(
+                      title: Text('Seleccionar hora programada'),
+                      subtitle: Text(
+                        (state.isTimePickerEnabled ?? false) &&
+                                state.scheduledDeliveryTime != null
+                            ? state.scheduledDeliveryTime!.format(context)
+                            : 'No seleccionada',
+                      ),
+                      leading: Icon(Icons.access_time, size: 30),
+                      onTap: state.isTimePickerEnabled ?? false
+                          ? () => _selectTime(context)
+                          : null, // Asegúrate de que onTap permita la selección de la hora solo si isTimePickerEnabled es true
+                    ),
+                  ),
+                ],
+              );
+            },
+          ));
 
           return ListView.builder(
             itemCount: (state.orderItems?.length ?? 0) +
@@ -301,13 +348,39 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                 if (orderItem.selectedPizzaFlavors != null &&
                     orderItem.selectedPizzaFlavors!.isNotEmpty) {
                   details.add(Text(
-                      'Sabores de Pizza: ${orderItem.selectedPizzaFlavors!.map((f) => f.pizzaFlavor?.name).join(', ')}'));
+                      'Sabor: ${orderItem.selectedPizzaFlavors!.map((f) => f.pizzaFlavor?.name).join('/')}'));
                 }
                 // Añadir detalles de ingredientes de pizza seleccionados
                 if (orderItem.selectedPizzaIngredients != null &&
                     orderItem.selectedPizzaIngredients!.isNotEmpty) {
-                  details.add(Text(
-                      'Ingredientes de Pizza: ${orderItem.selectedPizzaIngredients!.map((i) => i.pizzaIngredient?.name).join(', ')}'));
+                  final ingredientsLeft = orderItem.selectedPizzaIngredients!
+                      .where((i) => i.half == PizzaHalf.left)
+                      .map((i) => i.pizzaIngredient?.name)
+                      .join(', ');
+                  final ingredientsRight = orderItem.selectedPizzaIngredients!
+                      .where((i) => i.half == PizzaHalf.right)
+                      .map((i) => i.pizzaIngredient?.name)
+                      .join(', ');
+                  final ingredientsNone = orderItem.selectedPizzaIngredients!
+                      .where((i) => i.half == PizzaHalf.none)
+                      .map((i) => i.pizzaIngredient?.name)
+                      .join(', ');
+
+                  String ingredientsText = '';
+                  if (ingredientsLeft.isNotEmpty) {
+                    ingredientsText += 'Mitad 1: $ingredientsLeft';
+                  }
+
+                  if (ingredientsRight.isNotEmpty) {
+                    if (ingredientsText.isNotEmpty) ingredientsText += ' | ';
+                    ingredientsText += 'Mitad 2: $ingredientsRight';
+                  }
+                  if (ingredientsNone.isNotEmpty) {
+                    if (ingredientsText.isNotEmpty) ingredientsText += ' | ';
+                    ingredientsText += 'Completa: $ingredientsNone';
+                  }
+
+                  details.add(Text('Ingredientes: $ingredientsText'));
                 }
                 if (orderItem.selectedProductObservations != null &&
                     orderItem.selectedProductObservations!.isNotEmpty) {
@@ -478,23 +551,13 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
   }
 
   Future<void> _selectTime(BuildContext context) async {
-    if (!_isTimePickerEnabled) {
-      return; // No hacer nada si el selector de tiempo está deshabilitado
-    }
-
-    final localContext =
-        context; // Captura el contexto antes de la brecha asíncrona
-
     final TimeOfDay? picked = await showTimePicker(
-      context: localContext,
-      initialTime: _selectedTime ?? TimeOfDay.now(),
+      context: context,
+      initialTime: TimeOfDay.now(),
     );
     if (picked != null) {
-      setState(() {
-        _selectedTime = picked;
-      });
-      // Usa el contexto capturado
-      BlocProvider.of<OrderCreationBloc>(localContext)
+      // Envía el evento TimeSelected con el tiempo elegido
+      BlocProvider.of<OrderCreationBloc>(context)
           .add(TimeSelected(time: picked));
     }
   }
@@ -507,22 +570,62 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
   void _sendOrder(BuildContext context, OrderCreationState state) {
     // Verificar si la lista de OrderItems está vacía o es nula
     if (state.orderItems == null || state.orderItems!.isEmpty) {
-      // Mostrar un SnackBar con un mensaje indicando que se necesitan ítems para crear la orden
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('No se puede enviar la orden sin ítems.'),
-          duration: Duration(seconds: 1),
+          duration: Duration(seconds: 2),
         ),
       );
       return; // Salir del método para evitar enviar la orden
     }
 
-    // Si hay OrderItems, proceder con el envío de la orden
+    // Verificaciones adicionales basadas en el tipo de orden
+    switch (state.selectedOrderType) {
+      case OrderType.dineIn:
+        if (state.selectedAreaId == null || state.selectedTableId == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Selecciona un área y una mesa para continuar.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return; // Salir del método para evitar enviar la orden
+        }
+        break;
+      case OrderType.delivery:
+        if (state.deliveryAddress == null || state.deliveryAddress!.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  Text('La dirección de entrega es necesaria para continuar.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return; // Salir del método para evitar enviar la orden
+        }
+        break;
+      case OrderType.pickUpWait:
+        if (state.customerName == null || state.customerName!.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  Text('El nombre del cliente es necesario para continuar.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return; // Salir del método para evitar enviar la orden
+        }
+        break;
+      default:
+        break; // No se requieren verificaciones adicionales para otros tipos de orden
+    }
+
+    // Si hay OrderItems y todas las verificaciones adicionales pasan, proceder con el envío de la orden
     BlocProvider.of<OrderCreationBloc>(context).add(SendOrder());
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Orden enviada con éxito'),
-        duration: Duration(seconds: 1),
+        duration: Duration(seconds: 2),
       ),
     );
     Navigator.popUntil(context, ModalRoute.withName('salesHome'));

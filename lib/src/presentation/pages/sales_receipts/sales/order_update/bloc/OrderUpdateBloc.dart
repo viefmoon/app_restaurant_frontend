@@ -5,6 +5,7 @@ import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/Subcategory.dart';
 import 'package:app/src/domain/models/Table.dart' as appModel;
 import 'package:app/src/domain/useCases/areas/AreasUseCases.dart';
+import 'package:app/src/domain/useCases/auth/AuthUseCases.dart';
 import 'package:app/src/domain/useCases/categories/CategoriesUseCases.dart';
 import 'package:app/src/domain/useCases/orders/OrdersUseCases.dart';
 import 'package:app/src/domain/utils/Resource.dart';
@@ -12,16 +13,19 @@ import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/blo
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateState.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:collection/collection.dart';
 
 class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
   final OrdersUseCases ordersUseCases;
   final AreasUseCases areasUseCases;
   final CategoriesUseCases categoriesUseCases;
+  final AuthUseCases authUseCases;
 
   OrderUpdateBloc({
     required this.ordersUseCases,
     required this.areasUseCases,
     required this.categoriesUseCases,
+    required this.authUseCases,
   }) : super(OrderUpdateState()) {
     on<LoadOpenOrders>(_onLoadOpenOrders);
     on<OrderTypeSelected>(_onOrderTypeSelected);
@@ -43,11 +47,11 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     on<CategorySelected>(_onCategorySelected);
     on<SubcategorySelected>(_onSubcategorySelected);
     on<UpdateOrder>(_onUpdateOrder);
+    on<TimePickerEnabled>(_onTimePickerEnabled);
   }
 
   Future<void> _onResetOrderUpdateState(
       ResetOrderUpdateState event, Emitter<OrderUpdateState> emit) async {
-    print("RESET");
     emit(state.copyWith(
       orders: [],
       orderIdSelectedForUpdate: null,
@@ -72,8 +76,18 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
       filteredSubcategories: [],
       selectedSubcategoryId: null,
       filteredProducts: [],
+      isTimePickerEnabled: false,
     ));
     await _onLoadOpenOrders(LoadOpenOrders(), emit);
+  }
+
+  Future<void> _onTimePickerEnabled(
+      TimePickerEnabled event, Emitter<OrderUpdateState> emit) async {
+    emit(state.copyWith(isTimePickerEnabled: event.isTimePickerEnabled));
+    // Si el TimePicker se deshabilita, también resetea el tiempo seleccionado
+    if (!event.isTimePickerEnabled) {
+      emit(state.copyWith(scheduledDeliveryTime: null));
+    }
   }
 
   Future<void> _onLoadOpenOrders(
@@ -98,6 +112,10 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     if (orderResource is Success<Order>) {
       final Order order = orderResource.data;
 
+      // Asegúrate de convertir la fecha y hora programadas a la zona horaria local antes de crear TimeOfDay
+      final DateTime? localScheduledDeliveryTime =
+          order.scheduledDeliveryTime?.toLocal();
+
       emit(state.copyWith(selectedOrderType: order.orderType));
 
       emit(state.copyWith(
@@ -107,19 +125,35 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
         phoneNumber: order.phoneNumber,
         deliveryAddress: order.deliveryAddress,
         customerName: order.customerName,
-        scheduledDeliveryTime: order.scheduledDeliveryTime != null
+        scheduledDeliveryTime: localScheduledDeliveryTime != null
             ? TimeOfDay(
-                hour: order.scheduledDeliveryTime!.hour,
-                minute: order.scheduledDeliveryTime!.minute)
+                hour: localScheduledDeliveryTime.hour,
+                minute: localScheduledDeliveryTime.minute)
             : null,
         comments: order.comments,
         totalCost: order.totalCost,
         orderItems: order.orderItems,
+        isTimePickerEnabled: localScheduledDeliveryTime !=
+            null, // Esta línea establece isTimePickerEnabled en true si scheduledDeliveryTime no es null
       ));
 
       // Emitir el evento AreaSelected solo si hay un área seleccionada y el tipo de orden es DineIn
       if (order.orderType == OrderType.dineIn && state.selectedAreaId != null) {
-        add(AreaSelected(areaId: state.selectedAreaId!));
+        await _onLoadAreas(LoadAreas(), emit);
+        await Future.doWhile(() async {
+          await Future.delayed(Duration(milliseconds: 100));
+          return state.areas == null || state.areas!.isEmpty;
+        });
+        // Cargar las mesas después de seleccionar el área y esperar a que estén listas
+        await _onLoadTables(LoadTables(areaId: state.selectedAreaId!), emit);
+        await Future.doWhile(() async {
+          await Future.delayed(Duration(milliseconds: 100));
+          return state.tables == null || state.tables!.isEmpty;
+        });
+        // Solo asignar la mesa si state.tables no es null
+        if (state.tables != null) {
+          add(TableSelected(tableId: state.selectedTableId!));
+        }
       }
     } else {
       // Manejar el caso de error
@@ -202,7 +236,6 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
 
   Future<void> _onAddOrderItem(
       AddOrderItem event, Emitter<OrderUpdateState> emit) async {
-    print('AddOrderItem');
     final updatedOrderItems = List<OrderItem>.from(state.orderItems ?? [])
       ..add(event.orderItem);
     emit(state.copyWith(orderItems: updatedOrderItems));
@@ -276,13 +309,72 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
 
   Future<void> _onUpdateOrder(
       UpdateOrder event, Emitter<OrderUpdateState> emit) async {
-    print('UpdateOrder');
-    print(event.order.orderItems);
-    await _handleLoadingEvent<Order>(
-      emit,
-      () => ordersUseCases.updateOrder.run(event.order),
-      (data) => state.copyWith(response: Success(data)),
+    DateTime? scheduledDeliveryDateTime;
+    if (state.isTimePickerEnabled == true &&
+        state.scheduledDeliveryTime != null) {
+      final now = DateTime.now();
+      scheduledDeliveryDateTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        state.scheduledDeliveryTime!.hour,
+        state.scheduledDeliveryTime!.minute,
+      );
+    }
+
+    // Inicializa los campos comunes para todos los tipos de orden
+    Order order = Order(
+      id: state.orderIdSelectedForUpdate,
+      orderType: state.selectedOrderType,
+      status: OrderStatus.created,
+      totalCost: state.totalCost,
+      comments: state.comments,
+      creationDate: DateTime.now(),
+      scheduledDeliveryTime: scheduledDeliveryDateTime,
+      // Inicializa los campos opcionales como null
+      phoneNumber: null,
+      deliveryAddress: null,
+      customerName: null,
+      area: null,
+      table: null,
+      orderItems: state.orderItems,
     );
+
+    // Asigna los campos específicos según el tipo de orden
+    switch (state.selectedOrderType) {
+      case OrderType.dineIn:
+        order = order.copyWith(
+          area: state.areas
+              ?.firstWhereOrNull((area) => area.id == state.selectedAreaId),
+          table: state.tables
+              ?.firstWhereOrNull((table) => table.id == state.selectedTableId),
+        );
+        break;
+      case OrderType.delivery:
+        order = order.copyWith(
+          phoneNumber: state.phoneNumber,
+          deliveryAddress: state.deliveryAddress,
+        );
+        break;
+      case OrderType.pickUpWait:
+        order = order.copyWith(
+          phoneNumber: state.phoneNumber,
+          customerName: state.customerName,
+        );
+        break;
+      default:
+        break; // No se requiere acción adicional para otros tipos
+    }
+
+    final result = await ordersUseCases.updateOrder.run(order);
+
+    if (result is Success<Order>) {
+      // Maneja el éxito, por ejemplo, mostrando un mensaje
+      print('Orden creada con éxito: ${result.data.id}');
+    } else if (result is Error<Order>) {
+      // Maneja el error, por ejemplo, mostrando un mensaje de error
+      print('Error al crear la orden: ${result.message}');
+    }
     add(ResetOrderUpdateState());
   }
 

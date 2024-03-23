@@ -71,6 +71,7 @@ class OrdersService {
 
   Future<Resource<Order>> updateOrder(Order order) async {
     try {
+      print("order actualizarde: $order");
       String apiEcommerce = await ApiConfig.getApiEcommerce();
 
       final prefs = await SharedPreferences.getInstance();

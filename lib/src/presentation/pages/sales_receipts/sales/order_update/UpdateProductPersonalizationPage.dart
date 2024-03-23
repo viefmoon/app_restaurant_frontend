@@ -39,6 +39,7 @@ class _UpdateProductPersonalizationPageState
   bool _showPizzaIngredients = false;
   bool _showPizzaModifiers = false;
   bool _createTwoHalves = false;
+  double _currentPrice = 0.0;
 
   @override
   void initState() {
@@ -56,6 +57,65 @@ class _UpdateProductPersonalizationPageState
           List.from(widget.existingOrderItem?.selectedPizzaIngredients ?? []);
       comments = widget.existingOrderItem!.comments;
     }
+
+    _updatePrice();
+  }
+
+  void _updatePrice() {
+    double price = widget.product.price ?? 0.0;
+
+    if (selectedVariant != null) {
+      price = selectedVariant!.price!;
+    }
+
+    for (var selectedModifier in selectedModifiers) {
+      price += selectedModifier.modifier?.price ?? 0.0;
+    }
+
+    if (selectedPizzaFlavors.length == 1) {
+      price += selectedPizzaFlavors[0].pizzaFlavor?.price ?? 0.0;
+    } else if (selectedPizzaFlavors.length == 2) {
+      price += (selectedPizzaFlavors[0].pizzaFlavor?.price ?? 0.0) / 2;
+      price += (selectedPizzaFlavors[1].pizzaFlavor?.price ?? 0.0) / 2;
+    }
+
+    // Calcula el precio adicional basado en los ingredientes seleccionados
+    if (_createTwoHalves) {
+      int leftIngredients = selectedPizzaIngredients
+          .where((ingredient) => ingredient.half == PizzaHalf.left)
+          .length;
+      int rightIngredients = selectedPizzaIngredients
+          .where((ingredient) => ingredient.half == PizzaHalf.right)
+          .length;
+
+      if (leftIngredients > 4) {
+        int extraLeftIngredients = leftIngredients - 4;
+        price += extraLeftIngredients * 5.0;
+      }
+
+      if (rightIngredients > 4) {
+        int extraRightIngredients = rightIngredients - 4;
+        price += extraRightIngredients * 5.0;
+      }
+
+      for (var ingredient in selectedPizzaIngredients) {
+        price += (ingredient.pizzaIngredient?.price ?? 0.0) / 2;
+      }
+    } else {
+      int totalIngredients = selectedPizzaIngredients.length;
+      if (totalIngredients > 4) {
+        int extraIngredients = totalIngredients - 4;
+        price += extraIngredients * 10.0;
+      }
+
+      for (var ingredient in selectedPizzaIngredients) {
+        price += ingredient.pizzaIngredient?.price ?? 0.0;
+      }
+    }
+
+    setState(() {
+      _currentPrice = price;
+    });
   }
 
   @override
@@ -68,15 +128,33 @@ class _UpdateProductPersonalizationPageState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.product.name),
+        title: Row(
+          children: [
+            Text(
+              widget.product.name,
+              style:
+                  TextStyle(fontSize: 26), // Cambiado a una fuente más grande
+            ),
+            Spacer(),
+            Text(
+              '\$${_currentPrice.toStringAsFixed(2)}',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.save, size: 40),
-            onPressed: selectedVariant != null ? _saveOrderItem : null,
+            icon: Icon(Icons.save, size: 40), // Tamaño del icono aumentado
+            onPressed: (widget.product.productVariants == null ||
+                    widget.product.productVariants!.isEmpty ||
+                    selectedVariant != null)
+                ? _saveOrderItem
+                : null,
           ),
+          SizedBox(width: 20), // Añade más separación entre los iconos
           if (widget.existingOrderItem != null)
             IconButton(
-              icon: Icon(Icons.delete, size: 40),
+              icon: Icon(Icons.delete, size: 40), // Tamaño del icono aumentado
               onPressed: _deleteOrderItem,
             ),
         ],
@@ -104,6 +182,7 @@ class _UpdateProductPersonalizationPageState
                     selectedPizzaIngredients
                         .clear(); // Borra los ingredientes de pizza seleccionados
                   }
+                  _updatePrice();
                 });
               },
             ),
@@ -126,14 +205,7 @@ class _UpdateProductPersonalizationPageState
               title: Text('Modificar sabores',
                   style: TextStyle(fontWeight: FontWeight.bold)),
               value: _showPizzaModifiers,
-              onChanged: (bool value) {
-                setState(() {
-                  _showPizzaModifiers = value;
-                  if (!value) {
-                    selectedModifiers.clear(); // Vacía todos los modificadores
-                  }
-                });
-              },
+              onChanged: null, // Modificado para deshabilitar el switch
             ),
 
           if (widget.product.productVariants != null)
@@ -152,11 +224,13 @@ class _UpdateProductPersonalizationPageState
             ...widget.product.productObservationTypes!
                 .map(_buildObservationTypeSection)
                 .toList(),
+          SizedBox(height: 16.0),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextFormField(
               decoration: InputDecoration(
                 labelText: 'Comentarios',
+                labelStyle: TextStyle(fontSize: 22),
                 border: OutlineInputBorder(),
               ),
               onChanged: (value) {
@@ -172,16 +246,55 @@ class _UpdateProductPersonalizationPageState
   }
 
   void _saveOrderItem() {
-    double price = widget.product.price ?? 0.0; // Precio base del producto
+    double price = widget.product.price ?? 0.0;
 
-    // Si hay una variante seleccionada, usa el precio de la variante
     if (selectedVariant != null) {
       price = selectedVariant!.price!;
     }
 
-    // Suma el precio de cada modificador seleccionado
     for (var selectedModifier in selectedModifiers) {
       price += selectedModifier.modifier?.price ?? 0.0;
+    }
+
+    if (selectedPizzaFlavors.length == 1) {
+      price += selectedPizzaFlavors[0].pizzaFlavor?.price ?? 0.0;
+    } else if (selectedPizzaFlavors.length == 2) {
+      price += (selectedPizzaFlavors[0].pizzaFlavor?.price ?? 0.0) / 2;
+      price += (selectedPizzaFlavors[1].pizzaFlavor?.price ?? 0.0) / 2;
+    }
+
+    // Calcula el precio adicional basado en los ingredientes seleccionados
+    if (_createTwoHalves) {
+      int leftIngredients = selectedPizzaIngredients
+          .where((ingredient) => ingredient.half == PizzaHalf.left)
+          .length;
+      int rightIngredients = selectedPizzaIngredients
+          .where((ingredient) => ingredient.half == PizzaHalf.right)
+          .length;
+
+      if (leftIngredients > 4) {
+        int extraLeftIngredients = leftIngredients - 4;
+        price += extraLeftIngredients * 5.0;
+      }
+
+      if (rightIngredients > 4) {
+        int extraRightIngredients = rightIngredients - 4;
+        price += extraRightIngredients * 5.0;
+      }
+
+      for (var ingredient in selectedPizzaIngredients) {
+        price += (ingredient.pizzaIngredient?.price ?? 0.0) / 2;
+      }
+    } else {
+      int totalIngredients = selectedPizzaIngredients.length;
+      if (totalIngredients > 4) {
+        int extraIngredients = totalIngredients - 4;
+        price += extraIngredients * 10.0;
+      }
+
+      for (var ingredient in selectedPizzaIngredients) {
+        price += ingredient.pizzaIngredient?.price ?? 0.0;
+      }
     }
 
     // Genera un nuevo tempId si es un nuevo OrderItem, de lo contrario, usa el existente
@@ -253,6 +366,10 @@ class _UpdateProductPersonalizationPageState
   }
 
   Widget _buildVariantSelector(List<ProductVariant> variants) {
+    if (variants.isEmpty) {
+      return Container(); // No renderiza nada si no hay variantes
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -264,7 +381,7 @@ class _UpdateProductPersonalizationPageState
         for (var variant in variants)
           ListTile(
             title: Text(variant.name),
-            trailing: Text('\$${variant.price?.toStringAsFixed(2) ?? '0.00'}'),
+            trailing: Text('\$${variant.price!.toStringAsFixed(2)}'),
             selected: selectedVariant?.id ==
                 variant.id, // Compara por ID o algún otro campo único
             selectedTileColor: Color.fromARGB(255, 33, 66,
@@ -272,6 +389,7 @@ class _UpdateProductPersonalizationPageState
             onTap: () {
               setState(() {
                 selectedVariant = variant;
+                _updatePrice(); // Actualiza el precio al seleccionar una variante
               });
             },
           ),
@@ -356,6 +474,7 @@ class _UpdateProductPersonalizationPageState
                         selectedModifiers.removeWhere((selectedModifier) =>
                             selectedModifier.modifier?.id == modifier.id);
                       }
+                      _updatePrice();
                     });
                   },
                 )) ??
@@ -421,9 +540,11 @@ class _UpdateProductPersonalizationPageState
           ),
           ...flavors.map((flavor) => CheckboxListTile(
                 title: Text(flavor.name),
+                subtitle: flavor.price != null && flavor.price! > 0
+                    ? Text('\$${flavor.price!.toStringAsFixed(2)}')
+                    : null,
                 value: selectedPizzaFlavors.any((selectedFlavor) =>
-                    selectedFlavor.pizzaFlavor?.id ==
-                    flavor.id), // Compara por ID
+                    selectedFlavor.pizzaFlavor?.id == flavor.id),
                 onChanged: (bool? value) {
                   setState(() {
                     if (value == true) {
@@ -442,8 +563,8 @@ class _UpdateProductPersonalizationPageState
                       selectedPizzaFlavors.removeWhere((selectedFlavor) =>
                           selectedFlavor.pizzaFlavor?.id == flavor.id);
                     }
-                    // Reiniciar los modificadores cada vez que se hace una selección de sabores
                     selectedModifiers.clear();
+                    _updatePrice(); // Actualiza el precio al seleccionar o deseleccionar un sabor
                   });
                 },
               )),
@@ -475,6 +596,7 @@ class _UpdateProductPersonalizationPageState
                                     ingredient.id && // Compara por ID
                                 selectedIngredient.half == half);
                       }
+                      _updatePrice();
                     });
                   },
                 ))
@@ -492,10 +614,10 @@ class _UpdateProductPersonalizationPageState
         ),
         if (!_createTwoHalves) buildIngredientList(PizzaHalf.none),
         if (_createTwoHalves) ...[
-          Text('Primera mitad:',
+          Text('  Primera mitad:',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           buildIngredientList(PizzaHalf.left),
-          Text('Segunda mitad:',
+          Text('  Segunda mitad:',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           buildIngredientList(PizzaHalf.right),
         ],

@@ -1,8 +1,10 @@
+import 'package:app/src/domain/models/AuthResponse.dart';
 import 'package:app/src/domain/models/Category.dart';
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/domain/models/Subcategory.dart';
+import 'package:app/src/domain/useCases/auth/AuthUseCases.dart';
 import 'package:app/src/domain/useCases/categories/CategoriesUseCases.dart';
 import 'package:app/src/domain/useCases/orders/OrdersUseCases.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationEvent.dart';
@@ -18,11 +20,13 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
   final AreasUseCases areasUseCases;
   final CategoriesUseCases categoriesUseCases;
   final OrdersUseCases ordersUseCases;
+  final AuthUseCases authUseCases;
 
   OrderCreationBloc(
       {required this.categoriesUseCases,
       required this.areasUseCases,
-      required this.ordersUseCases})
+      required this.ordersUseCases,
+      required this.authUseCases})
       : super(OrderCreationState()) {
     on<OrderTypeSelected>(_onOrderTypeSelected);
     on<PhoneNumberEntered>(_onPhoneNumberEntered);
@@ -45,30 +49,45 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
     on<SendOrder>(_onSendOrder);
     on<ResetOrder>(_onResetOrder);
     on<RemoveOrderItem>(_onRemoveOrderItem);
+    on<TimePickerEnabled>(_onTimePickerEnabled);
   }
 
   Future<void> _onResetOrder(
       ResetOrder event, Emitter<OrderCreationState> emit) async {
     emit(OrderCreationState(
       selectedOrderType: null,
+      phoneNumber: null,
       areas: const [],
       tables: const [],
       selectedAreaId: null,
       selectedAreaName: null,
       selectedTableId: null,
       selectedTableNumber: null,
-      phoneNumber: null,
-      deliveryAddress: null,
       categories: const [],
       selectedCategoryId: null,
       selectedSubcategoryId: null,
       filteredSubcategories: const [],
       filteredProducts: const [],
       orderItems: const [],
+      deliveryAddress: null,
+      customerName: null,
+      comments: null,
+      scheduledDeliveryTime: null,
+      totalCost: null,
       response: null,
       step: OrderCreationStep.orderTypeSelection,
+      isTimePickerEnabled: false,
     ));
     await _onLoadAreas(LoadAreas(), emit);
+  }
+
+  Future<void> _onTimePickerEnabled(
+      TimePickerEnabled event, Emitter<OrderCreationState> emit) async {
+    emit(state.copyWith(isTimePickerEnabled: event.isTimePickerEnabled));
+    // Si el TimePicker se deshabilita, también resetea el tiempo seleccionado
+    if (!event.isTimePickerEnabled) {
+      emit(state.copyWith(scheduledDeliveryTime: null));
+    }
   }
 
   Future<void> _onOrderTypeSelected(
@@ -302,7 +321,8 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
   Future<void> _onSendOrder(
       SendOrder event, Emitter<OrderCreationState> emit) async {
     DateTime? scheduledDeliveryDateTime;
-    if (state.scheduledDeliveryTime != null) {
+    if (state.isTimePickerEnabled == true &&
+        state.scheduledDeliveryTime != null) {
       final now = DateTime.now();
       scheduledDeliveryDateTime = DateTime(
         now.year,
@@ -313,25 +333,52 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
       );
     }
 
+    AuthResponse? userSession = await authUseCases.getUserSession.run();
+    String? createdBy = userSession?.user.name;
+
+    // Inicializa los campos comunes para todos los tipos de orden
     Order order = Order(
       orderType: state.selectedOrderType,
       status: OrderStatus.created,
       totalCost: state.totalCost,
       comments: state.comments,
       creationDate: DateTime.now(),
-      phoneNumber: state.phoneNumber,
-      deliveryAddress: state.deliveryAddress,
-      customerName: state.customerName,
       scheduledDeliveryTime: scheduledDeliveryDateTime,
-
-      // Construye el objeto Area basado en selectedAreaId
-      area: state.areas
-          ?.firstWhereOrNull((area) => area.id == state.selectedAreaId),
-      // Construye el objeto Table basado en selectedTableId
-      table: state.tables
-          ?.firstWhereOrNull((table) => table.id == state.selectedTableId),
+      createdBy: createdBy,
+      // Inicializa los campos opcionales como null
+      phoneNumber: null,
+      deliveryAddress: null,
+      customerName: null,
+      area: null,
+      table: null,
       orderItems: state.orderItems,
     );
+
+    // Asigna los campos específicos según el tipo de orden
+    switch (state.selectedOrderType) {
+      case OrderType.dineIn:
+        order = order.copyWith(
+          area: state.areas
+              ?.firstWhereOrNull((area) => area.id == state.selectedAreaId),
+          table: state.tables
+              ?.firstWhereOrNull((table) => table.id == state.selectedTableId),
+        );
+        break;
+      case OrderType.delivery:
+        order = order.copyWith(
+          phoneNumber: state.phoneNumber,
+          deliveryAddress: state.deliveryAddress,
+        );
+        break;
+      case OrderType.pickUpWait:
+        order = order.copyWith(
+          phoneNumber: state.phoneNumber,
+          customerName: state.customerName,
+        );
+        break;
+      default:
+        break; // No se requiere acción adicional para otros tipos
+    }
 
     final result = await ordersUseCases.createOrder.run(order);
 

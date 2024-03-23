@@ -1,4 +1,5 @@
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/SelectedPizzaIngredient.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/AddProductPage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/UpdateProductPersonalizationPage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateState.dart';
@@ -7,7 +8,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateEvent.dart';
-import 'package:collection/collection.dart';
 
 class OrderUpdatePage extends StatefulWidget {
   const OrderUpdatePage({Key? key}) : super(key: key);
@@ -27,9 +27,6 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
   late TextEditingController _addressController;
   late TextEditingController _customerNameController;
   late TextEditingController _commentsController;
-
-  TimeOfDay? _selectedTime;
-  bool _isTimePickerEnabled = false;
 
   @override
   void initState() {
@@ -52,30 +49,34 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-        canPop: true, // Allows the pop to proceed
-        onPopInvoked: (didPop) async {
-          if (didPop) {
-            BlocProvider.of<OrderUpdateBloc>(context)
-                .add(ResetOrderUpdateState());
-          }
-        },
-        child: Scaffold(
-          appBar: _buildAppBar(context),
-          body: _buildBody(context),
-        ));
+      canPop: true,
+      onPopInvoked: (didPop) async {
+        if (didPop) {
+          BlocProvider.of<OrderUpdateBloc>(context)
+              .add(ResetOrderUpdateState());
+        }
+      },
+      child: Scaffold(
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(kToolbarHeight),
+          child: BlocBuilder<OrderUpdateBloc, OrderUpdateState>(
+            builder: (context, state) {
+              return _buildAppBar(context, state);
+            },
+          ),
+        ),
+        body: _buildBody(context),
+      ),
+    );
   }
 
-  AppBar _buildAppBar(BuildContext context) {
+  AppBar _buildAppBar(BuildContext context, OrderUpdateState state) {
     return AppBar(
-      title: BlocBuilder<OrderUpdateBloc, OrderUpdateState>(
-        builder: (context, state) {
-          return Text('Actualizar Orden #${state.orderIdSelectedForUpdate}');
-        },
-      ),
+      title: Text('Actualizar Orden #${state.orderIdSelectedForUpdate}'),
       actions: [
         IconButton(
           icon: Icon(Icons.save, size: 40),
-          onPressed: () => _updateOrder(),
+          onPressed: () => _updateOrder(context, state),
         ),
       ],
     );
@@ -89,304 +90,384 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
         _customerNameController.text = state.customerName ?? "";
         _commentsController.text = state.comments ?? "";
 
-        List<Widget> headerDetails = [
-          _buildOrderTypeDropdown(context, state),
-          if (state.selectedOrderType == OrderType.dineIn)
-            _buildDineInDetails(context,
-                state), // Aquí agregas los detalles específicos para dineIn
-          if (state.selectedOrderType == OrderType.delivery)
-            _buildDeliveryDetails(context, state),
-          if (state.selectedOrderType == OrderType.pickUpWait)
-            _buildPickUpWaitDetails(context, state),
-          _buildCommentsField(context, state),
-          _buildTimePicker(context, state),
-        ];
-
-        return ListView(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: headerDetails,
+        List<Widget> headerDetails = [];
+        headerDetails.add(Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 15.0),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: 'Tipo de Pedido',
+              contentPadding:
+                  EdgeInsets.symmetric(vertical: 1.0, horizontal: 10.0),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(color: Colors.blue, width: 2.0),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(color: Colors.green, width: 2.0),
+              ),
             ),
-            ..._buildOrderItemsList(context, state),
-            _buildTotalTile(context, state),
-            _buildAddProductButton(context),
-          ],
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<OrderType>(
+                value: state.selectedOrderType,
+                isExpanded: true,
+                onChanged: (OrderType? newValue) {
+                  if (newValue != null) {
+                    BlocProvider.of<OrderUpdateBloc>(context)
+                        .add(OrderTypeSelected(selectedOrderType: newValue));
+                  }
+                },
+                items: OrderType.values.map((OrderType type) {
+                  return DropdownMenuItem<OrderType>(
+                    value: type,
+                    child:
+                        Text(_orderTypeTranslations[type] ?? type.toString()),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ));
+
+        switch (state.selectedOrderType) {
+          case OrderType.dineIn:
+            if (state.selectedOrderType == OrderType.dineIn &&
+                state.areas != null) {
+              headerDetails.add(_buildAreaDropdown(context, state));
+            }
+
+            // Añadir Dropdown para Mesa si el área está seleccionada
+            if (state.selectedOrderType == OrderType.dineIn &&
+                state.selectedAreaId != null &&
+                state.tables != null) {
+              headerDetails.add(_buildTableDropdown(context, state));
+            }
+            break;
+          case OrderType.delivery:
+            // Usar el _phoneController para el campo de teléfono
+            headerDetails.add(Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical:
+                      10.0), // Reducir el margen vertical para hacerlo menos ancho
+              child: TextField(
+                controller:
+                    _phoneController, // Usar el controlador inicializado
+                decoration: InputDecoration(
+                  labelText: 'Teléfono',
+                  hintText: 'Ingresa el número de teléfono',
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide: BorderSide(
+                      color: Colors.blue,
+                      width: 2.0,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide: BorderSide(
+                      color: Colors.green,
+                      width: 2.0,
+                    ),
+                  ),
+                ),
+                onChanged: (value) {
+                  BlocProvider.of<OrderUpdateBloc>(context).add(
+                    PhoneNumberEntered(phoneNumber: value),
+                  );
+                },
+              ),
+            ));
+            headerDetails.add(Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+              child: TextField(
+                controller: _addressController,
+                decoration: InputDecoration(
+                  labelText: 'Dirección',
+                  hintText: 'Ingresa la dirección de entrega',
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide: BorderSide(color: Colors.green, width: 2.0),
+                  ),
+                ),
+                onChanged: (value) {
+                  BlocProvider.of<OrderUpdateBloc>(context)
+                      .add(DeliveryAddressEntered(deliveryAddress: value));
+                },
+              ),
+            ));
+            break;
+          case OrderType.pickUpWait:
+            headerDetails.add(Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+              child: TextField(
+                controller: _customerNameController,
+                decoration: InputDecoration(
+                  labelText: 'Nombre del Cliente',
+                  hintText: 'Ingresa el nombre del cliente',
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide: BorderSide(
+                      color: Colors.blue,
+                      width: 2.0,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide: BorderSide(
+                      color: Colors.green,
+                      width: 2.0,
+                    ),
+                  ),
+                ),
+                onChanged: (value) {
+                  BlocProvider.of<OrderUpdateBloc>(context).add(
+                    CustomerNameEntered(customerName: value),
+                  );
+                },
+              ),
+            ));
+            headerDetails.add(Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical:
+                      10.0), // Reducir el margen vertical para hacerlo menos ancho
+              child: TextField(
+                controller:
+                    _phoneController, // Usar el controlador inicializado
+                decoration: InputDecoration(
+                  labelText: 'Teléfono',
+                  hintText: 'Ingresa el número de teléfono',
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide: BorderSide(
+                      color: Colors.blue,
+                      width: 2.0,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide: BorderSide(
+                      color: Colors.green,
+                      width: 2.0,
+                    ),
+                  ),
+                ),
+                onChanged: (value) {
+                  BlocProvider.of<OrderUpdateBloc>(context).add(
+                    PhoneNumberEntered(phoneNumber: value),
+                  );
+                },
+              ),
+            ));
+            break;
+          default:
+            break;
+        }
+        // Añadir campo de comentarios debajo de todos los detalles de la cabecera
+        headerDetails.add(Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+          child: TextField(
+            controller: _commentsController,
+            decoration: InputDecoration(
+              labelText: 'Comentarios',
+              hintText: 'Ingresa comentarios sobre la orden',
+              contentPadding:
+                  EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(color: Colors.blue, width: 2.0),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(color: Colors.green, width: 2.0),
+              ),
+            ),
+            onChanged: (value) {
+              BlocProvider.of<OrderUpdateBloc>(context)
+                  .add(OrderCommentsEntered(comments: value));
+            },
+          ),
+        ));
+        headerDetails.add(BlocBuilder<OrderUpdateBloc, OrderUpdateState>(
+          builder: (context, state) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 2, // Ajusta la proporción si es necesario
+                  child: Switch(
+                    value: state.isTimePickerEnabled ?? false,
+                    onChanged: (bool value) {
+                      // Envía el evento para habilitar/deshabilitar el TimePicker
+                      BlocProvider.of<OrderUpdateBloc>(context)
+                          .add(TimePickerEnabled(isTimePickerEnabled: value));
+                    },
+                  ),
+                ),
+                Expanded(
+                  flex: 8, // Ajusta la proporción si es necesario
+                  child: ListTile(
+                    title: Text('Seleccionar hora programada'),
+                    subtitle: Text(
+                      (state.isTimePickerEnabled ?? false) &&
+                              state.scheduledDeliveryTime != null
+                          ? state.scheduledDeliveryTime!.format(context)
+                          : 'No seleccionada',
+                    ),
+                    leading: Icon(Icons.access_time, size: 30),
+                    onTap: state.isTimePickerEnabled ?? false
+                        ? () => _selectTime(context)
+                        : null, // Asegúrate de que onTap permita la selección de la hora solo si isTimePickerEnabled es true
+                  ),
+                ),
+              ],
+            );
+          },
+        ));
+
+        return ListView.builder(
+          itemCount: (state.orderItems?.length ?? 0) +
+              3, // Añade +3 para incluir el total y el botón de enviar
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: headerDetails,
+              );
+            } else if (index <= (state.orderItems?.length ?? 0)) {
+              final orderItemIndex = index - 1;
+              final orderItem = state.orderItems![orderItemIndex];
+
+              List<Widget> details = [];
+              if (orderItem.productVariant != null) {
+                details
+                    .add(Text('Variante: ${orderItem.productVariant?.name}'));
+              }
+              if (orderItem.selectedModifiers != null &&
+                  orderItem.selectedModifiers!.isNotEmpty) {
+                details.add(Text(
+                    'Modificadores: ${orderItem.selectedModifiers!.map((m) => m.modifier?.name).join(', ')}'));
+              }
+              // Añadir detalles de sabores de pizza seleccionados
+              if (orderItem.selectedPizzaFlavors != null &&
+                  orderItem.selectedPizzaFlavors!.isNotEmpty) {
+                details.add(Text(
+                    'Sabor: ${orderItem.selectedPizzaFlavors!.map((f) => f.pizzaFlavor?.name).join('/')}'));
+              }
+              // Añadir detalles de ingredientes de pizza seleccionados separados por mitad
+              if (orderItem.selectedPizzaIngredients != null &&
+                  orderItem.selectedPizzaIngredients!.isNotEmpty) {
+                final ingredientsLeft = orderItem.selectedPizzaIngredients!
+                    .where((i) => i.half == PizzaHalf.left)
+                    .map((i) => i.pizzaIngredient?.name)
+                    .join(', ');
+                final ingredientsRight = orderItem.selectedPizzaIngredients!
+                    .where((i) => i.half == PizzaHalf.right)
+                    .map((i) => i.pizzaIngredient?.name)
+                    .join(', ');
+                final ingredientsNone = orderItem.selectedPizzaIngredients!
+                    .where((i) => i.half == PizzaHalf.none)
+                    .map((i) => i.pizzaIngredient?.name)
+                    .join(', ');
+
+                String ingredientsText = '';
+                if (ingredientsLeft.isNotEmpty) {
+                  ingredientsText += 'Mitad 1: $ingredientsLeft';
+                }
+
+                if (ingredientsRight.isNotEmpty) {
+                  if (ingredientsText.isNotEmpty) ingredientsText += ' | ';
+                  ingredientsText += 'Mitad 2: $ingredientsRight';
+                }
+                if (ingredientsNone.isNotEmpty) {
+                  if (ingredientsText.isNotEmpty) ingredientsText += ' | ';
+                  ingredientsText += 'Completa: $ingredientsNone';
+                }
+
+                details.add(Text('Ingredientes: $ingredientsText'));
+              }
+
+              if (orderItem.selectedProductObservations != null &&
+                  orderItem.selectedProductObservations!.isNotEmpty) {
+                details.add(Text(
+                    'Observaciones: ${orderItem.selectedProductObservations!.map((o) => o.productObservation?.name).join(', ')}'));
+              }
+              // Añadir comentarios del item de orden si existen
+              if (orderItem.comments != null &&
+                  orderItem.comments!.isNotEmpty) {
+                details.add(Text('Comentarios: ${orderItem.comments}'));
+              }
+
+              return InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UpdateProductPersonalizationPage(
+                        product: orderItem.product!,
+                        existingOrderItem: orderItem,
+                      ),
+                    ),
+                  );
+                },
+                child: ListTile(
+                  title: Row(
+                    children: [
+                      Expanded(
+                        child: Text(orderItem.product?.name ?? ''),
+                      ),
+                      Text('\$${orderItem.price?.toStringAsFixed(2) ?? ''}'),
+                    ],
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: details,
+                  ),
+                ),
+              );
+            } else if (index == (state.orderItems?.length ?? 0) + 1) {
+              // Widget para mostrar el total
+              return Column(
+                children: [
+                  ListTile(
+                    title: Text(
+                      'Total',
+                      style: TextStyle(
+                        fontSize: 25.0, // Tamaño de letra más grande
+                        fontStyle: FontStyle.italic, // Letra en cursiva
+                      ),
+                    ),
+                    trailing: Text(
+                      '\$${calculateTotal(state.orderItems).toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 25.0, // Tamaño de letra más grande
+                        fontStyle: FontStyle.italic, // Letra en cursiva
+                      ),
+                    ),
+                  ),
+                  _buildAddProductButton(context),
+                ],
+              );
+            }
+          },
         );
       },
     );
-  }
-
-  Widget _buildOrderTypeDropdown(BuildContext context, OrderUpdateState state) {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: DropdownButtonFormField<OrderType>(
-        value: state.selectedOrderType,
-        onChanged: (OrderType? newValue) {
-          if (newValue != null) {
-            BlocProvider.of<OrderUpdateBloc>(context)
-                .add(OrderTypeSelected(selectedOrderType: newValue));
-          }
-        },
-        items: OrderType.values.map((OrderType type) {
-          return DropdownMenuItem<OrderType>(
-            value: type,
-            child: Text(_orderTypeTranslations[type] ?? type.toString()),
-          );
-        }).toList(),
-        decoration: _inputDecoration(labelText: 'Tipo de Pedido'),
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration({required String labelText}) {
-    return InputDecoration(
-      labelText: labelText,
-      contentPadding: EdgeInsets.symmetric(vertical: 1.0, horizontal: 10.0),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.0),
-        borderSide: BorderSide(color: Colors.blue, width: 2.0),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.0),
-        borderSide: BorderSide(color: Colors.green, width: 2.0),
-      ),
-    );
-  }
-
-  Widget _buildDineInDetails(BuildContext context, OrderUpdateState state) {
-    // Aquí puedes agregar los campos específicos para dineIn, como selección de área o mesa
-    return Column(
-      children: [
-        // Ejemplo de cómo podrías implementar un dropdown para seleccionar el área
-        _buildAreaDropdown(context, state),
-        // Si se selecciona un área, podrías mostrar un dropdown para seleccionar la mesa
-        if (state.selectedAreaId != null) _buildTableDropdown(context, state),
-        // Agrega aquí más widgets según sea necesario
-      ],
-    );
-  }
-
-  Widget _buildDeliveryDetails(BuildContext context, OrderUpdateState state) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-          child: TextField(
-            controller: _phoneController,
-            decoration: _inputDecoration(labelText: 'Teléfono'),
-            onChanged: (value) {
-              BlocProvider.of<OrderUpdateBloc>(context).add(
-                PhoneNumberEntered(phoneNumber: value),
-              );
-            },
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-          child: TextField(
-            controller: _addressController,
-            decoration: _inputDecoration(labelText: 'Dirección'),
-            onChanged: (value) {
-              BlocProvider.of<OrderUpdateBloc>(context).add(
-                DeliveryAddressEntered(deliveryAddress: value),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPickUpWaitDetails(BuildContext context, OrderUpdateState state) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-      child: TextField(
-        controller: _customerNameController,
-        decoration: _inputDecoration(labelText: 'Nombre del Cliente'),
-        onChanged: (value) {
-          BlocProvider.of<OrderUpdateBloc>(context).add(
-            CustomerNameEntered(customerName: value),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildCommentsField(BuildContext context, OrderUpdateState state) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-      child: TextField(
-        controller: _commentsController,
-        decoration: _inputDecoration(labelText: 'Comentarios'),
-        onChanged: (value) {
-          BlocProvider.of<OrderUpdateBloc>(context)
-              .add(OrderCommentsEntered(comments: value));
-        },
-      ),
-    );
-  }
-
-  Widget _buildTimePicker(BuildContext context, OrderUpdateState state) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Expanded(
-          flex: 2,
-          child: Switch(
-            value: _isTimePickerEnabled,
-            onChanged: (bool value) {
-              setState(() {
-                _isTimePickerEnabled = value;
-                if (!value) {
-                  _selectedTime = null;
-                }
-              });
-            },
-          ),
-        ),
-        Expanded(
-          flex: 8,
-          child: ListTile(
-            title: Text('Seleccionar Hora'),
-            subtitle: Text(
-              _isTimePickerEnabled && _selectedTime != null
-                  ? _selectedTime!.format(context)
-                  : 'No seleccionada',
-            ),
-            leading: Icon(Icons.access_time, size: 30),
-            onTap: _isTimePickerEnabled ? () => _selectTime(context) : null,
-          ),
-        ),
-      ],
-    );
-  }
-
-  List<Widget> _buildOrderItemsList(
-      BuildContext context, OrderUpdateState state) {
-    return state.orderItems?.map((orderItem) {
-          TextStyle textStyle;
-          switch (orderItem.status) {
-            case OrderItemStatus.in_preparation:
-              textStyle = TextStyle(color: Colors.blue);
-              break;
-            case OrderItemStatus.prepared:
-              textStyle = TextStyle(color: Colors.green);
-              break;
-            default:
-              textStyle =
-                  TextStyle(); // Estilo por defecto si está 'created' o cualquier otro estado
-          }
-
-          return InkWell(
-            onTap: () {
-              if (orderItem.status == OrderItemStatus.created) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => UpdateProductPersonalizationPage(
-                      product: orderItem.product!,
-                      existingOrderItem: orderItem,
-                    ),
-                  ),
-                );
-              } else {
-                // Muestra un SnackBar con un mensaje de error
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Este elemento no se puede actualizar.'),
-                    duration: Duration(milliseconds: 500),
-                  ),
-                );
-              }
-            },
-            child: ListTile(
-              title: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      orderItem.product?.name ?? '',
-                      style:
-                          textStyle, // Aplica el estilo de texto basado en el estado
-                    ),
-                  ),
-                  Text(
-                    '\$${orderItem.price?.toStringAsFixed(2) ?? ''}',
-                    style:
-                        textStyle, // Aplica el estilo de texto basado en el estado
-                  ),
-                ],
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: _buildOrderItemDetails(orderItem,
-                    textStyle), // Asegúrate de pasar el textStyle a este método también
-              ),
-            ),
-          );
-        }).toList() ??
-        [];
-  }
-
-  List<Widget> _buildOrderItemDetails(
-      OrderItem orderItem, TextStyle textStyle) {
-    List<Widget> details = [];
-    if (orderItem.productVariant != null) {
-      details.add(Text('Variante: ${orderItem.productVariant?.name}',
-          style: textStyle));
-    }
-    if (orderItem.selectedModifiers != null &&
-        orderItem.selectedModifiers!.isNotEmpty) {
-      details.add(Text(
-          'Modificadores: ${orderItem.selectedModifiers!.map((m) => m.modifier?.name).join(', ')}',
-          style: textStyle));
-    }
-    if (orderItem.selectedPizzaFlavors != null &&
-        orderItem.selectedPizzaFlavors!.isNotEmpty) {
-      details.add(Text(
-          'Sabores de Pizza: ${orderItem.selectedPizzaFlavors!.map((f) => f.pizzaFlavor?.name).join(', ')}',
-          style: textStyle));
-    }
-    if (orderItem.selectedPizzaIngredients != null &&
-        orderItem.selectedPizzaIngredients!.isNotEmpty) {
-      details.add(Text(
-          'Ingredientes de Pizza: ${orderItem.selectedPizzaIngredients!.map((i) => i.pizzaIngredient?.name).join(', ')}',
-          style: textStyle));
-    }
-    if (orderItem.selectedProductObservations != null &&
-        orderItem.selectedProductObservations!.isNotEmpty) {
-      details.add(Text(
-          'Observaciones: ${orderItem.selectedProductObservations!.map((o) => o.productObservation?.name).join(', ')}',
-          style: textStyle));
-    }
-    if (orderItem.comments != null && orderItem.comments!.isNotEmpty) {
-      details.add(Text('Comentarios: ${orderItem.comments}', style: textStyle));
-    }
-    return details;
-  }
-
-  Widget _buildTotalTile(BuildContext context, OrderUpdateState state) {
-    return ListTile(
-      title: Text(
-        'Total',
-        style: TextStyle(
-          fontSize: 25.0,
-          fontStyle: FontStyle.italic,
-        ),
-      ),
-      trailing: Text(
-        '\$${_calculateTotal(state.orderItems).toStringAsFixed(2)}',
-        style: TextStyle(
-          fontSize: 25.0,
-          fontStyle: FontStyle.italic,
-        ),
-      ),
-    );
-  }
-
-  double _calculateTotal(List<OrderItem>? orderItems) {
-    if (orderItems == null) return 0.0;
-    return orderItems.fold(0.0, (total, item) => total + (item.price ?? 0.0));
   }
 
   Widget _buildAddProductButton(BuildContext context) {
@@ -406,63 +487,65 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
     );
   }
 
-  Future<void> _selectTime(BuildContext context) async {
-    if (!_isTimePickerEnabled) {
-      return;
-    }
-
-    final localContext = context;
-
-    final TimeOfDay? picked = await showTimePicker(
-      context: localContext,
-      initialTime: _selectedTime ?? TimeOfDay.now(),
-    );
-    if (picked != null) {
-      setState(() {
-        _selectedTime = picked;
-      });
-      BlocProvider.of<OrderUpdateBloc>(localContext)
-          .add(TimeSelected(time: picked));
-    }
-  }
-
-  void _updateOrder() {
-    final currentState = context.read<OrderUpdateBloc>().state;
-
-    DateTime? scheduledDeliveryDateTime;
-    if (currentState.scheduledDeliveryTime != null) {
-      final now = DateTime.now();
-      scheduledDeliveryDateTime = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        currentState.scheduledDeliveryTime!.hour,
-        currentState.scheduledDeliveryTime!.minute,
+  void _updateOrder(BuildContext context, OrderUpdateState state) async {
+    if (state.orderItems == null || state.orderItems!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se puede enviar la orden sin ítems.'),
+          duration: Duration(seconds: 2),
+        ),
       );
+      return; // Salir del método para evitar enviar la orden
     }
 
-    // Imprimir todos los order items
-    currentState.orderItems?.forEach((orderItem) {
-      print('Item: ${orderItem.id},, Precio: ${orderItem.price}');
-    });
+    // Verificaciones adicionales basadas en el tipo de orden
+    switch (state.selectedOrderType) {
+      case OrderType.dineIn:
+        if (state.selectedAreaId == null || state.selectedTableId == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Selecciona un área y una mesa para continuar.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return; // Salir del método para evitar enviar la orden
+        }
+        break;
+      case OrderType.delivery:
+        if (state.deliveryAddress == null || state.deliveryAddress!.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  Text('La dirección de entrega es necesaria para continuar.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return; // Salir del método para evitar enviar la orden
+        }
+        break;
+      case OrderType.pickUpWait:
+        if (state.customerName == null || state.customerName!.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  Text('El nombre del cliente es necesario para continuar.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return; // Salir del método para evitar enviar la orden
+        }
+        break;
+      default:
+        break; // No se requieren verificaciones adicionales para otros tipos de orden
+    }
 
-    Order updatedOrder = Order(
-      id: currentState.orderIdSelectedForUpdate,
-      orderType: currentState.selectedOrderType,
-      totalCost: currentState.totalCost,
-      comments: currentState.comments,
-      customerName: currentState.customerName,
-      deliveryAddress: currentState.deliveryAddress,
-      phoneNumber: currentState.phoneNumber,
-      scheduledDeliveryTime: scheduledDeliveryDateTime,
-      area: currentState.areas
-          ?.firstWhereOrNull((area) => area.id == currentState.selectedAreaId),
-      table: currentState.tables?.firstWhereOrNull(
-          (table) => table.id == currentState.selectedTableId),
-      orderItems: currentState.orderItems,
+    BlocProvider.of<OrderUpdateBloc>(context).add(UpdateOrder());
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Orden actualizada con éxito'),
+        duration: Duration(seconds: 2),
+      ),
     );
-
-    BlocProvider.of<OrderUpdateBloc>(context).add(UpdateOrder(updatedOrder));
 
     Navigator.pop(context);
   }
@@ -546,5 +629,21 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
         ),
       ),
     );
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) {
+      // Envía el evento TimeSelected con el tiempo elegido
+      BlocProvider.of<OrderUpdateBloc>(context).add(TimeSelected(time: picked));
+    }
+  }
+
+  double calculateTotal(List<OrderItem>? orderItems) {
+    if (orderItems == null) return 0.0;
+    return orderItems.fold(0.0, (total, item) => total + (item.price ?? 0.0));
   }
 }
