@@ -20,7 +20,8 @@ class LoginContent extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           Container(
-            color: Colors.black, // Establece el color de fondo a negro
+            color: Color.fromARGB(
+                255, 206, 144, 73), // Establece el color de fondo a negro
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
           ),
@@ -34,7 +35,6 @@ class LoginContent extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center, // VERTICAL
               crossAxisAlignment: CrossAxisAlignment.center, // HORIZANTAL
               children: [
-                _iconPerson(),
                 _textLogin(),
                 _textFieldUsername(),
                 _textFieldPassword(),
@@ -50,19 +50,21 @@ class LoginContent extends StatelessWidget {
     );
   }
 
-  Widget _iconPerson() {
-    return Icon(
-      Icons.person,
-      color: Colors.white,
-      size: 125,
-    );
-  }
-
   Widget _textLogin() {
-    return Text(
-      'INICIO DE SESION',
-      style: TextStyle(
-          color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+    return Column(
+      children: const [
+        Text(
+          'LA LEÑA',
+          style: TextStyle(
+              color: Colors.black, fontSize: 26, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 20),
+        Text(
+          'INICIO DE SESION',
+          style: TextStyle(
+              color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+      ],
     );
   }
 
@@ -96,7 +98,7 @@ class LoginContent extends StatelessWidget {
         ),
         Text(
           '¿No tienes cuenta?',
-          style: TextStyle(color: Colors.white, fontSize: 17),
+          style: TextStyle(color: Colors.black, fontSize: 18),
         ),
         Container(
           width: 62,
@@ -136,6 +138,7 @@ class LoginContent extends StatelessWidget {
         margin: EdgeInsets.only(left: 25, right: 25),
         child: DefaultTextField(
           label: 'Contraseña',
+          color: Colors.black,
           icon: Icons.lock,
           // errorText: snapshot.error?.toString(),
           onChanged: (text) {
@@ -153,6 +156,7 @@ class LoginContent extends StatelessWidget {
         margin: EdgeInsets.only(left: 25, right: 25),
         child: DefaultTextField(
           label: 'Nombre de usuario',
+          color: Colors.black,
           icon: Icons.person,
           // errorText: snapshot.error?.toString(),
           onChanged: (text) {

@@ -100,11 +100,8 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildOrderHeader(timeSinceCreation), // Modifica esta línea
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: _buildOrderDetails(context),
-              ),
+              _buildOrderHeader(timeSinceCreation),
+              _buildOrderDetails(context),
             ],
           ),
         ),
@@ -196,23 +193,24 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
                             TextSpan(
                               text:
                                   'Programado: ${DateFormat('HH:mm').format(widget.order.scheduledDeliveryTime!)}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(color: Colors.black),
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                                fontStyle: FontStyle.italic,
+                              ),
                             ),
                             TextSpan(
                               text:
                                   ' - En: ${_formatDuration(_timeUntilScheduled)}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(color: Colors.black),
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                                fontStyle: FontStyle.italic,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ..._buildOrderUpdatesList(widget.order.orderUpdates),
                   ],
                 ),
               ),
@@ -221,27 +219,6 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
         ),
       ),
     );
-  }
-
-  List<Widget> _buildOrderUpdatesList(List<OrderUpdate>? updates) {
-    if (updates == null || updates.isEmpty) {
-      return [SizedBox.shrink()];
-    }
-    return updates.map((update) {
-      final timeAgo = DateTime.now().difference(update.updateAt);
-      final formattedTimeAgo = _formatDuration(timeAgo);
-      // Asignar un color basado en el número de actualización
-      final color = _updateColors[update.updateNumber % _updateColors.length];
-      return Text(
-        'Actualizado: $formattedTimeAgo por ${update.updatedBy}',
-        style: TextStyle(
-          fontSize: 15,
-          fontStyle: FontStyle.italic,
-          color: color,
-          height: 1, // Ajusta este valor para controlar el espacio entre líneas
-        ),
-      );
-    }).toList();
   }
 
   Color _getColorByOrderType(OrderType? type) {
@@ -299,19 +276,49 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
   Widget _buildOrderDetails(BuildContext context) {
     List<Widget> orderDetails = [];
 
-    Widget buildSubHeaderDetail(String text) {
-      return Container(
-        width: double.infinity,
-        color: Colors.blueGrey,
-        margin: EdgeInsets.only(bottom: 8.0),
-        padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 2.0),
-        child: Text(
+    Widget buildSubHeaderDetail(String text, {List<OrderUpdate>? updates}) {
+      List<Widget> children = [
+        Text(
           text,
           style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
+            color: Colors.black,
+            fontSize: 15,
             fontFamily: 'Calibri',
           ),
+        ),
+        Divider(
+            color: Colors
+                .black), // Añade esta línea para insertar la barra divisoria
+      ];
+
+      if (updates != null && updates.isNotEmpty) {
+        children.addAll(updates.map((update) {
+          final timeAgo = DateTime.now().difference(update.updateAt);
+          final formattedTimeAgo = _formatDuration(timeAgo);
+          final color =
+              _updateColors[update.updateNumber % _updateColors.length];
+          return Padding(
+            padding: const EdgeInsets.only(top: 4.0),
+            child: Text(
+              'Actualizado: $formattedTimeAgo por ${update.updatedBy}',
+              style: TextStyle(
+                fontSize: 15,
+                fontStyle: FontStyle.italic,
+                color: color,
+                height: 1,
+              ),
+            ),
+          );
+        }).toList());
+      }
+
+      return Container(
+        width: double.infinity,
+        color: Color.fromARGB(255, 222, 226, 235),
+        padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: children,
         ),
       );
     }
@@ -319,19 +326,34 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
     // Añadir detalles basados en el tipo de orden
     switch (widget.order.orderType) {
       case OrderType.delivery:
-        orderDetails.add(buildSubHeaderDetail(
-          'Dirección: ${widget.order.deliveryAddress}\nTeléfono: ${widget.order.phoneNumber}',
-        ));
+        String detallesDelivery =
+            'Dirección: ${widget.order.deliveryAddress}\nTeléfono: ${widget.order.phoneNumber}';
+        if (widget.order.comments != null &&
+            widget.order.comments!.isNotEmpty) {
+          detallesDelivery += '\nComentarios: ${widget.order.comments}';
+        }
+        orderDetails.add(buildSubHeaderDetail(detallesDelivery,
+            updates: widget.order.orderUpdates));
         break;
       case OrderType.dineIn:
-        orderDetails.add(buildSubHeaderDetail(
-          '${widget.order.area?.name} - ${widget.order.table?.number}',
-        ));
+        String detallesDineIn =
+            '${widget.order.area?.name} - ${widget.order.table?.number}';
+        if (widget.order.comments != null &&
+            widget.order.comments!.isNotEmpty) {
+          detallesDineIn += '\nComentarios: ${widget.order.comments}';
+        }
+        orderDetails.add(buildSubHeaderDetail(detallesDineIn,
+            updates: widget.order.orderUpdates));
         break;
       case OrderType.pickUpWait:
-        orderDetails.add(buildSubHeaderDetail(
-          'Cliente: ${widget.order.customerName}\nTeléfono: ${widget.order.phoneNumber}',
-        ));
+        String detallesPickUpWait =
+            'Cliente: ${widget.order.customerName}\nTeléfono: ${widget.order.phoneNumber}';
+        if (widget.order.comments != null &&
+            widget.order.comments!.isNotEmpty) {
+          detallesPickUpWait += '\nComentarios: ${widget.order.comments}';
+        }
+        orderDetails.add(buildSubHeaderDetail(detallesPickUpWait,
+            updates: widget.order.orderUpdates));
         break;
       default:
         orderDetails.add(SizedBox
@@ -370,7 +392,7 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
       TextStyle smallerTextStyle =
           Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                    fontSize: 16,
                   ) ??
               TextStyle();
 
@@ -394,6 +416,16 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
                   color: colorForItem,
                 )
               : smallerTextStyle.copyWith(color: colorForItem);
+
+      TextStyle commentsTextStyle = orderItem.status == OrderItemStatus.prepared
+          ? smallerTextStyle.copyWith(
+              decoration: TextDecoration.lineThrough,
+              decorationColor: Colors.black,
+              decorationThickness: 2,
+              decorationStyle: TextDecorationStyle.solid,
+              color: Colors.black,
+            )
+          : smallerTextStyle.copyWith(color: Colors.black);
 
       List<Widget> itemWidgets = [
         if (orderItem.productVariant != null)
@@ -420,6 +452,13 @@ class _OrderPreparationWidgetState extends State<OrderPreparationWidget> {
             [],
       ];
 
+      // Añadir comentarios del OrderItem si existen
+      if (orderItem.comments != null && orderItem.comments!.isNotEmpty) {
+        itemWidgets.add(Text(
+          'Comentarios: ${orderItem.comments}',
+          style: commentsTextStyle,
+        ));
+      }
       orderDetails.add(
         GestureDetector(
           onTap: () {

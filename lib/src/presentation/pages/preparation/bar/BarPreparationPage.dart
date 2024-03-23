@@ -12,9 +12,13 @@ import 'package:app/src/presentation/pages/preparation/bar/bloc/BarPreparationSt
 class BarPreparationPage extends StatefulWidget {
   final OrderFilterType filterType;
   final bool filterByPrepared;
+  final bool filterByScheduledDelivery; // Nuevo parámetro
 
   const BarPreparationPage(
-      {Key? key, required this.filterType, this.filterByPrepared = false})
+      {Key? key,
+      required this.filterType,
+      this.filterByPrepared = false,
+      this.filterByScheduledDelivery = false}) // Nuevo parámetro
       : super(key: key);
 
   @override
@@ -123,7 +127,6 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
         builder: (context, state) {
           final orders = state.orders ?? [];
           final filteredOrders = orders.where((order) {
-            // Primero, filtra por el tipo de orden
             bool matchesType;
             switch (widget.filterType) {
               case OrderFilterType.delivery:
@@ -141,19 +144,22 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
                 break;
             }
 
-            // Luego, filtra por el estado del pedido basado en filterByPrepared
-            bool matchesPreparedStatus;
+            bool matchesPreparedStatus =
+                true; // Por defecto, no filtrar por estado preparado
             if (widget.filterByPrepared) {
               matchesPreparedStatus =
                   order.barPreparationStatus == OrderPreparationStatus.prepared;
-            } else {
-              matchesPreparedStatus = order.barPreparationStatus ==
-                      OrderPreparationStatus.created ||
-                  order.barPreparationStatus ==
-                      OrderPreparationStatus.in_preparation;
             }
 
-            return matchesType && matchesPreparedStatus;
+            // Ajusta la lógica para esconder los pedidos programados cuando el filtro esté activo
+            bool matchesScheduledDelivery = true; // Por defecto, mostrar todos
+            if (widget.filterByScheduledDelivery) {
+              matchesScheduledDelivery = order.scheduledDeliveryTime == null;
+            }
+
+            return matchesType &&
+                matchesPreparedStatus &&
+                matchesScheduledDelivery;
           }).toList();
 
           if (filteredOrders.isEmpty) {
@@ -168,8 +174,7 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
               return OrderPreparationWidget(
                 order: order,
                 onOrderGesture: _handleOrderGesture,
-                onOrderItemTap:
-                    _handleOrderItemTap, // Pasa el método como callback
+                onOrderItemTap: _handleOrderItemTap,
               );
             },
           );

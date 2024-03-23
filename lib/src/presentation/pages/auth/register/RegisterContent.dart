@@ -25,7 +25,7 @@ class RegisterContent extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           Container(
-            color: Colors.black, // Cambia el fondo a negro
+            color: Color.fromARGB(255, 206, 144, 73), // Cambia el fondo a negro
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
           ),
@@ -40,20 +40,21 @@ class RegisterContent extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.person,
-                    color: Colors.white,
+                    color: Colors.black,
                     size: 100,
                   ),
                   Text(
                     'REGISTRO',
                     style: TextStyle(
                         fontSize: 20,
-                        color: Colors.white,
+                        color: Colors.black,
                         fontWeight: FontWeight.bold),
                   ),
                   Container(
                     margin: EdgeInsets.only(left: 25, right: 25),
                     child: DefaultTextField(
                       label: 'Nombre',
+                      color: Colors.black,
                       icon: Icons.person,
                       onChanged: (text) {
                         bloc?.add(RegisterNameChanged(
@@ -68,6 +69,7 @@ class RegisterContent extends StatelessWidget {
                     margin: EdgeInsets.only(left: 25, right: 25),
                     child: DefaultTextField(
                       label: 'Nombre de usuario',
+                      color: Colors.black,
                       icon: Icons.person_outline,
                       onChanged: (text) {
                         bloc?.add(RegisterUsernameChanged(
@@ -94,16 +96,16 @@ class RegisterContent extends StatelessWidget {
                           decoration: InputDecoration(
                             labelText: 'Rol',
                             labelStyle: TextStyle(
-                                color: Colors.white), // Estilo para la etiqueta
+                                color: Colors.black), // Estilo para la etiqueta
                             contentPadding: EdgeInsets.symmetric(
                                 horizontal: 40,
                                 vertical: 15), // Ajustar el padding
                             border: UnderlineInputBorder(
                               borderSide: BorderSide(
-                                  color: Colors.white), // Borde inferior blanco
+                                  color: Colors.black), // Borde inferior blanco
                             ),
                             prefixIcon: Icon(Icons.group,
-                                color: Colors.white), // Icono al inicio
+                                color: Colors.black), // Icono al inicio
                           ),
                           items:
                               roles.map<DropdownMenuItem<String>>((Role role) {
@@ -113,7 +115,7 @@ class RegisterContent extends StatelessWidget {
                                   style: TextStyle(
                                       fontSize: 15,
                                       color: Colors
-                                          .white)), // Texto con color blanco
+                                          .black)), // Texto con color blanco
                             );
                           }).toList(),
                           onChanged: (String? newValue) {
@@ -125,7 +127,7 @@ class RegisterContent extends StatelessWidget {
                             }
                           },
                           icon: Icon(Icons.arrow_drop_down,
-                              color: Colors.white), // Icono de dropdown
+                              color: Colors.black), // Icono de dropdown
                           iconSize: 24, // Tamaño del icono
                           dropdownColor: Color.fromRGBO(255, 255, 255,
                               0.5), // Color de fondo del dropdown al expandirse
@@ -136,6 +138,7 @@ class RegisterContent extends StatelessWidget {
                     margin: EdgeInsets.only(left: 25, right: 25),
                     child: DefaultTextField(
                       label: 'Contraseña',
+                      color: Colors.black,
                       icon: Icons.lock,
                       obscureText: true,
                       onChanged: (text) {

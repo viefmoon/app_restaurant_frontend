@@ -19,6 +19,7 @@ class _BarHomePageState extends State<BarHomePage> {
   OrderFilterType _currentFilter = OrderFilterType.all;
   int _currentPageIndex = 0;
   bool _filterByPrepared = false;
+  bool _filterByScheduledDelivery = false;
 
   @override
   void initState() {
@@ -61,13 +62,27 @@ class _BarHomePageState extends State<BarHomePage> {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               _buildIconButton(Icons.filter_list, OrderFilterType.all),
-              SizedBox(width: screenWidth * 0.12),
+              SizedBox(width: screenWidth * 0.10),
               _buildIconButton(Icons.local_shipping, OrderFilterType.delivery),
-              SizedBox(width: screenWidth * 0.12),
+              SizedBox(width: screenWidth * 0.10),
               _buildIconButton(Icons.restaurant, OrderFilterType.dineIn),
-              SizedBox(width: screenWidth * 0.12),
+              SizedBox(width: screenWidth * 0.10),
               _buildIconButton(Icons.shopping_bag, OrderFilterType.pickUpWait),
-              SizedBox(width: screenWidth * 0.17),
+              SizedBox(width: screenWidth * 0.16),
+              // Botón para filtrar por entrega programada
+              IconButton(
+                iconSize: 40,
+                icon: Icon(_filterByScheduledDelivery
+                    ? Icons.date_range
+                    : Icons.date_range_outlined),
+                color: _filterByScheduledDelivery ? Colors.black : Colors.white,
+                onPressed: () {
+                  setState(() {
+                    _filterByScheduledDelivery = !_filterByScheduledDelivery;
+                  });
+                },
+              ),
+              SizedBox(width: screenWidth * 0.03),
               IconButton(
                 iconSize: 40,
                 icon: Icon(_filterByPrepared
@@ -89,7 +104,9 @@ class _BarHomePageState extends State<BarHomePage> {
   Widget build(BuildContext context) {
     List<Widget> pageList = <Widget>[
       BarPreparationPage(
-          filterType: _currentFilter, filterByPrepared: _filterByPrepared),
+          filterType: _currentFilter,
+          filterByPrepared: _filterByPrepared,
+          filterByScheduledDelivery: _filterByScheduledDelivery),
       SettingsPage(),
     ];
 
