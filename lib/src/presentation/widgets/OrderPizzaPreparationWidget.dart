@@ -568,7 +568,7 @@ class _OrderPizzaPreparationWidgetState
 
   void _handleHorizontalDragEnd(DragEndDetails details) {
     const double velocityThreshold =
-        200.0; // Ajusta este valor según tus necesidades
+        10.0; // Ajusta este valor según tus necesidades
     if (details.primaryVelocity! > velocityThreshold) {
       widget.onOrderGesture(widget.order, 'swipe_right');
     } else if (details.primaryVelocity! < -velocityThreshold) {
@@ -578,7 +578,7 @@ class _OrderPizzaPreparationWidgetState
 
   void _handleVerticalDragEnd(DragEndDetails details) {
     const double velocityThreshold =
-        200.0; // Ajusta este valor segn tus necesidades
+        10.0; // Ajusta este valor segn tus necesidades
     if (details.primaryVelocity! > velocityThreshold) {
       widget.onOrderGesture(widget.order, 'swipe_down');
     } else if (details.primaryVelocity! < -velocityThreshold) {
