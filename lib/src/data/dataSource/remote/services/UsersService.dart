@@ -12,7 +12,6 @@ class UsersService {
 
   Future<Resource<User>> update(int id, User user) async {
     try {
-      print('METODO ACTUALIZAR SIN IMAGEN');
       // http://192.168.80.13:3000/users/5
       Uri url = Uri.http(await ApiConfig.getApiEcommerce(), '/users/$id');
       Map<String, String> headers = {
