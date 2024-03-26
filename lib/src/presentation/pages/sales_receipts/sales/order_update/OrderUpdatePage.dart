@@ -62,22 +62,22 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
         final bool? shouldPop = await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Confirmación'),
-            content: const Text(
-                '¿Estás seguro de que deseas salir? si hay cambios no guardados se perderán.'),
+            title: Text('Confirmación', style: TextStyle(fontSize: 24)),
+            content: Text(
+                '¿Estás seguro de que deseas salir? Si hay cambios no guardados se perderán.',
+                style: TextStyle(fontSize: 20)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancelar'),
+                child: Text('Cancelar', style: TextStyle(fontSize: 18)),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Salir'),
+                child: Text('Salir', style: TextStyle(fontSize: 18)),
               ),
             ],
           ),
         );
-
         // Si el usuario confirma que quiere salir, permitir el pop.
         if (shouldPop == true) {
           BlocProvider.of<OrderUpdateBloc>(context)

@@ -14,6 +14,7 @@ class OrderCreationContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: _customBackButton(context),
         title: BlocBuilder<OrderCreationBloc, OrderCreationState>(
           builder: (context, state) {
             // Cambia el título según el paso en el proceso de creación de la orden
@@ -90,6 +91,47 @@ class OrderCreationContainer extends StatelessWidget {
               return OrderTypeSelectionPage();
           }
         },
+      ),
+    );
+  }
+
+  Widget _customBackButton(BuildContext context) {
+    return BlocBuilder<OrderCreationBloc, OrderCreationState>(
+      builder: (context, state) {
+        if (state.step == OrderCreationStep.productSelection) {
+          return IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () => _showExitConfirmationDialog(context),
+          );
+        }
+        // Si no estás en la página de selección de productos, devuelve un SizedBox para no mostrar nada o manejar según sea necesario.
+        return SizedBox.shrink();
+      },
+    );
+  }
+
+  Future<void> _showExitConfirmationDialog(BuildContext context) async {
+    final bool? shouldPop = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Confirmación', style: TextStyle(fontSize: 24)),
+        content: Text(
+            '¿Estás seguro de que deseas volver? La orden no se guardara.',
+            style: TextStyle(fontSize: 20)),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Cancelar', style: TextStyle(fontSize: 18)),
+          ),
+          TextButton(
+            onPressed: () {
+              // Aquí puedes agregar cualquier lógica adicional antes de salir, si es necesario.
+              Navigator.of(context).pop(true); // Cierra el diálogo
+              Navigator.of(context).pop(); // Cierra la página actual
+            },
+            child: Text('Salir', style: TextStyle(fontSize: 18)),
+          ),
+        ],
       ),
     );
   }
