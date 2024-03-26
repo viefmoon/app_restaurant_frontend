@@ -182,8 +182,11 @@ class _AddProductPageState extends State<AddProductPage> {
 
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Producto agregado'),
-                  duration: Duration(milliseconds: 300),
+                  backgroundColor: Colors.green,
+                  content: Text('Producto agregado',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                  duration: Duration(milliseconds: 500),
                 ),
               );
             } else {

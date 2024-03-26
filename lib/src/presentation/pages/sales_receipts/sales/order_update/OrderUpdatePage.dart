@@ -1,5 +1,6 @@
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/SelectedPizzaIngredient.dart';
+import 'package:app/src/domain/utils/Resource.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/AddProductPage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/UpdateProductPersonalizationPage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateState.dart';
@@ -49,23 +50,92 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: true,
+      canPop: false,
       onPopInvoked: (didPop) async {
+        // Si didPop es true, significa que el sistema está intentando hacer pop de la página.
         if (didPop) {
+          // No se necesita hacer nada aquí si didPop es true, porque el pop ya está en proceso.
+          return;
+        }
+
+        // Mostrar el diálogo de confirmación solo si didPop es false, es decir, cuando el pop no se ha iniciado aún.
+        final bool? shouldPop = await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Confirmación'),
+            content: const Text(
+                '¿Estás seguro de que deseas salir? si hay cambios no guardados se perderán.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Salir'),
+              ),
+            ],
+          ),
+        );
+
+        // Si el usuario confirma que quiere salir, permitir el pop.
+        if (shouldPop == true) {
           BlocProvider.of<OrderUpdateBloc>(context)
               .add(ResetOrderUpdateState());
+          Navigator.of(context).pop();
         }
       },
-      child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(kToolbarHeight),
-          child: BlocBuilder<OrderUpdateBloc, OrderUpdateState>(
+      child: BlocListener<OrderUpdateBloc, OrderUpdateState>(
+        listener: (context, state) {
+          if (state.response is Success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Orden actualizada con éxito',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                backgroundColor: Colors.green,
+                duration: Duration(milliseconds: 800),
+              ),
+            );
+            BlocProvider.of<OrderUpdateBloc>(context)
+              ..add(ResetResponseEvent())
+              ..add(ResetOrderUpdateState());
+          } else if (state.response is Error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  (state.response as Error).message,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 2),
+              ),
+            );
+            BlocProvider.of<OrderUpdateBloc>(context)
+              ..add(ResetResponseEvent())
+              ..add(ResetOrderUpdateState());
+          }
+        },
+        child: Scaffold(
+          appBar: PreferredSize(
+            preferredSize: Size.fromHeight(kToolbarHeight),
+            child: BlocBuilder<OrderUpdateBloc, OrderUpdateState>(
+              builder: (context, state) {
+                return _buildAppBar(context, state);
+              },
+            ),
+          ),
+          body: BlocBuilder<OrderUpdateBloc, OrderUpdateState>(
             builder: (context, state) {
-              return _buildAppBar(context, state);
+              if (state.response is Loading) {
+                return Center(child: CircularProgressIndicator());
+              } else {
+                return _buildBody(context);
+              }
             },
           ),
         ),
-        body: _buildBody(context),
       ),
     );
   }
@@ -491,7 +561,11 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
     if (state.orderItems == null || state.orderItems!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se puede enviar la orden sin ítems.'),
+          backgroundColor: Colors.orange,
+          content: Text(
+            'No se puede enviar la orden sin productos.',
+            style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+          ),
           duration: Duration(seconds: 2),
         ),
       );
@@ -504,7 +578,11 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
         if (state.selectedAreaId == null || state.selectedTableId == null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Selecciona un área y una mesa para continuar.'),
+              backgroundColor: Colors.orange,
+              content: Text(
+                'Selecciona un área y una mesa para continuar.',
+                style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+              ),
               duration: Duration(seconds: 2),
             ),
           );
@@ -515,8 +593,11 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
         if (state.deliveryAddress == null || state.deliveryAddress!.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content:
-                  Text('La dirección de entrega es necesaria para continuar.'),
+              backgroundColor: Colors.orange,
+              content: Text(
+                'La dirección de entrega es necesaria para continuar.',
+                style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+              ),
               duration: Duration(seconds: 2),
             ),
           );
@@ -527,8 +608,11 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
         if (state.customerName == null || state.customerName!.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content:
-                  Text('El nombre del cliente es necesario para continuar.'),
+              backgroundColor: Colors.orange,
+              content: Text(
+                'El nombre del cliente es necesario para continuar.',
+                style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+              ),
               duration: Duration(seconds: 2),
             ),
           );
@@ -538,15 +622,7 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
       default:
         break; // No se requieren verificaciones adicionales para otros tipos de orden
     }
-
     BlocProvider.of<OrderUpdateBloc>(context).add(UpdateOrder());
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Orden actualizada con éxito'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-
     Navigator.pop(context);
   }
 

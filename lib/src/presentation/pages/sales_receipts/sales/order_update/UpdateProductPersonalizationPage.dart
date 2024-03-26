@@ -355,9 +355,11 @@ class _UpdateProductPersonalizationPageState
     // Muestra un SnackBar de confirmación
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
+        backgroundColor: Colors.green,
         content: Text(
-            'Producto ${widget.existingOrderItem != null ? 'actualizado' : 'añadido'} con éxito'),
-        duration: Duration(milliseconds: 1500),
+            'Producto ${widget.existingOrderItem != null ? 'actualizado' : 'añadido'} con éxito',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        duration: Duration(milliseconds: 600),
       ),
     );
 
@@ -408,8 +410,10 @@ class _UpdateProductPersonalizationPageState
     // Muestra un SnackBar como confirmación
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Producto eliminado con éxito'),
-        duration: Duration(seconds: 1),
+        content: Text('Producto eliminado con éxito',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.green,
+        duration: Duration(milliseconds: 600),
       ),
     );
 
@@ -554,8 +558,14 @@ class _UpdateProductPersonalizationPageState
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(
-                                'Solo puedes seleccionar hasta 2 sabores.'),
+                            backgroundColor: Colors.orange,
+                            content:
+                                Text('Solo puedes seleccionar hasta 2 sabores.',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    )),
+                            duration: Duration(milliseconds: 600),
                           ),
                         );
                       }

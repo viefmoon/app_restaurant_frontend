@@ -48,6 +48,7 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     on<SubcategorySelected>(_onSubcategorySelected);
     on<UpdateOrder>(_onUpdateOrder);
     on<TimePickerEnabled>(_onTimePickerEnabled);
+    on<ResetResponseEvent>(_onResetResponse);
   }
 
   Future<void> _onResetOrderUpdateState(
@@ -69,8 +70,6 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
       scheduledDeliveryTime: null,
       totalCost: null,
       orderItems: [],
-      errorMessage: null,
-      response: null,
       categories: [],
       selectedCategoryId: null,
       filteredSubcategories: [],
@@ -93,11 +92,13 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
   Future<void> _onLoadOpenOrders(
       LoadOpenOrders event, Emitter<OrderUpdateState> emit) async {
     emit(state.copyWith(response: Loading()));
-    await _handleLoadingEvent<List<Order>>(
-      emit,
-      () => ordersUseCases.getOpenOrders.run(),
-      (data) => state.copyWith(orders: data, response: Success(data)),
-    );
+    Resource<List<Order>> response = await ordersUseCases.getOpenOrders.run();
+    if (response is Success<List<Order>>) {
+      List<Order> orders = response.data;
+      emit(state.copyWith(orders: orders, response: Initial()));
+    } else {
+      emit(state.copyWith(orders: [], response: Initial()));
+    }
   }
 
   Future<void> _onOrderSelectedForUpdate(
@@ -116,7 +117,8 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
       final DateTime? localScheduledDeliveryTime =
           order.scheduledDeliveryTime?.toLocal();
 
-      emit(state.copyWith(selectedOrderType: order.orderType));
+      emit(state.copyWith(
+          selectedOrderType: order.orderType, response: Initial()));
 
       emit(state.copyWith(
         orderIdSelectedForUpdate: order.id,
@@ -155,15 +157,11 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
           add(TableSelected(tableId: state.selectedTableId!));
         }
       }
-    } else {
-      // Manejar el caso de error
-      _handleError(emit, orderResource);
     }
   }
 
   Future<void> _onOrderTypeSelected(
       OrderTypeSelected event, Emitter<OrderUpdateState> emit) async {
-    print(event.selectedOrderType);
     emit(state.copyWith(selectedOrderType: event.selectedOrderType));
     if (event.selectedOrderType == OrderType.dineIn) {
       await _onLoadAreas(LoadAreas(), emit);
@@ -218,20 +216,33 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
 
   Future<void> _onLoadAreas(
       LoadAreas event, Emitter<OrderUpdateState> emit) async {
-    await _handleLoadingEvent<List<Area>>(
-      emit,
-      () => areasUseCases.getAreas.run(),
-      (data) => state.copyWith(areas: data, response: Success(data)),
-    );
+    try {
+      Resource response = await areasUseCases.getAreas.run();
+      if (response is Success<List<Area>>) {
+        List<Area> areas = response.data;
+        emit(state.copyWith(areas: areas));
+      } else {
+        emit(state.copyWith(areas: []));
+      }
+    } catch (e) {
+      emit(state.copyWith(areas: []));
+    }
   }
 
   Future<void> _onLoadTables(
       LoadTables event, Emitter<OrderUpdateState> emit) async {
-    await _handleLoadingEvent<List<appModel.Table>>(
-      emit,
-      () => areasUseCases.getTablesFromArea.run(event.areaId),
-      (data) => state.copyWith(tables: data, response: Success(data)),
-    );
+    try {
+      Resource response =
+          await areasUseCases.getTablesFromArea.run(event.areaId);
+      if (response is Success<List<appModel.Table>>) {
+        List<appModel.Table> tables = response.data;
+        emit(state.copyWith(tables: tables));
+      } else {
+        emit(state.copyWith(tables: []));
+      }
+    } catch (e) {
+      emit(state.copyWith(tables: []));
+    }
   }
 
   Future<void> _onAddOrderItem(
@@ -263,11 +274,19 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
 
   Future<void> _onLoadCategoriesWithProducts(
       LoadCategoriesWithProducts event, Emitter<OrderUpdateState> emit) async {
-    await _handleLoadingEvent<List<Category>>(
-      emit,
-      () => categoriesUseCases.getCategoriesWithProducts.run(),
-      (data) => state.copyWith(categories: data, response: Success(data)),
-    );
+    emit(state.copyWith(response: Loading()));
+    try {
+      Resource response =
+          await categoriesUseCases.getCategoriesWithProducts.run();
+      if (response is Success<List<Category>>) {
+        List<Category> categories = response.data;
+        emit(state.copyWith(categories: categories, response: Initial()));
+      } else {
+        emit(state.copyWith(categories: [], response: Initial()));
+      }
+    } catch (e) {
+      emit(state.copyWith(categories: []));
+    }
   }
 
   Future<void> _onCategorySelected(
@@ -366,39 +385,16 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
         break; // No se requiere acción adicional para otros tipos
     }
 
-    final result = await ordersUseCases.updateOrder.run(order);
-
+    Resource result = await ordersUseCases.updateOrder.run(order);
     if (result is Success<Order>) {
-      // Maneja el éxito, por ejemplo, mostrando un mensaje
-      print('Orden creada con éxito: ${result.data.id}');
+      emit(state.copyWith(response: Success(result)));
     } else if (result is Error<Order>) {
-      // Maneja el error, por ejemplo, mostrando un mensaje de error
-      print('Error al crear la orden: ${result.message}');
-    }
-    add(ResetOrderUpdateState());
-  }
-
-  // High-order function to handle loading events
-  Future<void> _handleLoadingEvent<T>(
-    Emitter<OrderUpdateState> emit,
-    Future<Resource> Function() action,
-    OrderUpdateState Function(T data) onSuccess,
-  ) async {
-    emit(state.copyWith(response: Loading()));
-    try {
-      final response = await action();
-      if (response is Success<T>) {
-        emit(onSuccess(response.data));
-      } else {
-        _handleError(emit, response);
-      }
-    } catch (e) {
-      _handleError(emit, Error(e.toString()));
+      emit(state.copyWith(response: Error(result.message)));
     }
   }
 
-  // Centralized error handling
-  void _handleError(Emitter<OrderUpdateState> emit, Resource response) {
-    emit(state.copyWith(response: response));
+  Future<void> _onResetResponse(
+      ResetResponseEvent event, Emitter<OrderUpdateState> emit) async {
+    emit(state.copyWith(response: Initial()));
   }
 }
