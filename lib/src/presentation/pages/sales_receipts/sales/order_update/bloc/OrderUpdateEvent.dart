@@ -17,6 +17,10 @@ class LoadOpenOrders extends OrderUpdateEvent {
   List<Object> get props => [];
 }
 
+class ResetResponseEvent extends OrderUpdateEvent {
+  const ResetResponseEvent();
+}
+
 class TimePickerEnabled extends OrderUpdateEvent {
   final bool isTimePickerEnabled;
 

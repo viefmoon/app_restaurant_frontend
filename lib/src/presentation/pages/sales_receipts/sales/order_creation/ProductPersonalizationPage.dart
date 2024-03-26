@@ -305,12 +305,18 @@ class _ProductPersonalizationPageState
     if (widget.existingOrderItem != null) {
       // Actualizar el OrderItem existente
       final updatedOrderItem = widget.existingOrderItem!.copyWith(
-        tempId: tempId, // Asegúrate de pasar el tempId existente
+        tempId: tempId, // Asegrate de pasar el tempId existente
+        product: widget.product,
         productVariant: selectedVariant,
-        selectedModifiers: selectedModifiers,
-        selectedProductObservations: selectedObservations,
-        selectedPizzaFlavors: selectedPizzaFlavors,
-        selectedPizzaIngredients: selectedPizzaIngredients,
+        selectedModifiers:
+            selectedModifiers.isNotEmpty ? selectedModifiers : null,
+        selectedProductObservations:
+            selectedObservations.isNotEmpty ? selectedObservations : null,
+        selectedPizzaFlavors:
+            selectedPizzaFlavors.isNotEmpty ? selectedPizzaFlavors : null,
+        selectedPizzaIngredients: selectedPizzaIngredients.isNotEmpty
+            ? selectedPizzaIngredients
+            : null,
         comments: comments,
         price: price,
       );
@@ -324,46 +330,52 @@ class _ProductPersonalizationPageState
         tempId: tempId, // Usa el nuevo tempId generado
         product: widget.product,
         productVariant: selectedVariant,
-        selectedModifiers: selectedModifiers
-            .map((selectedModifier) =>
-                SelectedModifier(modifier: selectedModifier.modifier))
-            .toList(),
-        selectedProductObservations: selectedObservations
-            .map((selectedProductObservation) => SelectedProductObservation(
-                productObservation:
-                    selectedProductObservation.productObservation))
-            .toList(),
-        selectedPizzaFlavors: selectedPizzaFlavors
-            .map((selectedPizzaFlavor) => SelectedPizzaFlavor(
-                pizzaFlavor: selectedPizzaFlavor.pizzaFlavor))
-            .toList(),
-        selectedPizzaIngredients: selectedPizzaIngredients
-            .map((selectedPizzaIngredient) => SelectedPizzaIngredient(
-                pizzaIngredient: selectedPizzaIngredient.pizzaIngredient))
-            .toList(),
+        selectedModifiers: selectedModifiers.isNotEmpty
+            ? selectedModifiers
+                .map((selectedModifier) =>
+                    SelectedModifier(modifier: selectedModifier.modifier))
+                .toList()
+            : null,
+        selectedProductObservations: selectedObservations.isNotEmpty
+            ? selectedObservations
+                .map((selectedProductObservation) => SelectedProductObservation(
+                    productObservation:
+                        selectedProductObservation.productObservation))
+                .toList()
+            : null,
+        selectedPizzaFlavors: selectedPizzaFlavors.isNotEmpty
+            ? selectedPizzaFlavors
+                .map((selectedPizzaFlavor) => SelectedPizzaFlavor(
+                    pizzaFlavor: selectedPizzaFlavor.pizzaFlavor))
+                .toList()
+            : null,
+        selectedPizzaIngredients: selectedPizzaIngredients.isNotEmpty
+            ? selectedPizzaIngredients
+                .map((selectedPizzaIngredient) => SelectedPizzaIngredient(
+                    pizzaIngredient: selectedPizzaIngredient.pizzaIngredient))
+                .toList()
+            : null,
         comments: comments,
-        id: null,
         status: OrderItemStatus.created,
-        order: null,
-        price: price, // Asigna el precio calculado
-        orderItemUpdates: [],
+        price: price,
       );
 
       // Obtener el OrderCreationBloc y enviar el evento para añadir el OrderItem
       BlocProvider.of<OrderCreationBloc>(context)
           .add(AddOrderItem(orderItem: orderItem));
     }
-
-    // Muestra un SnackBar de confirmación
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
+        backgroundColor: Colors.green, // Color de fondo verde
         content: Text(
-            'Producto ${widget.existingOrderItem != null ? 'actualizado' : 'añadido'} con éxito'),
-        duration: Duration(milliseconds: 1500),
+            'Producto ${widget.existingOrderItem != null ? 'actualizado' : 'añadido'} con éxito',
+            style: TextStyle(
+              fontSize: 20, // Fuente de tamaño 20
+              fontWeight: FontWeight.bold, // Texto en negrita
+            )),
+        duration: Duration(milliseconds: 600),
       ),
     );
-
-    // Opcional: Navegar de regreso o realizar otra acción
     Navigator.pop(context);
   }
 
@@ -407,15 +419,20 @@ class _ProductPersonalizationPageState
     BlocProvider.of<OrderCreationBloc>(context)
         .add(RemoveOrderItem(tempId: tempId!));
 
-    // Muestra un SnackBar como confirmación
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Producto eliminado con éxito'),
-        duration: Duration(seconds: 1),
+        backgroundColor: Colors.green, // Color de fondo verde
+        content: Text(
+          'Producto eliminado con éxito',
+          style: TextStyle(
+            fontSize: 20, // Fuente de tamaño 20
+            fontWeight: FontWeight.bold, // Texto en negrita
+          ),
+        ),
+        duration: Duration(milliseconds: 600),
       ),
     );
 
-    // Navega de regreso o realiza otra acción después de eliminar el item
     Navigator.pop(context);
   }
 
@@ -556,8 +573,15 @@ class _ProductPersonalizationPageState
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(
-                                'Solo puedes seleccionar hasta 2 sabores.'),
+                            backgroundColor:
+                                Colors.orange, // color de fondo naranja
+                            content:
+                                Text('Solo puedes seleccionar hasta 2 sabores.',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    )),
+                            duration: Duration(milliseconds: 600),
                           ),
                         );
                       }

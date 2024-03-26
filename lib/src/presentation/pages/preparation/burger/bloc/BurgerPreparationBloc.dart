@@ -20,7 +20,6 @@ class BurgerPreparationBloc
   }
 
   Future<void> initialize() async {
-    print('initialize');
     final ip = await ApiConfig.getApiEcommerce();
     print('ip: $ip');
     socket = IO.io('http://$ip', <String, dynamic>{
@@ -80,7 +79,6 @@ class BurgerPreparationBloc
   void _onWebSocketMessageReceived(
       WebSocketMessageReceived event, Emitter<BurgerPreparationState> emit) {
     final data = json.decode(event.message);
-    print('data: $data');
     final messageType = data['messageType'];
 
     switch (messageType) {
@@ -100,7 +98,6 @@ class BurgerPreparationBloc
         _handleNewOrder(data, emit);
         break;
       default:
-        print('Tipo de mensaje desconocido: $messageType');
     }
   }
 

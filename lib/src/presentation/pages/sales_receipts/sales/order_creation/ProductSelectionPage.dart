@@ -1,4 +1,5 @@
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/domain/utils/Resource.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/ProductPersonalizationPage.dart';
 import 'package:flutter/material.dart';
@@ -59,7 +60,7 @@ class ProductSelectionPage extends StatelessWidget {
               ],
             );
           } else if (state.response is Loading) {
-            return Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator(strokeWidth: 8.0));
           } else {
             return Center(child: Text('No se encontraron categorías'));
           }
@@ -144,31 +145,31 @@ class ProductSelectionPage extends StatelessWidget {
                     (product.productObservationTypes?.isNotEmpty ?? false) ||
                     (product.pizzaFlavors?.isNotEmpty ?? false) ||
                     (product.pizzaIngredients?.isNotEmpty ?? false);
-            print(product.subcategory?.name);
             if (!requiresPersonalization) {
               final tempId = Uuid().v4();
 
               final orderItem = OrderItem(
-                tempId: tempId, // Asigna el nuevo tempId generado
-                product: product,
-                id: null,
+                tempId: tempId,
+                product: Product(
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                ),
                 status: OrderItemStatus.created,
-                comments: null,
-                order: null,
-                productVariant: null,
-                selectedModifiers: [],
-                selectedProductObservations: [],
-                selectedPizzaFlavors: [],
-                selectedPizzaIngredients: [],
                 price: product.price,
-                orderItemUpdates: [],
               );
 
               bloc.add(AddOrderItem(orderItem: orderItem));
-
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Producto agregado'),
+                  backgroundColor: Colors.green,
+                  content: Text(
+                    'Producto agregado',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   duration: Duration(milliseconds: 300),
                 ),
               );
@@ -184,7 +185,7 @@ class ProductSelectionPage extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              color: Colors.grey[200], // Fondo para productos sin imagen
+              color: Colors.grey[200],
             ),
             child: Stack(
               alignment: Alignment

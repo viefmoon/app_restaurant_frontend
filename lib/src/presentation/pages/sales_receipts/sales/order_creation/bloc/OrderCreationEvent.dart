@@ -133,13 +133,6 @@ class SubcategorySelected extends OrderCreationEvent {
   List<Object> get props => [subcategoryId];
 }
 
-class ProductSelected extends OrderCreationEvent {
-  final int productId;
-  const ProductSelected({required this.productId});
-  @override
-  List<Object> get props => [productId];
-}
-
 class AddProductToOrder extends OrderCreationEvent {
   final Product product;
   const AddProductToOrder({required this.product});
@@ -149,6 +142,10 @@ class AddProductToOrder extends OrderCreationEvent {
 
 class TableSelectionContinue extends OrderCreationEvent {
   const TableSelectionContinue();
+}
+
+class ResetResponseEvent extends OrderCreationEvent {
+  const ResetResponseEvent();
 }
 
 class AddOrderItem extends OrderCreationEvent {

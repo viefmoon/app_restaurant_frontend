@@ -26,7 +26,6 @@ class OrderUpdateState extends Equatable {
   final TimeOfDay? scheduledDeliveryTime;
   final double? totalCost;
   final List<OrderItem>? orderItems;
-  final String? errorMessage;
   final Resource? response;
   final List<Category>? categories;
   final int? selectedCategoryId;
@@ -52,7 +51,6 @@ class OrderUpdateState extends Equatable {
     this.scheduledDeliveryTime,
     this.totalCost,
     this.orderItems,
-    this.errorMessage,
     this.response,
     this.categories,
     this.selectedCategoryId,
@@ -107,7 +105,6 @@ class OrderUpdateState extends Equatable {
           scheduledDeliveryTime ?? this.scheduledDeliveryTime,
       totalCost: totalCost ?? this.totalCost,
       orderItems: orderItems ?? this.orderItems,
-      errorMessage: errorMessage ?? this.errorMessage,
       response: response ?? this.response,
       categories: categories ?? this.categories,
       selectedCategoryId: selectedCategoryId ?? this.selectedCategoryId,
@@ -138,7 +135,6 @@ class OrderUpdateState extends Equatable {
         scheduledDeliveryTime,
         totalCost,
         orderItems,
-        errorMessage,
         response,
         categories,
         selectedCategoryId,

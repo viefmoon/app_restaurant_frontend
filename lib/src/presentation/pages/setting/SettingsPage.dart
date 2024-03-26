@@ -28,14 +28,20 @@ class _SettingsScreenState extends State<SettingsPage> {
       final prefs = await SharedPreferences.getInstance();
       // Asume que _ipController.text solo contiene la dirección IP sin el puerto
       await prefs.setString('serverIP', _ipController.text);
-      _showSnackBar('Dirección IP guardada con éxito');
+      _showSnackBar('Dirección IP guardada con éxito', true);
     } catch (e) {
-      _showSnackBar('Error al guardar la dirección IP');
+      _showSnackBar('Error al guardar la dirección IP', false);
     }
   }
 
-  void _showSnackBar(String message) {
-    final snackBar = SnackBar(content: Text(message));
+  void _showSnackBar(String message, bool isSuccess) {
+    final snackBar = SnackBar(
+      content: Text(
+        message,
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      ),
+      backgroundColor: isSuccess ? Colors.green : Colors.red,
+    );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 

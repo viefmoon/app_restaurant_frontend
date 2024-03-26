@@ -19,12 +19,12 @@ class OrdersService {
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         Order createdOrder = Order.fromJson(json.decode(response.body));
-        return Success(createdOrder);
+        return Success<Order>(createdOrder);
       } else {
-        return Error("Error al crear la orden: ${response.body}");
+        return Error<Order>("Error al crear la orden: ${response.body}");
       }
     } catch (e) {
-      return Error(e.toString());
+      return Error<Order>(e.toString());
     }
   }
 

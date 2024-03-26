@@ -107,4 +107,33 @@ class Product {
     }
     return data;
   }
+
+  Product copyWith({
+    int? id,
+    String? name,
+    double? price,
+    String? imageUrl,
+    Subcategory? subcategory,
+    List<ProductVariant>? productVariants,
+    List<ModifierType>? modifierTypes,
+    List<ProductObservationType>? productObservationTypes,
+    List<PizzaFlavor>? pizzaFlavors,
+    List<PizzaIngredient>? pizzaIngredients,
+    List<OrderItem>? orderItems,
+  }) {
+    return Product(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      price: price ?? this.price,
+      imageUrl: imageUrl ?? this.imageUrl,
+      subcategory: subcategory ?? this.subcategory,
+      productVariants: productVariants ?? this.productVariants,
+      modifierTypes: modifierTypes ?? this.modifierTypes,
+      productObservationTypes:
+          productObservationTypes ?? this.productObservationTypes,
+      pizzaFlavors: pizzaFlavors ?? this.pizzaFlavors,
+      pizzaIngredients: pizzaIngredients ?? this.pizzaIngredients,
+      orderItems: orderItems ?? this.orderItems,
+    );
+  }
 }

@@ -496,7 +496,6 @@ class _OrderBurgerPreparationWidgetState
   }
 
   String _displayOrderStatus(OrderPreparationStatus? status) {
-    print("status: $status");
     switch (status) {
       case OrderPreparationStatus.created:
         return 'Creada';

@@ -42,7 +42,6 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
     on<LoadCategoriesWithProducts>(_onLoadCategoriesWithProducts);
     on<CategorySelected>(_onCategorySelected);
     on<SubcategorySelected>(_onSubcategorySelected);
-    on<ProductSelected>(_onProductSelected);
     on<AddOrderItem>(_onAddOrderItem);
     on<UpdateOrderItem>(_onUpdateOrderItem);
     on<ResetTableSelection>(_onResetTableSelection);
@@ -50,6 +49,7 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
     on<ResetOrder>(_onResetOrder);
     on<RemoveOrderItem>(_onRemoveOrderItem);
     on<TimePickerEnabled>(_onTimePickerEnabled);
+    on<ResetResponseEvent>(_onResetResponse);
   }
 
   Future<void> _onResetOrder(
@@ -167,23 +167,21 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
 
   Future<void> _onLoadAreas(
       LoadAreas event, Emitter<OrderCreationState> emit) async {
-    emit(state.copyWith(response: Loading()));
     try {
       Resource response = await areasUseCases.getAreas.run();
       if (response is Success<List<Area>>) {
         List<Area> areas = response.data;
         emit(state.copyWith(areas: areas, response: Success(areas)));
       } else {
-        emit(state.copyWith(areas: [], response: response));
+        emit(state.copyWith(areas: []));
       }
     } catch (e) {
-      emit(state.copyWith(areas: [], response: Error(e.toString())));
+      emit(state.copyWith(areas: []));
     }
   }
 
   Future<void> _onLoadTables(
       LoadTables event, Emitter<OrderCreationState> emit) async {
-    emit(state.copyWith(response: Loading()));
     try {
       Resource response =
           await areasUseCases.getTablesFromArea.run(event.areaId);
@@ -212,13 +210,12 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
           await categoriesUseCases.getCategoriesWithProducts.run();
       if (response is Success<List<Category>>) {
         List<Category> categories = response.data;
-        emit(state.copyWith(
-            categories: categories, response: Success(categories)));
+        emit(state.copyWith(categories: categories));
       } else {
-        emit(state.copyWith(categories: [], response: response));
+        emit(state.copyWith(categories: []));
       }
     } catch (e) {
-      emit(state.copyWith(categories: [], response: Error(e.toString())));
+      emit(state.copyWith(categories: []));
     }
   }
 
@@ -226,22 +223,17 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
       CategorySelected event, Emitter<OrderCreationState> emit) async {
     Category? selectedCategory;
     try {
-      // Intenta encontrar la categoría correspondiente. Esto lanzará una excepción si no se encuentra ninguna coincidencia.
       selectedCategory =
           state.categories?.firstWhere((cat) => cat.id == event.categoryId);
     } catch (e) {
       // Si no se encuentra ninguna coincidencia, selectedCategory permanecerá como null.
     }
 
-    // Filtrar subcategorías basadas en la categoría seleccionada.
-    // Si selectedCategory es null, filteredSubcategories será una lista vacía.
-    // De lo contrario, será igual a las subcategorías de la categoría seleccionada.
     final filteredSubcategories = selectedCategory?.subcategories ?? [];
 
     emit(state.copyWith(
       selectedCategoryId: event.categoryId,
       filteredSubcategories: filteredSubcategories,
-      // Restablecer los productos filtrados y la subcategoría seleccionada porque la categoría ha cambiado
       filteredProducts: [],
       selectedSubcategoryId: null,
     ));
@@ -251,40 +243,18 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
       SubcategorySelected event, Emitter<OrderCreationState> emit) async {
     Subcategory? selectedSubcategory;
     try {
-      // Intenta encontrar la subcategoría correspondiente. Esto lanzará una excepción si no se encuentra ninguna coincidencia.
       selectedSubcategory = state.filteredSubcategories
           ?.firstWhere((sub) => sub.id == event.subcategoryId);
     } catch (e) {
       // Si no se encuentra ninguna coincidencia, selectedSubcategory permanecerá como null.
     }
 
-    // Si selectedSubcategory es null, filteredProducts será una lista vacía.
-    // De lo contrario, será igual a los productos de la subcategoría seleccionada.
     final filteredProducts = selectedSubcategory?.products ?? [];
 
     emit(state.copyWith(
       selectedSubcategoryId: event.subcategoryId,
       filteredProducts: filteredProducts,
     ));
-  }
-
-  Future<void> _onProductSelected(
-      ProductSelected event, Emitter<OrderCreationState> emit) async {
-    // Encuentra el producto seleccionado basado en event.productId
-    // Esto puede requerir cargar el producto o tener una lista de productos disponible para buscar
-    Product? selectedProduct = state.filteredProducts
-        ?.firstWhereOrNull((product) => product.id == event.productId);
-    // Construye un nuevo OrderItem basado en el producto seleccionado y cualquier detalle adicional
-    OrderItem newOrderItem = OrderItem(
-      // Genera o asigna un ID único
-      product: selectedProduct,
-      // Inicializa otros campos como null o basado en eventos adicionales para variantes, modificadores, etc.
-    );
-    // Añade el nuevo OrderItem a la lista existente en el estado
-    List<OrderItem> updatedOrderItems = List.from(state.orderItems ?? []);
-    updatedOrderItems.add(newOrderItem);
-
-    emit(state.copyWith(orderItems: updatedOrderItems));
   }
 
   Future<void> _onAddOrderItem(
@@ -308,13 +278,11 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
 
   Future<void> _onRemoveOrderItem(
       RemoveOrderItem event, Emitter<OrderCreationState> emit) async {
-    // Filtra la lista de OrderItems para excluir el que tiene el tempId proporcionado
     final updatedOrderItems = state.orderItems
             ?.where((item) => item.tempId != event.tempId)
             .toList() ??
         [];
 
-    // Emite un nuevo estado con la lista actualizada de OrderItems
     emit(state.copyWith(orderItems: updatedOrderItems));
   }
 
@@ -336,7 +304,22 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
     AuthResponse? userSession = await authUseCases.getUserSession.run();
     String? createdBy = userSession?.user.name;
 
-    // Inicializa los campos comunes para todos los tipos de orden
+    // Crear una nueva lista de OrderItem con solo el ID del producto y el ID del productVariant
+    List<OrderItem> simplifiedOrderItems = state.orderItems?.map((orderItem) {
+          return OrderItem(
+            status: orderItem.status,
+            comments: orderItem.comments,
+            product: orderItem.product,
+            productVariant: orderItem.productVariant,
+            price: orderItem.price,
+            selectedModifiers: orderItem.selectedModifiers,
+            selectedProductObservations: orderItem.selectedProductObservations,
+            selectedPizzaFlavors: orderItem.selectedPizzaFlavors,
+            selectedPizzaIngredients: orderItem.selectedPizzaIngredients,
+          );
+        }).toList() ??
+        [];
+    // Inicializa los campos comunes para todos los tipos de orden usando simplifiedOrderItems
     Order order = Order(
       orderType: state.selectedOrderType,
       status: OrderStatus.created,
@@ -345,16 +328,14 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
       creationDate: DateTime.now(),
       scheduledDeliveryTime: scheduledDeliveryDateTime,
       createdBy: createdBy,
-      // Inicializa los campos opcionales como null
       phoneNumber: null,
       deliveryAddress: null,
       customerName: null,
       area: null,
       table: null,
-      orderItems: state.orderItems,
+      orderItems: simplifiedOrderItems, // Usa la lista simplificada
     );
-
-    // Asigna los campos específicos según el tipo de orden
+    // Asigna los campos específicos segn el tipo de orden
     switch (state.selectedOrderType) {
       case OrderType.dineIn:
         order = order.copyWith(
@@ -377,17 +358,15 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
         );
         break;
       default:
-        break; // No se requiere acción adicional para otros tipos
+        break;
     }
 
     final result = await ordersUseCases.createOrder.run(order);
+    emit(state.copyWith(response: result));
+  }
 
-    if (result is Success<Order>) {
-      // Maneja el éxito, por ejemplo, mostrando un mensaje
-      print('Orden creada con éxito: ${result.data.id}');
-    } else if (result is Error<Order>) {
-      // Maneja el error, por ejemplo, mostrando un mensaje de error
-      print('Error al crear la orden: ${result.message}');
-    }
+  Future<void> _onResetResponse(
+      ResetResponseEvent event, Emitter<OrderCreationState> emit) async {
+    emit(state.copyWith(response: Initial()));
   }
 }

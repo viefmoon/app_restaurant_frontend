@@ -21,7 +21,6 @@ class PizzaPreparationBloc
   }
 
   Future<void> initialize() async {
-    print('initialize');
     final ip = await ApiConfig.getApiEcommerce();
     print('ip: $ip');
     socket = IO.io('http://$ip', <String, dynamic>{
@@ -83,7 +82,6 @@ class PizzaPreparationBloc
   void _onWebSocketMessageReceived(
       WebSocketMessageReceived event, Emitter<PizzaPreparationState> emit) {
     final data = json.decode(event.message);
-    print('data: $data');
     final messageType = data['messageType'];
 
     switch (messageType) {
@@ -103,7 +101,6 @@ class PizzaPreparationBloc
         _handleNewOrder(data, emit);
         break;
       default:
-        print('Tipo de mensaje desconocido: $messageType');
     }
   }
 
@@ -226,7 +223,6 @@ class PizzaPreparationBloc
     FetchOrderItemsSummaryEvent event,
     Emitter<PizzaPreparationState> emit,
   ) async {
-    print("fetching summary");
     try {
       // Asegúrate de que el tipo de retorno aquí sea correcto, es decir, Resource<List<OrderItemSummary>>
       final Resource<List<OrderItemSummary>> result =
@@ -240,7 +236,6 @@ class PizzaPreparationBloc
         // Aquí manejas el caso de éxito
         List<OrderItemSummary> summaries = result.data;
         // Emites un estado con la lista de resmenes obtenida
-        print("Resmenes de OrderItems por Preparar: $summaries");
         emit(state.copyWith(orderItemsSummary: summaries));
       } else if (result is Error) {
         // Aquí manejas el caso de error
