@@ -1,4 +1,5 @@
 import 'package:app/src/domain/models/Order.dart';
+import 'package:app/src/domain/models/OrderAdjustment.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -176,4 +177,34 @@ class SubcategorySelected extends OrderUpdateEvent {
 
 class CancelOrder extends OrderUpdateEvent {
   const CancelOrder();
+}
+
+class OrderAdjustmentAdded extends OrderUpdateEvent {
+  final OrderAdjustment orderAdjustment;
+  const OrderAdjustmentAdded({required this.orderAdjustment});
+
+  @override
+  List<Object> get props => [orderAdjustment];
+}
+
+class OrderAdjustmentRemoved extends OrderUpdateEvent {
+  final OrderAdjustment orderAdjustment;
+
+  const OrderAdjustmentRemoved({required this.orderAdjustment});
+
+  @override
+  List<Object> get props => [orderAdjustment];
+}
+
+class OrderAdjustmentUpdated extends OrderUpdateEvent {
+  final OrderAdjustment orderAdjustment;
+
+  const OrderAdjustmentUpdated({required this.orderAdjustment});
+
+  @override
+  List<Object> get props => [orderAdjustment];
+}
+
+class UpdateTotalCost extends OrderUpdateEvent {
+  const UpdateTotalCost();
 }

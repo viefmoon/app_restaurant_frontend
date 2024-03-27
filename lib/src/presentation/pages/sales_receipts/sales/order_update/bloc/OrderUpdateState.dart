@@ -1,6 +1,7 @@
 import 'package:app/src/domain/models/Area.dart';
 import 'package:app/src/domain/models/Category.dart';
 import 'package:app/src/domain/models/Order.dart';
+import 'package:app/src/domain/models/OrderAdjustment.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/domain/models/Subcategory.dart';
@@ -33,6 +34,7 @@ class OrderUpdateState extends Equatable {
   final List<Subcategory>? filteredSubcategories;
   final List<Product>? filteredProducts;
   final bool? isTimePickerEnabled;
+  final List<OrderAdjustment>? orderAdjustments;
 
   const OrderUpdateState({
     this.orders,
@@ -58,6 +60,7 @@ class OrderUpdateState extends Equatable {
     this.filteredSubcategories,
     this.filteredProducts,
     this.isTimePickerEnabled,
+    this.orderAdjustments,
   });
 
   OrderUpdateState copyWith({
@@ -85,6 +88,7 @@ class OrderUpdateState extends Equatable {
     List<Subcategory>? filteredSubcategories,
     List<Product>? filteredProducts,
     bool? isTimePickerEnabled,
+    List<OrderAdjustment>? orderAdjustments,
   }) {
     return OrderUpdateState(
       orders: orders ?? this.orders,
@@ -114,6 +118,7 @@ class OrderUpdateState extends Equatable {
           filteredSubcategories ?? this.filteredSubcategories,
       filteredProducts: filteredProducts ?? this.filteredProducts,
       isTimePickerEnabled: isTimePickerEnabled ?? this.isTimePickerEnabled,
+      orderAdjustments: orderAdjustments ?? this.orderAdjustments,
     );
   }
 
@@ -142,5 +147,6 @@ class OrderUpdateState extends Equatable {
         filteredSubcategories,
         filteredProducts,
         isTimePickerEnabled,
+        orderAdjustments,
       ];
 }

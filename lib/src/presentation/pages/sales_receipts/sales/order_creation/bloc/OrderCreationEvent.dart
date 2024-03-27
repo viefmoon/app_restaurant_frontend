@@ -1,4 +1,5 @@
 import 'package:app/src/domain/models/Order.dart';
+import 'package:app/src/domain/models/OrderAdjustment.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/Product.dart';
 import 'package:equatable/equatable.dart';
@@ -171,4 +172,34 @@ class RemoveOrderItem extends OrderCreationEvent {
 
   @override
   List<Object> get props => [tempId];
+}
+
+class OrderAdjustmentAdded extends OrderCreationEvent {
+  final OrderAdjustment orderAdjustment;
+  const OrderAdjustmentAdded({required this.orderAdjustment});
+
+  @override
+  List<Object> get props => [orderAdjustment];
+}
+
+class OrderAdjustmentRemoved extends OrderCreationEvent {
+  final OrderAdjustment orderAdjustment;
+
+  const OrderAdjustmentRemoved({required this.orderAdjustment});
+
+  @override
+  List<Object> get props => [orderAdjustment];
+}
+
+class OrderAdjustmentUpdated extends OrderCreationEvent {
+  final OrderAdjustment orderAdjustment;
+
+  const OrderAdjustmentUpdated({required this.orderAdjustment});
+
+  @override
+  List<Object> get props => [orderAdjustment];
+}
+
+class UpdateTotalCost extends OrderCreationEvent {
+  const UpdateTotalCost();
 }

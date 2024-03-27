@@ -1,6 +1,7 @@
 import 'package:app/src/domain/models/Area.dart';
 import 'package:app/src/domain/models/Category.dart';
 import 'package:app/src/domain/models/Order.dart';
+import 'package:app/src/domain/models/OrderAdjustment.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/Subcategory.dart';
 import 'package:app/src/domain/models/Table.dart' as appModel;
@@ -14,6 +15,7 @@ import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/blo
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:collection/collection.dart';
+import 'package:uuid/uuid.dart';
 
 class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
   final OrdersUseCases ordersUseCases;
@@ -50,6 +52,10 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     on<TimePickerEnabled>(_onTimePickerEnabled);
     on<ResetResponseEvent>(_onResetResponse);
     on<CancelOrder>(_onCancelOrder);
+    on<OrderAdjustmentAdded>(_onOrderAdjustmentAdded);
+    on<OrderAdjustmentRemoved>(_onOrderAdjustmentRemoved);
+    on<OrderAdjustmentUpdated>(_onOrderAdjustmentUpdated);
+    on<UpdateTotalCost>(_onUpdateTotalCost);
   }
 
   Future<void> _onResetOrderUpdateState(
@@ -136,8 +142,8 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
         comments: order.comments,
         totalCost: order.totalCost,
         orderItems: order.orderItems,
-        isTimePickerEnabled: localScheduledDeliveryTime !=
-            null, // Esta línea establece isTimePickerEnabled en true si scheduledDeliveryTime no es null
+        isTimePickerEnabled: localScheduledDeliveryTime != null,
+        orderAdjustments: order.orderAdjustments,
       ));
 
       // Emitir el evento AreaSelected solo si hay un área seleccionada y el tipo de orden es DineIn
@@ -342,6 +348,22 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
       );
     }
 
+    // Calcula el totalCost antes de crear la orden
+    double totalCost = 0;
+
+    // Calcula el total de los OrderItems
+    for (var orderItem in state.orderItems ?? []) {
+      totalCost += orderItem.price ?? 0;
+    }
+
+    // Calcula el total de los OrderAdjustments
+    for (var orderAdjustment in state.orderAdjustments ?? []) {
+      totalCost += orderAdjustment.amount ?? 0;
+    }
+
+    // Actualiza el estado con el totalCost calculado
+    emit(state.copyWith(totalCost: totalCost));
+
     // Inicializa los campos comunes para todos los tipos de orden
     Order order = Order(
       id: state.orderIdSelectedForUpdate,
@@ -358,6 +380,7 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
       area: null,
       table: null,
       orderItems: state.orderItems,
+      orderAdjustments: state.orderAdjustments,
     );
 
     // Asigna los campos específicos según el tipo de orden
@@ -410,5 +433,71 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
         emit(state.copyWith(response: Error(result.message)));
       }
     }
+  }
+
+  Future<void> _onOrderAdjustmentAdded(
+      OrderAdjustmentAdded event, Emitter<OrderUpdateState> emit) async {
+    final uuid = Uuid();
+    final orderAdjustment = event.orderAdjustment.copyWith(uuid: uuid.v4());
+    List<OrderAdjustment> updatedOrderAdjustments =
+        List.from(state.orderAdjustments ?? []);
+    updatedOrderAdjustments.add(orderAdjustment);
+    emit(state.copyWith(orderAdjustments: updatedOrderAdjustments));
+  }
+
+  Future<void> _onOrderAdjustmentRemoved(
+      OrderAdjustmentRemoved event, Emitter<OrderUpdateState> emit) async {
+    List<OrderAdjustment> updatedOrderAdjustments =
+        List.from(state.orderAdjustments ?? []);
+
+    // Eliminar el ajuste específico en función de su ID o UUID
+    updatedOrderAdjustments.removeWhere((adjustment) =>
+        (adjustment.id != null &&
+            event.orderAdjustment.id != null &&
+            adjustment.id == event.orderAdjustment.id) ||
+        (adjustment.uuid != null &&
+            event.orderAdjustment.uuid != null &&
+            adjustment.uuid == event.orderAdjustment.uuid));
+
+    emit(state.copyWith(orderAdjustments: updatedOrderAdjustments));
+  }
+
+  Future<void> _onOrderAdjustmentUpdated(
+      OrderAdjustmentUpdated event, Emitter<OrderUpdateState> emit) async {
+    List<OrderAdjustment> updatedOrderAdjustments =
+        List.from(state.orderAdjustments ?? []);
+
+    if (event.orderAdjustment.id != null) {
+      // Si el ajuste tiene un ID, actualiza el ajuste correspondiente en la lista
+      int index = updatedOrderAdjustments.indexWhere(
+          (adjustment) => adjustment.id == event.orderAdjustment.id);
+      if (index != -1) {
+        updatedOrderAdjustments[index] = event.orderAdjustment;
+      }
+    } else {
+      // Si el ajuste no tiene un ID, genera un nuevo UUID y agrega el ajuste a la lista
+      final uuid = Uuid();
+      final orderAdjustment = event.orderAdjustment.copyWith(uuid: uuid.v4());
+      updatedOrderAdjustments.add(orderAdjustment);
+    }
+
+    emit(state.copyWith(orderAdjustments: updatedOrderAdjustments));
+  }
+
+  Future<void> _onUpdateTotalCost(
+      UpdateTotalCost event, Emitter<OrderUpdateState> emit) async {
+    double totalCost = 0;
+
+    // Calcula el total de los OrderItems
+    for (var orderItem in state.orderItems ?? []) {
+      totalCost += orderItem.price ?? 0;
+    }
+
+    // Calcula el total de los OrderAdjustments
+    for (var orderAdjustment in state.orderAdjustments ?? []) {
+      totalCost += orderAdjustment.amount ?? 0;
+    }
+
+    emit(state.copyWith(totalCost: totalCost));
   }
 }

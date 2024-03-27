@@ -1,3 +1,4 @@
+import 'package:app/src/domain/models/OrderAdjustment.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/SelectedPizzaIngredient.dart';
 import 'package:app/src/domain/utils/Resource.dart';
@@ -142,7 +143,7 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
 
   Widget _buildAppBar(BuildContext context, OrderUpdateState state) {
     return AppBar(
-      title: Text('Actualizar Orden'),
+      title: Text('Actualizar Orden #${state.orderIdSelectedForUpdate ?? ''}'),
       actions: [
         IconButton(
           icon: Icon(Icons.save, size: 30),
@@ -423,17 +424,24 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
           },
         ));
 
+        int headerCount =
+            headerDetails.length; // Número de elementos en el encabezado
+        int orderItemsCount =
+            state.orderItems?.length ?? 0; // Número de OrderItems
+        int orderAdjustmentsCount = state.orderAdjustments?.length ?? 0;
+
         return ListView.builder(
-          itemCount: (state.orderItems?.length ?? 0) +
+          itemCount: headerCount +
+              orderItemsCount +
+              orderAdjustmentsCount +
               3, // Añade +3 para incluir el total y el botón de enviar
           itemBuilder: (context, index) {
-            if (index == 0) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: headerDetails,
-              );
-            } else if (index <= (state.orderItems?.length ?? 0)) {
-              final orderItemIndex = index - 1;
+            if (index < headerCount) {
+              // Devuelve el widget de encabezado correspondiente
+              return headerDetails[index];
+            } else if (index < headerCount + orderItemsCount) {
+              // Devuelve el widget de OrderItem correspondiente
+              final orderItemIndex = index - headerCount;
               final orderItem = state.orderItems![orderItemIndex];
 
               List<Widget> details = [];
@@ -446,13 +454,11 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                 details.add(Text(
                     'Modificadores: ${orderItem.selectedModifiers!.map((m) => m.modifier?.name).join(', ')}'));
               }
-              // Añadir detalles de sabores de pizza seleccionados
               if (orderItem.selectedPizzaFlavors != null &&
                   orderItem.selectedPizzaFlavors!.isNotEmpty) {
                 details.add(Text(
                     'Sabor: ${orderItem.selectedPizzaFlavors!.map((f) => f.pizzaFlavor?.name).join('/')}'));
               }
-              // Añadir detalles de ingredientes de pizza seleccionados separados por mitad
               if (orderItem.selectedPizzaIngredients != null &&
                   orderItem.selectedPizzaIngredients!.isNotEmpty) {
                 final ingredientsLeft = orderItem.selectedPizzaIngredients!
@@ -472,7 +478,6 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                 if (ingredientsLeft.isNotEmpty) {
                   ingredientsText += 'Mitad 1: $ingredientsLeft';
                 }
-
                 if (ingredientsRight.isNotEmpty) {
                   if (ingredientsText.isNotEmpty) ingredientsText += ' | ';
                   ingredientsText += 'Mitad 2: $ingredientsRight';
@@ -484,13 +489,11 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
 
                 details.add(Text('Ingredientes: $ingredientsText'));
               }
-
               if (orderItem.selectedProductObservations != null &&
                   orderItem.selectedProductObservations!.isNotEmpty) {
                 details.add(Text(
                     'Observaciones: ${orderItem.selectedProductObservations!.map((o) => o.productObservation?.name).join(', ')}'));
               }
-              // Añadir comentarios del item de orden si existen
               if (orderItem.comments != null &&
                   orderItem.comments!.isNotEmpty) {
                 details.add(Text('Comentarios: ${orderItem.comments}'));
@@ -523,29 +526,62 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                   ),
                 ),
               );
-            } else if (index == (state.orderItems?.length ?? 0) + 1) {
-              // Widget para mostrar el total
-              return Column(
-                children: [
-                  ListTile(
-                    title: Text(
-                      'Total',
-                      style: TextStyle(
-                        fontSize: 25.0, // Tamaño de letra más grande
-                        fontStyle: FontStyle.italic, // Letra en cursiva
-                      ),
-                    ),
-                    trailing: Text(
-                      '\$${calculateTotal(state.orderItems).toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 25.0, // Tamaño de letra más grande
-                        fontStyle: FontStyle.italic, // Letra en cursiva
-                      ),
-                    ),
-                  ),
-                  _buildAddProductButton(context),
-                ],
+            } else if (index <
+                headerCount + orderItemsCount + orderAdjustmentsCount) {
+              final adjustmentIndex = index - (headerCount + orderItemsCount);
+              final adjustment = state.orderAdjustments![adjustmentIndex];
+              return ListTile(
+                title: Text(adjustment.name ?? ''),
+                trailing: Text(
+                    adjustment.amount! < 0
+                        ? '-\$${(-adjustment.amount!).toStringAsFixed(2)}'
+                        : '\$${adjustment.amount?.toStringAsFixed(2) ?? ''}',
+                    style: TextStyle(
+                      fontSize:
+                          16.0, // Ajuste para igualar la fuente de los orderItems
+                    )),
+                onTap: () {
+                  _showAddOrderAdjustmentDialog(context,
+                      existingAdjustment: adjustment);
+                },
               );
+            } else if (index ==
+                headerCount + orderItemsCount + orderAdjustmentsCount) {
+              // Widget para mostrar el total
+              return ListTile(
+                title: Text(
+                  'Total',
+                  style: TextStyle(
+                    fontSize: 25.0, // Tamaño de letra más grande
+                    fontStyle: FontStyle.italic, // Letra en cursiva
+                  ),
+                ),
+                trailing: Text(
+                  '\$${calculateTotal(state.orderItems, state.orderAdjustments).toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 25.0, // Tamaño de letra más grande
+                    fontStyle: FontStyle.italic, // Letra en cursiva
+                  ),
+                ),
+              );
+            } else if (index ==
+                headerCount + orderItemsCount + orderAdjustmentsCount + 1) {
+              // Botón para agregar un ajuste de orden
+              return Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: ElevatedButton(
+                  onPressed: () => _showAddOrderAdjustmentDialog(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    textStyle: TextStyle(fontSize: 20),
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  child: Text('Agregar ajuste de orden'),
+                ),
+              );
+            } else if (index ==
+                headerCount + orderItemsCount + orderAdjustmentsCount + 2) {
+              return _buildAddProductButton(context);
             }
           },
         );
@@ -731,9 +767,17 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
     }
   }
 
-  double calculateTotal(List<OrderItem>? orderItems) {
-    if (orderItems == null) return 0.0;
-    return orderItems.fold(0.0, (total, item) => total + (item.price ?? 0.0));
+  double calculateTotal(
+      List<OrderItem>? orderItems, List<OrderAdjustment>? orderAdjustments) {
+    double itemsTotal = orderItems?.fold<double>(0.0,
+            (double total, OrderItem item) => total + (item.price ?? 0.0)) ??
+        0.0;
+    double adjustmentsTotal = orderAdjustments?.fold<double>(
+            0.0,
+            (double total, OrderAdjustment adjustment) =>
+                total + (adjustment.amount ?? 0.0)) ??
+        0.0;
+    return itemsTotal + adjustmentsTotal;
   }
 
   void _cancelOrder(BuildContext context, OrderUpdateState state) async {
@@ -764,5 +808,87 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
         Navigator.pop(context);
       }
     }
+  }
+
+  Future<void> _showAddOrderAdjustmentDialog(BuildContext context,
+      {OrderAdjustment? existingAdjustment}) async {
+    String? name = existingAdjustment?.name;
+    String? amountString = existingAdjustment?.amount?.toString();
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(existingAdjustment == null
+              ? 'Agregar ajuste de orden'
+              : 'Editar ajuste de orden'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: InputDecoration(labelText: 'Nombre'),
+                onChanged: (value) {
+                  name = value;
+                },
+                controller: TextEditingController(text: name),
+              ),
+              TextField(
+                decoration: InputDecoration(labelText: 'Cantidad'),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  amountString = value;
+                },
+                controller: TextEditingController(text: amountString),
+              ),
+            ],
+          ),
+          actions: [
+            if (existingAdjustment != null)
+              TextButton(
+                onPressed: () {
+                  BlocProvider.of<OrderUpdateBloc>(context).add(
+                    OrderAdjustmentRemoved(orderAdjustment: existingAdjustment),
+                  );
+                  Navigator.of(context).pop();
+                },
+                child: Text('Eliminar', style: TextStyle(color: Colors.red)),
+              ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (name != null && amountString != null) {
+                  double? amount = double.tryParse(amountString!);
+                  if (amount != null) {
+                    BlocProvider.of<OrderUpdateBloc>(context).add(
+                      existingAdjustment == null
+                          ? OrderAdjustmentAdded(
+                              orderAdjustment: OrderAdjustment(
+                                name: name,
+                                amount: amount,
+                              ),
+                            )
+                          : OrderAdjustmentUpdated(
+                              orderAdjustment: existingAdjustment.copyWith(
+                                name: name,
+                                amount: amount,
+                              ),
+                            ),
+                    );
+                    Navigator.of(context).pop();
+                  }
+                }
+              },
+              child:
+                  Text(existingAdjustment == null ? 'Agregar' : 'Actualizar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

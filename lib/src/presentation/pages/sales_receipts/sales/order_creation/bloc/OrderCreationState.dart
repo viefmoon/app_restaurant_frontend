@@ -1,5 +1,6 @@
 import 'package:app/src/domain/models/Category.dart';
 import 'package:app/src/domain/models/Order.dart';
+import 'package:app/src/domain/models/OrderAdjustment.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/domain/models/Subcategory.dart';
@@ -40,6 +41,7 @@ class OrderCreationState extends Equatable {
   final Resource? response;
   final OrderCreationStep? step;
   final bool? isTimePickerEnabled;
+  final List<OrderAdjustment>? orderAdjustments;
 
   const OrderCreationState({
     this.selectedOrderType,
@@ -64,6 +66,7 @@ class OrderCreationState extends Equatable {
     this.response,
     this.step,
     this.isTimePickerEnabled = false,
+    this.orderAdjustments,
   });
 
   OrderCreationState copyWith({
@@ -89,6 +92,7 @@ class OrderCreationState extends Equatable {
     Resource? response,
     OrderCreationStep? step,
     bool? isTimePickerEnabled,
+    List<OrderAdjustment>? orderAdjustments,
   }) {
     return OrderCreationState(
       selectedOrderType: selectedOrderType ?? this.selectedOrderType,
@@ -116,6 +120,7 @@ class OrderCreationState extends Equatable {
       response: response ?? this.response,
       step: step ?? this.step,
       isTimePickerEnabled: isTimePickerEnabled ?? this.isTimePickerEnabled,
+      orderAdjustments: orderAdjustments ?? this.orderAdjustments,
     );
   }
 
@@ -143,5 +148,6 @@ class OrderCreationState extends Equatable {
         response,
         step,
         isTimePickerEnabled,
+        orderAdjustments,
       ];
 }

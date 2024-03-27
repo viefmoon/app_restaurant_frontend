@@ -1,8 +1,8 @@
 import 'package:app/src/domain/models/AuthResponse.dart';
 import 'package:app/src/domain/models/Category.dart';
 import 'package:app/src/domain/models/Order.dart';
+import 'package:app/src/domain/models/OrderAdjustment.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
-import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/domain/models/Subcategory.dart';
 import 'package:app/src/domain/useCases/auth/AuthUseCases.dart';
 import 'package:app/src/domain/useCases/categories/CategoriesUseCases.dart';
@@ -15,6 +15,7 @@ import 'package:app/src/domain/utils/Resource.dart';
 import 'package:app/src/domain/models/Area.dart';
 import 'package:app/src/domain/models/Table.dart' as appModel;
 import 'package:collection/collection.dart';
+import 'package:uuid/uuid.dart';
 
 class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
   final AreasUseCases areasUseCases;
@@ -50,6 +51,10 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
     on<RemoveOrderItem>(_onRemoveOrderItem);
     on<TimePickerEnabled>(_onTimePickerEnabled);
     on<ResetResponseEvent>(_onResetResponse);
+    on<OrderAdjustmentAdded>(_onOrderAdjustmentAdded);
+    on<OrderAdjustmentRemoved>(_onOrderAdjustmentRemoved);
+    on<OrderAdjustmentUpdated>(_onOrderAdjustmentUpdated);
+    on<UpdateTotalCost>(_onUpdateTotalCost);
   }
 
   Future<void> _onResetOrder(
@@ -171,7 +176,7 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
       Resource response = await areasUseCases.getAreas.run();
       if (response is Success<List<Area>>) {
         List<Area> areas = response.data;
-        emit(state.copyWith(areas: areas, response: Success(areas)));
+        emit(state.copyWith(areas: areas));
       } else {
         emit(state.copyWith(areas: []));
       }
@@ -187,7 +192,7 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
           await areasUseCases.getTablesFromArea.run(event.areaId);
       if (response is Success<List<appModel.Table>>) {
         List<appModel.Table> tables = response.data;
-        emit(state.copyWith(tables: tables, response: Success(tables)));
+        emit(state.copyWith(tables: tables));
       } else {
         emit(state.copyWith(tables: [], response: response));
       }
@@ -319,11 +324,28 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
           );
         }).toList() ??
         [];
-    // Inicializa los campos comunes para todos los tipos de orden usando simplifiedOrderItems
+
+    // Calcula el totalCost antes de crear la orden
+    double totalCost = 0;
+
+    // Calcula el total de los OrderItems
+    for (var orderItem in state.orderItems ?? []) {
+      totalCost += orderItem.price ?? 0;
+    }
+
+    // Calcula el total de los OrderAdjustments
+    for (var orderAdjustment in state.orderAdjustments ?? []) {
+      totalCost += orderAdjustment.amount ?? 0;
+    }
+
+    // Actualiza el estado con el totalCost calculado
+    emit(state.copyWith(totalCost: totalCost));
+
+    // Crea la orden con el totalCost actualizado
     Order order = Order(
       orderType: state.selectedOrderType,
       status: OrderStatus.created,
-      totalCost: state.totalCost,
+      totalCost: state.totalCost, // Usa el totalCost del estado actualizado
       comments: state.comments,
       creationDate: DateTime.now(),
       scheduledDeliveryTime: scheduledDeliveryDateTime,
@@ -333,8 +355,10 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
       customerName: null,
       area: null,
       table: null,
-      orderItems: simplifiedOrderItems, // Usa la lista simplificada
+      orderItems: simplifiedOrderItems,
+      orderAdjustments: state.orderAdjustments,
     );
+
     // Asigna los campos específicos segn el tipo de orden
     switch (state.selectedOrderType) {
       case OrderType.dineIn:
@@ -368,5 +392,55 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
   Future<void> _onResetResponse(
       ResetResponseEvent event, Emitter<OrderCreationState> emit) async {
     emit(state.copyWith(response: Initial()));
+  }
+
+  Future<void> _onOrderAdjustmentAdded(
+      OrderAdjustmentAdded event, Emitter<OrderCreationState> emit) async {
+    final uuid = Uuid();
+    final orderAdjustment = event.orderAdjustment.copyWith(uuid: uuid.v4());
+    List<OrderAdjustment> updatedOrderAdjustments =
+        List.from(state.orderAdjustments ?? []);
+    updatedOrderAdjustments.add(orderAdjustment);
+    emit(state.copyWith(orderAdjustments: updatedOrderAdjustments));
+  }
+
+  Future<void> _onOrderAdjustmentRemoved(
+      OrderAdjustmentRemoved event, Emitter<OrderCreationState> emit) async {
+    List<OrderAdjustment> updatedOrderAdjustments =
+        List.from(state.orderAdjustments ?? []);
+    updatedOrderAdjustments.removeWhere(
+        (adjustment) => adjustment.uuid == event.orderAdjustment.uuid);
+    emit(state.copyWith(orderAdjustments: updatedOrderAdjustments));
+  }
+
+  Future<void> _onOrderAdjustmentUpdated(
+      OrderAdjustmentUpdated event, Emitter<OrderCreationState> emit) async {
+    List<OrderAdjustment> updatedOrderAdjustments =
+        List.from(state.orderAdjustments ?? []);
+    int index = updatedOrderAdjustments.indexWhere(
+        (adjustment) => adjustment.uuid == event.orderAdjustment.uuid);
+    if (index != -1) {
+      updatedOrderAdjustments[index] = event.orderAdjustment;
+    } else {
+      updatedOrderAdjustments.add(event.orderAdjustment);
+    }
+    emit(state.copyWith(orderAdjustments: updatedOrderAdjustments));
+  }
+
+  Future<void> _onUpdateTotalCost(
+      UpdateTotalCost event, Emitter<OrderCreationState> emit) async {
+    double totalCost = 0;
+
+    // Calcula el total de los OrderItems
+    for (var orderItem in state.orderItems ?? []) {
+      totalCost += orderItem.price ?? 0;
+    }
+
+    // Calcula el total de los OrderAdjustments
+    for (var orderAdjustment in state.orderAdjustments ?? []) {
+      totalCost += orderAdjustment.amount ?? 0;
+    }
+
+    emit(state.copyWith(totalCost: totalCost));
   }
 }
