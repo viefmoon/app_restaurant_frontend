@@ -203,4 +203,64 @@ class OrdersService {
       return Error(e.toString());
     }
   }
+
+  Future<Resource<Order>> registerPayment(int orderId, double amount) async {
+    try {
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/orders/$orderId/payment');
+      final response = await http.patch(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({"amount": amount}),
+      );
+      if (response.statusCode == 200) {
+        Order updatedOrder = Order.fromJson(json.decode(response.body));
+        return Success(updatedOrder);
+      } else {
+        return Error("Error al registrar el pago: ${response.body}");
+      }
+    } catch (e) {
+      return Error(e.toString());
+    }
+  }
+
+  Future<Resource<Order>> completeOrder(int orderId) async {
+    try {
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/orders/$orderId/complete');
+      final response = await http.patch(
+        url,
+        headers: {"Content-Type": "application/json"},
+      );
+      if (response.statusCode == 200) {
+        Order completedOrder = Order.fromJson(json.decode(response.body));
+        return Success(completedOrder);
+      } else {
+        return Error("Error al completar la orden: ${response.body}");
+      }
+    } catch (e) {
+      return Error(e.toString());
+    }
+  }
+
+  Future<Resource<Order>> cancelOrder(int orderId) async {
+    try {
+      print("cancelling order");
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/orders/$orderId/cancel');
+      final response = await http.patch(
+        url,
+        headers: {"Content-Type": "application/json"},
+      );
+      print("response: ${response.statusCode}");
+      if (response.statusCode == 200) {
+        Order canceledOrder = Order.fromJson(json.decode(response.body));
+        return Success(canceledOrder);
+      } else {
+        return Error("Error al cancelar la orden: ${response.body}");
+      }
+    } catch (e) {
+      return Error(e.toString());
+    }
+  }
 }

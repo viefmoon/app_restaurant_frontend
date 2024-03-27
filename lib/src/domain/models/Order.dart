@@ -1,3 +1,4 @@
+import 'package:app/src/domain/models/OrderAdjustment.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/OrderUpdate.dart';
 import 'package:app/src/domain/models/Table.dart' as TableModel;
@@ -28,6 +29,7 @@ class Order {
   Area? area;
   TableModel.Table? table;
   List<OrderItem>? orderItems;
+  List<OrderAdjustment>? orderAdjustments;
   List<OrderUpdate>? orderUpdates;
 
   void updateItems(List<OrderItem> newItems) {
@@ -53,6 +55,7 @@ class Order {
     this.area,
     this.table,
     this.orderItems,
+    this.orderAdjustments,
     this.orderUpdates,
   });
 
@@ -75,6 +78,7 @@ class Order {
     Area? area,
     TableModel.Table? table,
     List<OrderItem>? orderItems,
+    List<OrderAdjustment>? orderAdjustments,
     List<OrderUpdate>? orderUpdates,
   }) {
     return Order(
@@ -99,6 +103,7 @@ class Order {
       area: area ?? this.area,
       table: table ?? this.table,
       orderItems: orderItems ?? this.orderItems,
+      orderAdjustments: orderAdjustments ?? this.orderAdjustments,
       orderUpdates: orderUpdates ?? this.orderUpdates,
     );
   }
@@ -164,6 +169,11 @@ class Order {
               .map((i) => OrderItem.fromJson(i))
               .toList()
           : null,
+      orderAdjustments: json['orderAdjustments'] != null
+          ? (json['orderAdjustments'] as List)
+              .map((i) => OrderAdjustment.fromJson(i))
+              .toList()
+          : null,
       orderUpdates: json['orderUpdates'] != null
           ? (json['orderUpdates'] as List)
               .map((i) => OrderUpdate.fromJson(i))
@@ -196,6 +206,10 @@ class Order {
     if (table != null) data['table'] = table!.toJson();
     if (orderItems != null) {
       data['orderItems'] = orderItems!.map((v) => v.toJson()).toList();
+    }
+    if (orderAdjustments != null) {
+      data['orderAdjustments'] =
+          orderAdjustments!.map((v) => v.toJson()).toList();
     }
     if (orderUpdates != null) {
       data['orderUpdates'] = orderUpdates!.map((v) => v.toJson()).toList();

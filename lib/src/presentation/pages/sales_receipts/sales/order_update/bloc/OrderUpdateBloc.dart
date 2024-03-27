@@ -49,6 +49,7 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     on<UpdateOrder>(_onUpdateOrder);
     on<TimePickerEnabled>(_onTimePickerEnabled);
     on<ResetResponseEvent>(_onResetResponse);
+    on<CancelOrder>(_onCancelOrder);
   }
 
   Future<void> _onResetOrderUpdateState(
@@ -396,5 +397,18 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
   Future<void> _onResetResponse(
       ResetResponseEvent event, Emitter<OrderUpdateState> emit) async {
     emit(state.copyWith(response: Initial()));
+  }
+
+  Future<void> _onCancelOrder(
+      CancelOrder event, Emitter<OrderUpdateState> emit) async {
+    if (state.orderIdSelectedForUpdate != null) {
+      Resource result =
+          await ordersUseCases.cancelOrder.run(state.orderIdSelectedForUpdate!);
+      if (result is Success<Order>) {
+        emit(state.copyWith(response: Success(result)));
+      } else if (result is Error<Order>) {
+        emit(state.copyWith(response: Error(result.message)));
+      }
+    }
   }
 }

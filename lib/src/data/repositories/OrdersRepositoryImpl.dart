@@ -51,4 +51,19 @@ class OrdersRepositoryImpl implements OrdersRepository {
     return ordersService.findOrderItemsWithCounts(
         subcategories: subcategories, ordersLimit: ordersLimit);
   }
+
+  @override
+  Future<Resource<Order>> registerPayment(int orderId, double amount) {
+    return ordersService.registerPayment(orderId, amount);
+  }
+
+  @override
+  Future<Resource<Order>> completeOrder(int orderId) {
+    return ordersService.completeOrder(orderId);
+  }
+
+  @override
+  Future<Resource<Order>> cancelOrder(int orderId) {
+    return ordersService.cancelOrder(orderId);
+  }
 }

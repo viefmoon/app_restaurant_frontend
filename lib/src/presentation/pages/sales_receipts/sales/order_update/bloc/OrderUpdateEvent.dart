@@ -173,3 +173,7 @@ class SubcategorySelected extends OrderUpdateEvent {
   @override
   List<Object> get props => [subcategoryId];
 }
+
+class CancelOrder extends OrderUpdateEvent {
+  const CancelOrder();
+}

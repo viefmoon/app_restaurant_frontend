@@ -23,11 +23,14 @@ import 'package:app/src/domain/useCases/areas/GetAreasUseCase.dart';
 import 'package:app/src/domain/useCases/areas/GetTablesFromAreaUseCase.dart';
 import 'package:app/src/domain/useCases/categories/CategoriesUseCases.dart';
 import 'package:app/src/domain/useCases/categories/GetCategoriesWithProductsUseCase.dart';
+import 'package:app/src/domain/useCases/orders/CancelOrderUseCase.dart';
+import 'package:app/src/domain/useCases/orders/CompleteOrderUseCase.dart';
 import 'package:app/src/domain/useCases/orders/CreateOrderUseCase.dart';
 import 'package:app/src/domain/useCases/orders/FindOrderItemsWithCounts.dart';
 import 'package:app/src/domain/useCases/orders/GetOpenOrdersUseCase.dart';
 import 'package:app/src/domain/useCases/orders/GetOrderForUpdateUseCase.dart';
 import 'package:app/src/domain/useCases/orders/OrdersUseCases.dart';
+import 'package:app/src/domain/useCases/orders/RegisterPaymentUseCase.dart';
 import 'package:app/src/domain/useCases/orders/SynchronizeDataUseCase.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderItemStatusUseCase.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderStatusUseCase.dart';
@@ -132,5 +135,8 @@ abstract class AppModule {
         synchronizeData: SynchronizeDataUseCase(ordersRepository),
         findOrderItemsWithCounts:
             FindOrderItemsWithCountsUseCase(ordersRepository),
+        registerPayment: RegisterPaymentUseCase(ordersRepository),
+        completeOrder: CompleteOrderUseCase(ordersRepository),
+        cancelOrder: CancelOrderUseCase(ordersRepository),
       );
 }

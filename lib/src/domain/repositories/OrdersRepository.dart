@@ -13,4 +13,7 @@ abstract class OrdersRepository {
   Future<Resource<void>> synchronizeData();
   Future<Resource<List<OrderItemSummary>>> findOrderItemsWithCounts(
       {List<String>? subcategories, int? ordersLimit});
+  Future<Resource<Order>> registerPayment(int orderId, double amount);
+  Future<Resource<Order>> completeOrder(int orderId);
+  Future<Resource<Order>> cancelOrder(int orderId);
 }

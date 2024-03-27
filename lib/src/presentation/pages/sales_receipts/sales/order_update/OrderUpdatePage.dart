@@ -140,13 +140,26 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
     );
   }
 
-  AppBar _buildAppBar(BuildContext context, OrderUpdateState state) {
+  Widget _buildAppBar(BuildContext context, OrderUpdateState state) {
     return AppBar(
-      title: Text('Actualizar Orden #${state.orderIdSelectedForUpdate}'),
+      title: Text('Actualizar Orden'),
       actions: [
         IconButton(
-          icon: Icon(Icons.save, size: 40),
+          icon: Icon(Icons.save, size: 30),
           onPressed: () => _updateOrder(context, state),
+        ),
+        PopupMenuButton<String>(
+          onSelected: (String result) {
+            if (result == 'cancel_order') {
+              _cancelOrder(context, state);
+            }
+          },
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+            const PopupMenuItem<String>(
+              value: 'cancel_order',
+              child: Text('Cancelar Orden'),
+            ),
+          ],
         ),
       ],
     );
@@ -721,5 +734,35 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
   double calculateTotal(List<OrderItem>? orderItems) {
     if (orderItems == null) return 0.0;
     return orderItems.fold(0.0, (total, item) => total + (item.price ?? 0.0));
+  }
+
+  void _cancelOrder(BuildContext context, OrderUpdateState state) async {
+    if (state.orderIdSelectedForUpdate != null) {
+      final bool? shouldCancel = await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Confirmación', style: TextStyle(fontSize: 24)),
+          content: Text(
+            '¿Estás seguro de que deseas cancelar esta orden?',
+            style: TextStyle(fontSize: 20),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('No', style: TextStyle(fontSize: 18)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text('Sí', style: TextStyle(fontSize: 18)),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldCancel == true) {
+        BlocProvider.of<OrderUpdateBloc>(context).add(CancelOrder());
+        Navigator.pop(context);
+      }
+    }
   }
 }
