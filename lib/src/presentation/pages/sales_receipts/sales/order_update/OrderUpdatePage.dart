@@ -499,18 +499,63 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                 details.add(Text('Comentarios: ${orderItem.comments}'));
               }
 
-              return InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => UpdateProductPersonalizationPage(
-                        product: orderItem.product!,
-                        existingOrderItem: orderItem,
-                      ),
+return InkWell(
+  onTap: () {
+    if (orderItem.state == OrderItemState.prepared) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.orange,
+          content: Text(
+            'No se puede actualizar un producto ya preparado.',
+            style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } else if (orderItem.state == OrderItemState.inPreparation) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Confirmación', style: TextStyle(fontSize: 20)),
+          content: Text(
+            '¿Estás seguro de que deseas actualizar un producto en preparación?',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('No', style: TextStyle(fontSize: 16)),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UpdateProductPersonalizationPage(
+                      product: orderItem.product!,
+                      existingOrderItem: orderItem,
                     ),
-                  );
-                },
+                  ),
+                );
+              },
+              child: Text('Sí', style: TextStyle(fontSize: 16)),
+            ),
+          ],
+        ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => UpdateProductPersonalizationPage(
+            product: orderItem.product!,
+            existingOrderItem: orderItem,
+          ),
+        ),
+      );
+    }
+  },
                 child: ListTile(
                   title: Row(
                     children: [
@@ -565,7 +610,7 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                 ),
               );
             } else if (index ==
-                headerCount + orderItemsCount + orderAdjustmentsCount + 1) {
+                headerCount + orderItemsCount + orderAdjustmentsCount + 2) {
               // Botón para agregar un ajuste de orden
               return Padding(
                 padding: const EdgeInsets.all(10.0),
@@ -891,4 +936,84 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
       },
     );
   }
+
+  Future<void> _printTicket(BuildContext context, OrderUpdateState state) async {
+  // Obtén una instancia de BlueThermalPrinter
+  BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
+
+  // Verifica la disponibilidad de Bluetooth
+  bool isAvailable = await bluetooth.isAvailable;
+  if (!isAvailable) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('El Bluetooth no está disponible'),
+      ),
+    );
+    return;
+  }
+
+  // Escanea y conecta la impresora Bluetooth
+  List<BluetoothDevice> devices = await bluetooth.getBondedDevices();
+  BluetoothDevice? selectedDevice = await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Seleccionar impresora'),
+        content: Container(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: devices.length,
+            itemBuilder: (BuildContext context, int index) {
+              return ListTile(
+                title: Text(devices[index].name ?? ''),
+                onTap: () => Navigator.pop(context, devices[index]),
+              );
+            },
+          ),
+        ),
+      );
+    },
+  );
+
+  if (selectedDevice != null) {
+    await bluetooth.connect(selectedDevice);
+
+    // Carga la imagen del logotipo desde los assets
+    ByteData data = await root 
+    Bundle.load('assets/logo.png');
+Uint8List bytes = data.buffer.asUint8List();
+// Imprime el logotipo
+bluetooth.printImage(bytes);
+bluetooth.printNewLine();
+// Imprime el encabezado del ticket
+bluetooth.printCustom('Ticket de Orden', 3, 1);
+bluetooth.printNewLine();
+bluetooth.printLeftRight('Fecha: ${DateTime.now()}', 'No. Orden: ${state.orderIdSelectedForUpdate}', 1);
+bluetooth.printNewLine();
+// Imprime los detalles de la orden
+bluetooth.printCustom('Detalles de la Orden', 2, 1);
+bluetooth.printNewLine();
+// Imprime los productos
+state.orderItems?.forEach((item) {
+bluetooth.printLeftRight('${item.quantity}x ${item.product?.name}', '\$${item.price?.toStringAsFixed(2)}', 1);
+});
+bluetooth.printNewLine();
+bluetooth.printLeftRight('Total', '\$${state.totalCost?.toStringAsFixed(2)}', 2);
+bluetooth.printNewLine();
+// Imprime un código QR con la URL de la orden
+bluetooth.printQRcode('https://www.ejemplo.com/orden/${state.orderIdSelectedForUpdate}', 200, 200, 1);
+bluetooth.printNewLine();
+bluetooth.printNewLine();
+// Realiza un corte del papel
+bluetooth.paperCut();
+// Desconecta la impresora cuando hayas terminado
+await bluetooth.disconnect();
+ScaffoldMessenger.of(context).showSnackBar(
+SnackBar(
+content: Text('Ticket impreso correctamente'),
+),
+);
+}
+}
 }
