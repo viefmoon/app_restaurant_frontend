@@ -54,6 +54,9 @@ dependencies:
   socket_io_client: ^2.0.3+1
   flutter_screenutil: ^5.0.0
   timezone: ^0.8.0
+  blue_thermal_printer: ^1.2.0
+  path_provider: ^2.0.11
+  
 
 
 
