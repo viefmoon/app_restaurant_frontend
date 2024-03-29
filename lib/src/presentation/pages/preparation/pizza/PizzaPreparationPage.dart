@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/OrderItemSummary.dart';
+import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationEvent.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationState.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationBloc.dart';
@@ -99,7 +100,11 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
   }
 
   void _handleOrderItemTap(Order order, OrderItem orderItem) {
-    if (order.pizzaPreparationStatus == OrderPreparationStatus.in_preparation) {
+    Product? product =
+        orderItem.product; // Asume que tienes acceso al producto aquí.
+    if (order.pizzaPreparationStatus == OrderPreparationStatus.in_preparation &&
+        product?.subcategory?.name == "Pizzas") {
+      // Verifica si es de la subcategoría "Pizzas"
       final bloc = BlocProvider.of<PizzaPreparationBloc>(context);
       final newStatus = orderItem.status == OrderItemStatus.prepared
           ? OrderItemStatus.in_preparation

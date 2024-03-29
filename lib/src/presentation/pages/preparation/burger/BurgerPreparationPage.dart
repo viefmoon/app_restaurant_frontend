@@ -1,5 +1,6 @@
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/presentation/pages/preparation/burger/bloc/BurgerPreparationBloc.dart';
 import 'package:app/src/presentation/pages/preparation/burger/bloc/BurgerPreparationEvent.dart';
 import 'package:app/src/presentation/pages/preparation/burger/bloc/BurgerPreparationState.dart';
@@ -94,8 +95,11 @@ class _BurgerPreparationPageState extends State<BurgerPreparationPage> {
   }
 
   void _handleOrderItemTap(Order order, OrderItem orderItem) {
+    Product? product = orderItem.product;
     if (order.burgerPreparationStatus ==
-        OrderPreparationStatus.in_preparation) {
+            OrderPreparationStatus.in_preparation &&
+        (product?.subcategory?.name == "Hamburguesas" ||
+            product?.subcategory?.name == "Ensaladas")) {
       final bloc = BlocProvider.of<BurgerPreparationBloc>(context);
       final newStatus = orderItem.status == OrderItemStatus.prepared
           ? OrderItemStatus.in_preparation

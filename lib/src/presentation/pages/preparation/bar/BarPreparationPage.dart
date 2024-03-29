@@ -1,5 +1,6 @@
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/presentation/pages/preparation/bar/bloc/BarPreparationEvent.dart';
 import 'package:app/src/presentation/pages/preparation/bar/home/bloc/BarHomeState.dart';
 import 'package:app/src/presentation/widgets/OrderBarPreparationWidget.dart';
@@ -94,7 +95,11 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
   }
 
   void _handleOrderItemTap(Order order, OrderItem orderItem) {
-    if (order.barPreparationStatus == OrderPreparationStatus.in_preparation) {
+    Product? product = orderItem.product;
+
+    if (order.barPreparationStatus == OrderPreparationStatus.in_preparation &&
+        product?.subcategory?.category?.name == "Bebidas") {
+      // Verifica si es de la categoría "Bebidas"
       final bloc = BlocProvider.of<BarPreparationBloc>(context);
       final newStatus = orderItem.status == OrderItemStatus.prepared
           ? OrderItemStatus.in_preparation
