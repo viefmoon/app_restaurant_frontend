@@ -114,25 +114,28 @@ class OrderCreationContainer extends StatelessWidget {
     final bool? shouldPop = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Confirmación', style: TextStyle(fontSize: 24)),
+        title: Text('Confirmación'),
         content: Text(
-            '¿Estás seguro de que deseas volver? La orden no se guardara.',
-            style: TextStyle(fontSize: 20)),
+            '¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.'),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text('Cancelar', style: TextStyle(fontSize: 18)),
+            child: Text('Cancelar'),
           ),
           TextButton(
             onPressed: () {
-              // Aquí puedes agregar cualquier lógica adicional antes de salir, si es necesario.
               Navigator.of(context).pop(true); // Cierra el diálogo
               Navigator.of(context).pop(); // Cierra la página actual
             },
-            child: Text('Salir', style: TextStyle(fontSize: 18)),
+            child: Text('Salir'),
           ),
         ],
       ),
     );
+
+    if (shouldPop == true) {
+      Navigator.of(context)
+          .pop(); // Asegúrate de que esta línea solo se ejecute si el usuario confirma que quiere salir
+    }
   }
 }

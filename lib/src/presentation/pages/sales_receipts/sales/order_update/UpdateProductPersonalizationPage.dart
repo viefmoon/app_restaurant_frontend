@@ -61,56 +61,7 @@ class _UpdateProductPersonalizationPageState
   }
 
   void _updatePrice() {
-    double price = widget.product.price ?? 0.0;
-
-    if (selectedVariant != null) {
-      price = selectedVariant!.price!;
-    }
-
-    for (var selectedModifier in selectedModifiers) {
-      price += selectedModifier.modifier?.price ?? 0.0;
-    }
-
-    if (selectedPizzaFlavors.length == 1) {
-      price += selectedPizzaFlavors[0].pizzaFlavor?.price ?? 0.0;
-    } else if (selectedPizzaFlavors.length == 2) {
-      price += (selectedPizzaFlavors[0].pizzaFlavor?.price ?? 0.0) / 2;
-      price += (selectedPizzaFlavors[1].pizzaFlavor?.price ?? 0.0) / 2;
-    }
-
-    // Calcula el precio adicional basado en los ingredientes seleccionados
-    if (_createTwoHalves) {
-      int leftIngredients = selectedPizzaIngredients
-          .where((ingredient) => ingredient.half == PizzaHalf.left)
-          .length;
-      int rightIngredients = selectedPizzaIngredients
-          .where((ingredient) => ingredient.half == PizzaHalf.right)
-          .length;
-
-      if (leftIngredients > 4) {
-        int extraLeftIngredients = leftIngredients - 4;
-        price += extraLeftIngredients * 5.0;
-      }
-
-      if (rightIngredients > 4) {
-        int extraRightIngredients = rightIngredients - 4;
-        price += extraRightIngredients * 5.0;
-      }
-
-      for (var ingredient in selectedPizzaIngredients) {
-        price += (ingredient.pizzaIngredient?.price ?? 0.0) / 2;
-      }
-    } else {
-      int totalIngredients = selectedPizzaIngredients.length;
-      if (totalIngredients > 4) {
-        int extraIngredients = totalIngredients - 4;
-        price += extraIngredients * 10.0;
-      }
-
-      for (var ingredient in selectedPizzaIngredients) {
-        price += ingredient.pizzaIngredient?.price ?? 0.0;
-      }
-    }
+    double price = _calculatePrice();
 
     setState(() {
       _currentPrice = price;
@@ -251,56 +202,7 @@ class _UpdateProductPersonalizationPageState
   }
 
   void _saveOrderItem() {
-    double price = widget.product.price ?? 0.0;
-
-    if (selectedVariant != null) {
-      price = selectedVariant!.price!;
-    }
-
-    for (var selectedModifier in selectedModifiers) {
-      price += selectedModifier.modifier?.price ?? 0.0;
-    }
-
-    if (selectedPizzaFlavors.length == 1) {
-      price += selectedPizzaFlavors[0].pizzaFlavor?.price ?? 0.0;
-    } else if (selectedPizzaFlavors.length == 2) {
-      price += (selectedPizzaFlavors[0].pizzaFlavor?.price ?? 0.0) / 2;
-      price += (selectedPizzaFlavors[1].pizzaFlavor?.price ?? 0.0) / 2;
-    }
-
-    // Calcula el precio adicional basado en los ingredientes seleccionados
-    if (_createTwoHalves) {
-      int leftIngredients = selectedPizzaIngredients
-          .where((ingredient) => ingredient.half == PizzaHalf.left)
-          .length;
-      int rightIngredients = selectedPizzaIngredients
-          .where((ingredient) => ingredient.half == PizzaHalf.right)
-          .length;
-
-      if (leftIngredients > 4) {
-        int extraLeftIngredients = leftIngredients - 4;
-        price += extraLeftIngredients * 5.0;
-      }
-
-      if (rightIngredients > 4) {
-        int extraRightIngredients = rightIngredients - 4;
-        price += extraRightIngredients * 5.0;
-      }
-
-      for (var ingredient in selectedPizzaIngredients) {
-        price += (ingredient.pizzaIngredient?.price ?? 0.0) / 2;
-      }
-    } else {
-      int totalIngredients = selectedPizzaIngredients.length;
-      if (totalIngredients > 4) {
-        int extraIngredients = totalIngredients - 4;
-        price += extraIngredients * 10.0;
-      }
-
-      for (var ingredient in selectedPizzaIngredients) {
-        price += ingredient.pizzaIngredient?.price ?? 0.0;
-      }
-    }
+    double price = _calculatePrice();
 
     // Genera un nuevo tempId si es un nuevo OrderItem, de lo contrario, usa el existente
     final tempId = widget.existingOrderItem?.tempId ?? Uuid().v4();
@@ -595,5 +497,59 @@ class _UpdateProductPersonalizationPageState
         ],
       ],
     );
+  }
+
+  double _calculatePrice() {
+    double price = widget.product.price ?? 0.0;
+
+    if (selectedVariant != null) {
+      price += selectedVariant!.price!;
+    }
+
+    for (var selectedModifier in selectedModifiers) {
+      price += selectedModifier.modifier?.price ?? 0.0;
+    }
+
+    if (selectedPizzaFlavors.length == 1) {
+      price += selectedPizzaFlavors[0].pizzaFlavor?.price ?? 0.0;
+    } else if (selectedPizzaFlavors.length == 2) {
+      price += (selectedPizzaFlavors[0].pizzaFlavor?.price ?? 0.0) / 2;
+      price += (selectedPizzaFlavors[1].pizzaFlavor?.price ?? 0.0) / 2;
+    }
+
+    if (_createTwoHalves) {
+      int leftIngredientsValue = selectedPizzaIngredients
+          .where((ingredient) => ingredient.half == PizzaHalf.left)
+          .map((ingredient) => ingredient.pizzaIngredient?.ingredientValue ?? 0)
+          .fold(0, (previousValue, element) => previousValue + element);
+      int rightIngredientsValue = selectedPizzaIngredients
+          .where((ingredient) => ingredient.half == PizzaHalf.right)
+          .map((ingredient) => ingredient.pizzaIngredient?.ingredientValue ?? 0)
+          .fold(0, (previousValue, element) => previousValue + element);
+
+      if (leftIngredientsValue > 4) {
+        int extraLeftIngredientsValue = leftIngredientsValue - 4;
+        price += extraLeftIngredientsValue *
+            5.0; // Costo extra por ingredientes adicionales en la mitad izquierda
+      }
+
+      if (rightIngredientsValue > 4) {
+        int extraRightIngredientsValue = rightIngredientsValue - 4;
+        price += extraRightIngredientsValue *
+            5.0; // Costo extra por ingredientes adicionales en la mitad derecha
+      }
+    } else {
+      int totalIngredientsValue = selectedPizzaIngredients
+          .map((ingredient) => ingredient.pizzaIngredient?.ingredientValue ?? 0)
+          .fold(0, (previousValue, element) => previousValue + element);
+
+      if (totalIngredientsValue > 4) {
+        int extraIngredientsValue = totalIngredientsValue - 4;
+        price += extraIngredientsValue *
+            10.0; // Costo extra por ingredientes adicionales
+      }
+    }
+
+    return price;
   }
 }
