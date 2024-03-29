@@ -68,7 +68,7 @@ class _TableSelectionPageState extends State<TableSelectionPage> {
           },
           items: state.areas?.map<DropdownMenuItem<int>>((area) {
                 return DropdownMenuItem<int>(
-                  value: area.id!,
+                  value: area.id,
                   child: Text(area.name!),
                 );
               }).toList() ??

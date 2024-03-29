@@ -1,5 +1,6 @@
 import 'package:app/src/domain/models/OrderAdjustment.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/domain/models/SelectedPizzaIngredient.dart';
 import 'package:app/src/domain/utils/Resource.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/AddProductPage.dart';
@@ -38,6 +39,10 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
     _addressController = TextEditingController(text: "");
     _customerNameController = TextEditingController(text: "");
     _commentsController = TextEditingController(text: "");
+
+    // Emitir el evento para cargar las categorías al iniciar la página
+    BlocProvider.of<OrderUpdateBloc>(context, listen: false)
+        .add(LoadCategoriesWithProducts());
   }
 
   @override
@@ -544,13 +549,29 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                   final orderItemStatus = orderItem.status;
                   switch (orderItemStatus) {
                     case OrderItemStatus.created:
-                      // Redirige a la página de personalización sin más
+                      // Buscar el producto por ID en las categorías cargadas en el estado
+                      Product? foundProduct;
+                      for (var category in state.categories!) {
+                        for (var subcategory in category.subcategories ?? []) {
+                          for (var product in subcategory.products ?? []) {
+                            if (product.id == orderItem.product!.id) {
+                              foundProduct = product;
+                              break;
+                            }
+                          }
+                          if (foundProduct != null) break;
+                        }
+                        if (foundProduct != null) break;
+                      }
+
+                      // Asumiendo que siempre se encuentra el producto, redirige a la página de personalización
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) =>
                               UpdateProductPersonalizationPage(
-                            product: orderItem.product!,
+                            product:
+                                foundProduct!, // Aquí se asume que el producto siempre se encuentra
                             existingOrderItem: orderItem,
                           ),
                         ),
@@ -576,12 +597,32 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                                 child: Text("Actualizar"),
                                 onPressed: () {
                                   Navigator.of(context).pop();
+                                  // Buscar el producto por ID
+                                  Product? foundProduct;
+                                  for (var category in state.categories!) {
+                                    for (var subcategory
+                                        in category.subcategories ?? []) {
+                                      for (var product
+                                          in subcategory.products ?? []) {
+                                        if (product.id ==
+                                            orderItem.product!.id) {
+                                          foundProduct = product;
+                                          break;
+                                        }
+                                      }
+                                      if (foundProduct != null) break;
+                                    }
+                                    if (foundProduct != null) break;
+                                  }
+
+                                  // Asumiendo que siempre se encuentra el producto, redirige a la página de personalización
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
                                           UpdateProductPersonalizationPage(
-                                        product: orderItem.product!,
+                                        product:
+                                            foundProduct!, // Aquí se asume que el producto siempre se encuentra
                                         existingOrderItem: orderItem,
                                       ),
                                     ),
@@ -1181,19 +1222,30 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
 
       content += productName + spaces + productPrice + '\n';
 
+      // Función para agregar espacios al inicio de cada línea de un detalle
+      String addPrefixToEachLine(String text, String prefix) {
+        return text.split('\n').map((line) => prefix + line).join('\n');
+      }
+
+      // Define un prefijo de espacios para los detalles adicionales
+      String detailPrefix = '  '; // 4 espacios de indentación
+
       // Agrega detalles adicionales como modificadores, ingredientes, etc.
       if (item.selectedModifiers != null &&
           item.selectedModifiers!.isNotEmpty) {
-        content +=
-            ' Modificadores: ${item.selectedModifiers!.map((m) => m.modifier?.name).join(', ')}\n';
+        String modifiersText =
+            'Modificadores: ${item.selectedModifiers!.map((m) => m.modifier?.name).join(', ')}';
+        content += addPrefixToEachLine(modifiersText, detailPrefix) + '\n';
       }
       if (item.selectedPizzaFlavors != null &&
           item.selectedPizzaFlavors!.isNotEmpty) {
-        content +=
-            ' Sabor: ${item.selectedPizzaFlavors!.map((f) => f.pizzaFlavor?.name).join('/')}\n';
+        String flavorsText =
+            'Sabor: ${item.selectedPizzaFlavors!.map((f) => f.pizzaFlavor?.name).join('/')}';
+        content += addPrefixToEachLine(flavorsText, detailPrefix) + '\n';
       }
       if (item.selectedPizzaIngredients != null &&
           item.selectedPizzaIngredients!.isNotEmpty) {
+        String ingredientsText = '';
         final ingredientsLeft = item.selectedPizzaIngredients!
             .where((i) => i.half == PizzaHalf.left)
             .map((i) => i.pizzaIngredient?.name)
@@ -1206,23 +1258,20 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
             .where((i) => i.half == PizzaHalf.none)
             .map((i) => i.pizzaIngredient?.name)
             .join(', ');
+
         if (ingredientsLeft.isNotEmpty) {
-          content += ' Ingredientes Mitad 1: $ingredientsLeft\n';
+          ingredientsText += 'Mitad 1: $ingredientsLeft';
         }
         if (ingredientsRight.isNotEmpty) {
-          content += ' Ingredientes Mitad 2: $ingredientsRight\n';
+          if (ingredientsText.isNotEmpty) ingredientsText += ' | ';
+          ingredientsText += 'Mitad 2: $ingredientsRight';
         }
         if (ingredientsNone.isNotEmpty) {
-          content += ' Ingredientes Completa: $ingredientsNone\n';
+          if (ingredientsText.isNotEmpty) ingredientsText += ' | ';
+          ingredientsText += 'Completa: $ingredientsNone';
         }
-      }
-      if (item.selectedProductObservations != null &&
-          item.selectedProductObservations!.isNotEmpty) {
-        content +=
-            ' Observaciones: ${item.selectedProductObservations!.map((o) => o.productObservation?.name).join(', ')}\n';
-      }
-      if (item.comments != null && item.comments!.isNotEmpty) {
-        content += ' Comentarios: ${item.comments}\n';
+
+        content += addPrefixToEachLine(ingredientsText, detailPrefix) + '\n';
       }
     });
     // Procesamiento de los ajustes de la orden

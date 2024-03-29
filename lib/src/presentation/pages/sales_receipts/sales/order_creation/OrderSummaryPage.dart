@@ -393,6 +393,7 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                       details.add(Text(
                           'Sabor: ${orderItem.selectedPizzaFlavors!.map((f) => f.pizzaFlavor?.name).join('/')}'));
                     }
+
                     if (orderItem.selectedPizzaIngredients != null &&
                         orderItem.selectedPizzaIngredients!.isNotEmpty) {
                       final ingredientsLeft = orderItem
@@ -426,7 +427,9 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                         ingredientsText += 'Completa: $ingredientsNone';
                       }
 
-                      details.add(Text('Ingredientes: $ingredientsText'));
+                      details.add(Text(
+                        'Ingredientes: $ingredientsText',
+                      ));
                     }
                     if (orderItem.selectedProductObservations != null &&
                         orderItem.selectedProductObservations!.isNotEmpty) {

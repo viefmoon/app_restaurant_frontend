@@ -109,7 +109,7 @@ class ProductSelectionPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: Text(subcategory.name, style: TextStyle(fontSize: 26)),
+                child: Text(subcategory.name, style: TextStyle(fontSize: 22)),
               ),
             );
           },
@@ -205,7 +205,7 @@ class ProductSelectionPage extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: const Color.fromARGB(221, 112, 71, 71),
-                            fontSize: 45,
+                            fontSize: 30,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -232,7 +232,7 @@ class ProductSelectionPage extends StatelessWidget {
                     product.name,
                     style: TextStyle(
                       color: Colors.white, // Color blanco para contraste
-                      fontSize: 28,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                     overflow: TextOverflow

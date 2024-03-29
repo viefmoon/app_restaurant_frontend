@@ -37,7 +37,6 @@ class _UpdateProductPersonalizationPageState
   List<SelectedPizzaFlavor> selectedPizzaFlavors = [];
   String? comments;
   bool _showPizzaIngredients = false;
-  bool _showPizzaModifiers = false;
   bool _createTwoHalves = false;
   double _currentPrice = 0.0;
 
@@ -126,6 +125,26 @@ class _UpdateProductPersonalizationPageState
         widget.product.pizzaIngredients != null &&
         widget.product.pizzaIngredients!.isNotEmpty;
 
+    bool enableSaveButton =
+        selectedVariant != null; // Siempre requiere una variante seleccionada
+    if (isPizza) {
+      if (!_showPizzaIngredients) {
+        // Si "Armar pizza" está deshabilitado, requiere al menos un sabor de pizza seleccionado
+        enableSaveButton &= selectedPizzaFlavors.isNotEmpty;
+      } else {
+        // Si "Armar pizza" está habilitado, requiere al menos un ingrediente de pizza seleccionado
+        enableSaveButton &= selectedPizzaIngredients.isNotEmpty;
+        if (_createTwoHalves) {
+          // Si "Crear dos mitades" está habilitado, verifica que haya ingredientes para ambas mitades
+          bool hasLeftIngredients = selectedPizzaIngredients
+              .any((ingredient) => ingredient.half == PizzaHalf.left);
+          bool hasRightIngredients = selectedPizzaIngredients
+              .any((ingredient) => ingredient.half == PizzaHalf.right);
+          enableSaveButton &= hasLeftIngredients && hasRightIngredients;
+        }
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -144,17 +163,15 @@ class _UpdateProductPersonalizationPageState
         ),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.save, size: 40), // Tamaño del icono aumentado
-            onPressed: (widget.product.productVariants == null ||
-                    widget.product.productVariants!.isEmpty ||
-                    selectedVariant != null)
+            icon: Icon(Icons.save, size: 40),
+            onPressed: enableSaveButton
                 ? _saveOrderItem
-                : null,
+                : null, // Usa la variable enableSaveButton para habilitar o deshabilitar el botón
           ),
-          SizedBox(width: 20), // Añade más separación entre los iconos
+          SizedBox(width: 20),
           if (widget.existingOrderItem != null)
             IconButton(
-              icon: Icon(Icons.delete, size: 40), // Tamaño del icono aumentado
+              icon: Icon(Icons.delete, size: 40),
               onPressed: _deleteOrderItem,
             ),
         ],
@@ -171,12 +188,8 @@ class _UpdateProductPersonalizationPageState
                 setState(() {
                   _showPizzaIngredients = value;
                   if (value) {
-                    _showPizzaModifiers =
-                        false; // Desactiva "Modificar sabores"
-                    selectedPizzaFlavors
-                        .clear(); // Borra los sabores de pizza seleccionados
-                    selectedModifiers
-                        .clear(); // Borra todos los modificadores seleccionados
+                    selectedPizzaFlavors.clear();
+                    selectedPizzaIngredients.clear();
                   } else {
                     // Aquí se agrega la lógica para borrar los ingredientes cuando se deselecciona "Armar pizza"
                     selectedPizzaIngredients
@@ -198,14 +211,6 @@ class _UpdateProductPersonalizationPageState
                   selectedPizzaIngredients.clear();
                 });
               },
-            ),
-
-          if (isPizza && !_showPizzaIngredients)
-            SwitchListTile(
-              title: Text('Modificar sabores',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              value: _showPizzaModifiers,
-              onChanged: null, // Modificado para deshabilitar el switch
             ),
 
           if (widget.product.productVariants != null)
@@ -320,30 +325,14 @@ class _UpdateProductPersonalizationPageState
       // Creación del OrderItem con los datos necesarios, incluyendo el precio calculado
       final orderItem = OrderItem(
         tempId: tempId, // Usa el nuevo tempId generado
-        product: widget.product,
         productVariant: selectedVariant,
-        selectedModifiers: selectedModifiers
-            .map((selectedModifier) =>
-                SelectedModifier(modifier: selectedModifier.modifier))
-            .toList(),
-        selectedProductObservations: selectedObservations
-            .map((selectedProductObservation) => SelectedProductObservation(
-                productObservation:
-                    selectedProductObservation.productObservation))
-            .toList(),
-        selectedPizzaFlavors: selectedPizzaFlavors
-            .map((selectedPizzaFlavor) => SelectedPizzaFlavor(
-                pizzaFlavor: selectedPizzaFlavor.pizzaFlavor))
-            .toList(),
-        selectedPizzaIngredients: selectedPizzaIngredients
-            .map((selectedPizzaIngredient) => SelectedPizzaIngredient(
-                pizzaIngredient: selectedPizzaIngredient.pizzaIngredient))
-            .toList(),
+        selectedModifiers: selectedModifiers,
+        selectedProductObservations: selectedObservations,
+        selectedPizzaFlavors: selectedPizzaFlavors,
+        selectedPizzaIngredients: selectedPizzaIngredients,
         comments: comments,
-        id: null,
         status: OrderItemStatus.created,
-        order: null,
-        price: price, // Asigna el precio calculado
+        price: price,
         orderItemUpdates: [],
       );
 
@@ -422,33 +411,6 @@ class _UpdateProductPersonalizationPageState
   }
 
   Widget _buildModifierTypeSection(ModifierType modifierType) {
-    bool isPizza = widget.product.pizzaFlavors != null &&
-        widget.product.pizzaFlavors!.isNotEmpty &&
-        widget.product.pizzaIngredients != null &&
-        widget.product.pizzaIngredients!.isNotEmpty;
-
-    bool shouldShowModifier = false;
-    if (isPizza) {
-      if (_showPizzaModifiers) {
-        // Asegúrate de que el switch para modificadores esté activado
-        if (selectedPizzaFlavors.length == 2) {
-          shouldShowModifier = modifierType.name == 'Añadir en mitad 1' ||
-              modifierType.name == 'Añadir en mitad 2' ||
-              modifierType.name == 'Quitar en mitad 1' ||
-              modifierType.name == 'Quitar en mitad 2';
-        } else if (selectedPizzaFlavors.length == 1) {
-          shouldShowModifier =
-              modifierType.name == 'Añadir' || modifierType.name == 'Quitar';
-        }
-      }
-    } else {
-      shouldShowModifier = true;
-    }
-
-    if (!shouldShowModifier) {
-      return Container();
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -553,6 +515,7 @@ class _UpdateProductPersonalizationPageState
                   setState(() {
                     if (value == true) {
                       if (selectedPizzaFlavors.length < 2) {
+                        selectedPizzaIngredients.clear();
                         selectedPizzaFlavors
                             .add(SelectedPizzaFlavor(pizzaFlavor: flavor));
                       } else {
@@ -573,7 +536,6 @@ class _UpdateProductPersonalizationPageState
                       selectedPizzaFlavors.removeWhere((selectedFlavor) =>
                           selectedFlavor.pizzaFlavor?.id == flavor.id);
                     }
-                    selectedModifiers.clear();
                     _updatePrice(); // Actualiza el precio al seleccionar o deseleccionar un sabor
                   });
                 },

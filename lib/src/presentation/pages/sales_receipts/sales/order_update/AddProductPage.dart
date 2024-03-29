@@ -19,9 +19,6 @@ class _AddProductPageState extends State<AddProductPage> {
   @override
   void initState() {
     super.initState();
-    // Dispara el evento para cargar las categorías al iniciar la página
-    BlocProvider.of<OrderUpdateBloc>(context, listen: false)
-        .add(LoadCategoriesWithProducts());
   }
 
   @override
@@ -48,7 +45,7 @@ class _AddProductPageState extends State<AddProductPage> {
                     children: state.categories!.map((category) {
                       return Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.all(15.0),
+                          padding: const EdgeInsets.all(25.0),
                           child: AspectRatio(
                             aspectRatio: 2,
                             child: ElevatedButton(
@@ -61,8 +58,8 @@ class _AddProductPageState extends State<AddProductPage> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              child: Text(category.name!,
-                                  style: TextStyle(fontSize: 20)),
+                              child: Text(category.name,
+                                  style: TextStyle(fontSize: 40)),
                             ),
                           ),
                         ),
@@ -79,7 +76,7 @@ class _AddProductPageState extends State<AddProductPage> {
               ],
             );
           } else if (state.response is Loading) {
-            return Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator(strokeWidth: 8.0));
           } else {
             return Center(child: Text('No se encontraron categorías'));
           }
@@ -105,31 +102,36 @@ class _AddProductPageState extends State<AddProductPage> {
       OrderUpdateBloc bloc, OrderUpdateState state) {
     if (state.filteredSubcategories != null &&
         state.filteredSubcategories!.isNotEmpty) {
-      return GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 2 / 1,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-        ),
-        itemCount: state.filteredSubcategories!.length,
-        itemBuilder: (context, index) {
-          final subcategory = state.filteredSubcategories![index];
-          return ElevatedButton(
-            onPressed: () {
-              bloc.add(SubcategorySelected(subcategoryId: subcategory.id));
-            },
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+      return Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 2 / 1,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 20,
+          ),
+          itemCount: state.filteredSubcategories!.length,
+          itemBuilder: (context, index) {
+            final subcategory = state.filteredSubcategories![index];
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  bloc.add(SubcategorySelected(subcategoryId: subcategory.id));
+                },
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Text(subcategory.name, style: TextStyle(fontSize: 22)),
               ),
-              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-            ),
-            child: Text(subcategory.name),
-          );
-        },
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
+            );
+          },
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+        ),
       );
     } else {
       return Container();
@@ -186,7 +188,7 @@ class _AddProductPageState extends State<AddProductPage> {
                   content: Text('Producto agregado',
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-                  duration: Duration(milliseconds: 500),
+                  duration: Duration(milliseconds: 300),
                 ),
               );
             } else {
@@ -221,7 +223,7 @@ class _AddProductPageState extends State<AddProductPage> {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: const Color.fromARGB(221, 112, 71, 71),
-                            fontSize: 14,
+                            fontSize: 30,
                           ),
                         ),
                       );
@@ -234,7 +236,7 @@ class _AddProductPageState extends State<AddProductPage> {
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                       colors: [
-                        Colors.black.withOpacity(0.5),
+                        Colors.black.withOpacity(0.6),
                         Colors.transparent
                       ],
                     ),
@@ -247,7 +249,7 @@ class _AddProductPageState extends State<AddProductPage> {
                     product.name,
                     style: TextStyle(
                       color: Colors.white, // Color blanco para contraste
-                      fontSize: 16,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                     overflow: TextOverflow
