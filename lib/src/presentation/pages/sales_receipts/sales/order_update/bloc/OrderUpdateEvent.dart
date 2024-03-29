@@ -32,12 +32,12 @@ class TimePickerEnabled extends OrderUpdateEvent {
 }
 
 class OrderSelectedForUpdate extends OrderUpdateEvent {
-  final int orderId;
+  final Order selectedOrder;
 
-  const OrderSelectedForUpdate(this.orderId);
+  const OrderSelectedForUpdate(this.selectedOrder);
 
   @override
-  List<Object> get props => [orderId];
+  List<Object> get props => [selectedOrder];
 }
 
 class OrderTypeSelected extends OrderUpdateEvent {
@@ -207,4 +207,23 @@ class OrderAdjustmentUpdated extends OrderUpdateEvent {
 
 class UpdateTotalCost extends OrderUpdateEvent {
   const UpdateTotalCost();
+}
+
+class RegisterPayment extends OrderUpdateEvent {
+  final int orderId;
+  final double amount;
+
+  const RegisterPayment({required this.orderId, required this.amount});
+
+  @override
+  List<Object> get props => [orderId, amount];
+}
+
+class FinishOrder extends OrderUpdateEvent {
+  final int orderId;
+
+  const FinishOrder({required this.orderId});
+
+  @override
+  List<Object> get props => [orderId];
 }

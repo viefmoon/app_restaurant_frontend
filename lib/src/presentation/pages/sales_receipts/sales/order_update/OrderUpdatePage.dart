@@ -445,287 +445,406 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
             state.orderItems?.length ?? 0; // Número de OrderItems
         int orderAdjustmentsCount = state.orderAdjustments?.length ?? 0;
 
-        return ListView.builder(
-          itemCount: headerCount +
-              orderItemsCount +
-              orderAdjustmentsCount +
-              3, // Añade +3 para incluir el total y el botón de enviar
-          itemBuilder: (context, index) {
-            if (index < headerCount) {
-              // Devuelve el widget de encabezado correspondiente
-              return headerDetails[index];
-            } else if (index < headerCount + orderItemsCount) {
-              // Devuelve el widget de OrderItem correspondiente
-              final orderItemIndex = index - headerCount;
-              final orderItem = state.orderItems![orderItemIndex];
+        return Scaffold(
+          body: ListView.builder(
+            itemCount: headerCount +
+                orderItemsCount +
+                orderAdjustmentsCount +
+                (state.selectedOrder?.amountPaid != null &&
+                        state.selectedOrder!.amountPaid! > 0
+                    ? 5
+                    : 3),
+            itemBuilder: (context, index) {
+              if (index < headerCount) {
+                // Devuelve el widget de encabezado correspondiente
+                return headerDetails[index];
+              } else if (index < headerCount + orderItemsCount) {
+                // Devuelve el widget de OrderItem correspondiente
+                final orderItemIndex = index - headerCount;
+                final orderItem = state.orderItems![orderItemIndex];
 
-              List<Widget> details = [];
+                List<Widget> details = [];
 
-              Color textColor = Colors.white;
-              switch (orderItem.status) {
-                case OrderItemStatus.created:
-                  textColor = Colors.white;
-                  break;
-                case OrderItemStatus.in_preparation:
-                  textColor = Colors.blue;
-                  break;
-                case OrderItemStatus.prepared:
-                  textColor = Colors.orange;
-                  break;
-                default:
-                  textColor = Colors.white;
-              }
-
-              if (orderItem.productVariant != null) {
-                details.add(Text(
-                  'Variante: ${orderItem.productVariant?.name}',
-                  style: TextStyle(color: textColor),
-                ));
-              }
-              if (orderItem.selectedModifiers != null &&
-                  orderItem.selectedModifiers!.isNotEmpty) {
-                details.add(Text(
-                  'Modificadores: ${orderItem.selectedModifiers!.map((m) => m.modifier?.name).join(', ')}',
-                  style: TextStyle(color: textColor),
-                ));
-              }
-              if (orderItem.selectedPizzaFlavors != null &&
-                  orderItem.selectedPizzaFlavors!.isNotEmpty) {
-                details.add(Text(
-                  'Sabor: ${orderItem.selectedPizzaFlavors!.map((f) => f.pizzaFlavor?.name).join('/')}',
-                  style: TextStyle(color: textColor),
-                ));
-              }
-              if (orderItem.selectedPizzaIngredients != null &&
-                  orderItem.selectedPizzaIngredients!.isNotEmpty) {
-                final ingredientsLeft = orderItem.selectedPizzaIngredients!
-                    .where((i) => i.half == PizzaHalf.left)
-                    .map((i) => i.pizzaIngredient?.name)
-                    .join(', ');
-                final ingredientsRight = orderItem.selectedPizzaIngredients!
-                    .where((i) => i.half == PizzaHalf.right)
-                    .map((i) => i.pizzaIngredient?.name)
-                    .join(', ');
-                final ingredientsNone = orderItem.selectedPizzaIngredients!
-                    .where((i) => i.half == PizzaHalf.none)
-                    .map((i) => i.pizzaIngredient?.name)
-                    .join(', ');
-
-                String ingredientsText = '';
-                if (ingredientsLeft.isNotEmpty) {
-                  ingredientsText += 'Mitad 1: $ingredientsLeft';
-                }
-                if (ingredientsRight.isNotEmpty) {
-                  if (ingredientsText.isNotEmpty) ingredientsText += ' | ';
-                  ingredientsText += 'Mitad 2: $ingredientsRight';
-                }
-                if (ingredientsNone.isNotEmpty) {
-                  if (ingredientsText.isNotEmpty) ingredientsText += ' | ';
-                  ingredientsText += 'Completa: $ingredientsNone';
+                Color textColor = Colors.white;
+                switch (orderItem.status) {
+                  case OrderItemStatus.created:
+                    textColor = Colors.white;
+                    break;
+                  case OrderItemStatus.in_preparation:
+                    textColor = Colors.blue;
+                    break;
+                  case OrderItemStatus.prepared:
+                    textColor = Colors.orange;
+                    break;
+                  default:
+                    textColor = Colors.white;
                 }
 
-                details.add(Text(
-                  'Ingredientes: $ingredientsText',
-                  style: TextStyle(color: textColor),
-                ));
-              }
-              if (orderItem.selectedProductObservations != null &&
-                  orderItem.selectedProductObservations!.isNotEmpty) {
-                details.add(Text(
-                  'Observaciones: ${orderItem.selectedProductObservations!.map((o) => o.productObservation?.name).join(', ')}',
-                  style: TextStyle(color: textColor),
-                ));
-              }
-              if (orderItem.comments != null &&
-                  orderItem.comments!.isNotEmpty) {
-                details.add(Text(
-                  'Comentarios: ${orderItem.comments}',
-                  style: TextStyle(color: textColor),
-                ));
-              }
+                if (orderItem.productVariant != null) {
+                  details.add(Text(
+                    'Variante: ${orderItem.productVariant?.name}',
+                    style: TextStyle(color: textColor),
+                  ));
+                }
+                if (orderItem.selectedModifiers != null &&
+                    orderItem.selectedModifiers!.isNotEmpty) {
+                  details.add(Text(
+                    'Modificadores: ${orderItem.selectedModifiers!.map((m) => m.modifier?.name).join(', ')}',
+                    style: TextStyle(color: textColor),
+                  ));
+                }
+                if (orderItem.selectedPizzaFlavors != null &&
+                    orderItem.selectedPizzaFlavors!.isNotEmpty) {
+                  details.add(Text(
+                    'Sabor: ${orderItem.selectedPizzaFlavors!.map((f) => f.pizzaFlavor?.name).join('/')}',
+                    style: TextStyle(color: textColor),
+                  ));
+                }
+                if (orderItem.selectedPizzaIngredients != null &&
+                    orderItem.selectedPizzaIngredients!.isNotEmpty) {
+                  final ingredientsLeft = orderItem.selectedPizzaIngredients!
+                      .where((i) => i.half == PizzaHalf.left)
+                      .map((i) => i.pizzaIngredient?.name)
+                      .join(', ');
+                  final ingredientsRight = orderItem.selectedPizzaIngredients!
+                      .where((i) => i.half == PizzaHalf.right)
+                      .map((i) => i.pizzaIngredient?.name)
+                      .join(', ');
+                  final ingredientsNone = orderItem.selectedPizzaIngredients!
+                      .where((i) => i.half == PizzaHalf.none)
+                      .map((i) => i.pizzaIngredient?.name)
+                      .join(', ');
 
-              return InkWell(
-                onTap: () {
-                  final orderItemStatus = orderItem.status;
-                  switch (orderItemStatus) {
-                    case OrderItemStatus.created:
-                      // Buscar el producto por ID en las categorías cargadas en el estado
-                      Product? foundProduct;
-                      for (var category in state.categories!) {
-                        for (var subcategory in category.subcategories ?? []) {
-                          for (var product in subcategory.products ?? []) {
-                            if (product.id == orderItem.product!.id) {
-                              foundProduct = product;
-                              break;
+                  String ingredientsText = '';
+                  if (ingredientsLeft.isNotEmpty) {
+                    ingredientsText += 'Mitad 1: $ingredientsLeft';
+                  }
+                  if (ingredientsRight.isNotEmpty) {
+                    if (ingredientsText.isNotEmpty) ingredientsText += ' | ';
+                    ingredientsText += 'Mitad 2: $ingredientsRight';
+                  }
+                  if (ingredientsNone.isNotEmpty) {
+                    if (ingredientsText.isNotEmpty) ingredientsText += ' | ';
+                    ingredientsText += 'Completa: $ingredientsNone';
+                  }
+
+                  details.add(Text(
+                    'Ingredientes: $ingredientsText',
+                    style: TextStyle(color: textColor),
+                  ));
+                }
+                if (orderItem.selectedProductObservations != null &&
+                    orderItem.selectedProductObservations!.isNotEmpty) {
+                  details.add(Text(
+                    'Observaciones: ${orderItem.selectedProductObservations!.map((o) => o.productObservation?.name).join(', ')}',
+                    style: TextStyle(color: textColor),
+                  ));
+                }
+                if (orderItem.comments != null &&
+                    orderItem.comments!.isNotEmpty) {
+                  details.add(Text(
+                    'Comentarios: ${orderItem.comments}',
+                    style: TextStyle(color: textColor),
+                  ));
+                }
+
+                return InkWell(
+                  onTap: () {
+                    final orderItemStatus = orderItem.status;
+                    switch (orderItemStatus) {
+                      case OrderItemStatus.created:
+                        // Buscar el producto por ID en las categorías cargadas en el estado
+                        Product? foundProduct;
+                        for (var category in state.categories!) {
+                          for (var subcategory
+                              in category.subcategories ?? []) {
+                            for (var product in subcategory.products ?? []) {
+                              if (product.id == orderItem.product!.id) {
+                                foundProduct = product;
+                                break;
+                              }
                             }
+                            if (foundProduct != null) break;
                           }
                           if (foundProduct != null) break;
                         }
-                        if (foundProduct != null) break;
-                      }
 
-                      // Asumiendo que siempre se encuentra el producto, redirige a la página de personalización
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              UpdateProductPersonalizationPage(
-                            product:
-                                foundProduct!, // Aquí se asume que el producto siempre se encuentra
-                            existingOrderItem: orderItem,
+                        // Asumiendo que siempre se encuentra el producto, redirige a la página de personalización
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                UpdateProductPersonalizationPage(
+                              product:
+                                  foundProduct!, // Aquí se asume que el producto siempre se encuentra
+                              existingOrderItem: orderItem,
+                            ),
                           ),
-                        ),
-                      );
-                      break;
-                    case OrderItemStatus.in_preparation:
-                      // Muestra un diálogo para confirmar si desea actualizar un producto en preparación
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text("Confirmación"),
-                            content: Text(
-                                "Este producto está en preparación. ¿Deseas actualizarlo?"),
-                            actions: <Widget>[
-                              TextButton(
-                                child: Text("Cancelar"),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                              TextButton(
-                                child: Text("Actualizar"),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                  // Buscar el producto por ID
-                                  Product? foundProduct;
-                                  for (var category in state.categories!) {
-                                    for (var subcategory
-                                        in category.subcategories ?? []) {
-                                      for (var product
-                                          in subcategory.products ?? []) {
-                                        if (product.id ==
-                                            orderItem.product!.id) {
-                                          foundProduct = product;
-                                          break;
+                        );
+                        break;
+                      case OrderItemStatus.in_preparation:
+                        // Muestra un diálogo para confirmar si desea actualizar un producto en preparación
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text("Confirmación"),
+                              content: Text(
+                                  "Este producto está en preparación. ¿Deseas actualizarlo?"),
+                              actions: <Widget>[
+                                TextButton(
+                                  child: Text("Cancelar"),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                TextButton(
+                                  child: Text("Actualizar"),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    // Buscar el producto por ID
+                                    Product? foundProduct;
+                                    for (var category in state.categories!) {
+                                      for (var subcategory
+                                          in category.subcategories ?? []) {
+                                        for (var product
+                                            in subcategory.products ?? []) {
+                                          if (product.id ==
+                                              orderItem.product!.id) {
+                                            foundProduct = product;
+                                            break;
+                                          }
                                         }
+                                        if (foundProduct != null) break;
                                       }
                                       if (foundProduct != null) break;
                                     }
-                                    if (foundProduct != null) break;
-                                  }
 
-                                  // Asumiendo que siempre se encuentra el producto, redirige a la página de personalización
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          UpdateProductPersonalizationPage(
-                                        product:
-                                            foundProduct!, // Aquí se asume que el producto siempre se encuentra
-                                        existingOrderItem: orderItem,
+                                    // Asumiendo que siempre se encuentra el producto, redirige a la página de personalización
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            UpdateProductPersonalizationPage(
+                                          product:
+                                              foundProduct!, // Aquí se asume que el producto siempre se encuentra
+                                          existingOrderItem: orderItem,
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                      break;
-                    case OrderItemStatus.prepared:
-                      // No permite la redirección y muestra un mensaje
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              "Este producto ya está preparado y no puede ser modificado."),
-                          duration: Duration(milliseconds: 700),
+                                    );
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                        break;
+                      case OrderItemStatus.prepared:
+                        // No permite la redirección y muestra un mensaje
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                "Este producto ya está preparado y no puede ser modificado."),
+                            duration: Duration(milliseconds: 700),
+                          ),
+                        );
+                        break;
+                      default:
+                        // Manejo de otros estados si es necesario
+                        break;
+                    }
+                  },
+                  child: ListTile(
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            orderItem.product?.name ?? '',
+                            style: TextStyle(color: textColor),
+                          ),
                         ),
-                      );
-                      break;
-                    default:
-                      // Manejo de otros estados si es necesario
-                      break;
-                  }
-                },
-                child: ListTile(
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          orderItem.product?.name ?? '',
-                          style: TextStyle(color: textColor),
-                        ),
-                      ),
-                      Text('\$${orderItem.price?.toStringAsFixed(2) ?? ''}'),
-                    ],
+                        Text('\$${orderItem.price?.toStringAsFixed(2) ?? ''}'),
+                      ],
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: details,
+                    ),
                   ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: details,
-                  ),
-                ),
-              );
-            } else if (index <
-                headerCount + orderItemsCount + orderAdjustmentsCount) {
-              final adjustmentIndex = index - (headerCount + orderItemsCount);
-              final adjustment = state.orderAdjustments![adjustmentIndex];
-              return ListTile(
-                title: Text(adjustment.name ?? ''),
-                trailing: Text(
-                    adjustment.amount! < 0
-                        ? '-\$${(-adjustment.amount!).toStringAsFixed(2)}'
-                        : '\$${adjustment.amount?.toStringAsFixed(2) ?? ''}',
+                );
+              } else if (index <
+                  headerCount + orderItemsCount + orderAdjustmentsCount) {
+                final adjustmentIndex = index - (headerCount + orderItemsCount);
+                final adjustment = state.orderAdjustments![adjustmentIndex];
+                return ListTile(
+                  title: Text(adjustment.name ?? ''),
+                  trailing: Text(
+                      adjustment.amount! < 0
+                          ? '-\$${(-adjustment.amount!).toStringAsFixed(2)}'
+                          : '\$${adjustment.amount?.toStringAsFixed(2) ?? ''}',
+                      style: TextStyle(
+                        fontSize:
+                            16.0, // Ajuste para igualar la fuente de los orderItems
+                      )),
+                  onTap: () {
+                    _showAddOrderAdjustmentDialog(context,
+                        existingAdjustment: adjustment);
+                  },
+                );
+              } else if (index ==
+                  headerCount + orderItemsCount + orderAdjustmentsCount) {
+                // Widget para mostrar el total
+                return ListTile(
+                  title: Text(
+                    'Total',
                     style: TextStyle(
-                      fontSize:
-                          16.0, // Ajuste para igualar la fuente de los orderItems
-                    )),
-                onTap: () {
-                  _showAddOrderAdjustmentDialog(context,
-                      existingAdjustment: adjustment);
-                },
-              );
-            } else if (index ==
-                headerCount + orderItemsCount + orderAdjustmentsCount) {
-              // Widget para mostrar el total
-              return ListTile(
-                title: Text(
-                  'Total',
-                  style: TextStyle(
-                    fontSize: 25.0, // Tamaño de letra más grande
-                    fontStyle: FontStyle.italic, // Letra en cursiva
+                      fontSize: 25.0, // Tamaño de letra más grande
+                      fontStyle: FontStyle.italic, // Letra en cursiva
+                    ),
                   ),
-                ),
-                trailing: Text(
-                  '\$${calculateTotal(state.orderItems, state.orderAdjustments).toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 25.0, // Tamaño de letra más grande
-                    fontStyle: FontStyle.italic, // Letra en cursiva
+                  trailing: Text(
+                    '\$${calculateTotal(state.orderItems, state.orderAdjustments).toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 25.0, // Tamaño de letra más grande
+                      fontStyle: FontStyle.italic, // Letra en cursiva
+                    ),
                   ),
-                ),
-              );
-            } else if (index ==
-                headerCount + orderItemsCount + orderAdjustmentsCount + 1) {
-              // Botón para agregar un ajuste de orden
-              return Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: ElevatedButton(
-                  onPressed: () => _showAddOrderAdjustmentDialog(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    textStyle: TextStyle(fontSize: 20),
-                    padding: EdgeInsets.symmetric(vertical: 10),
+                );
+              } else if (state.selectedOrder?.amountPaid != null &&
+                  state.selectedOrder!.amountPaid! > 0 &&
+                  index ==
+                      headerCount +
+                          orderItemsCount +
+                          orderAdjustmentsCount +
+                          1) {
+                // Widget para mostrar el total pagado
+                return ListTile(
+                  title: Text(
+                    'Total Pagado',
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  child: Text('Agregar ajuste de orden'),
+                  trailing: Text(
+                    '\$${state.selectedOrder!.amountPaid!.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+              } else if (state.selectedOrder?.amountPaid != null &&
+                  state.selectedOrder!.amountPaid! > 0 &&
+                  index ==
+                      headerCount +
+                          orderItemsCount +
+                          orderAdjustmentsCount +
+                          2) {
+                print(state.selectedOrder!.amountPaid!);
+                print(calculateTotal(state.orderItems, state.orderAdjustments));
+                // Widget para mostrar el restante
+                final remaining = state.selectedOrder!.amountPaid! -
+                    calculateTotal(state.orderItems, state.orderAdjustments);
+                return ListTile(
+                  title: Text(
+                    'Restante',
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  trailing: Text(
+                    '\$${remaining.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+              } else if (index ==
+                  headerCount +
+                      orderItemsCount +
+                      orderAdjustmentsCount +
+                      (state.selectedOrder?.amountPaid != null &&
+                              state.selectedOrder!.amountPaid! > 0
+                          ? 3
+                          : 1)) {
+                // Botón para agregar un ajuste de orden
+                return Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: ElevatedButton(
+                    onPressed: () => _showAddOrderAdjustmentDialog(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      textStyle: TextStyle(fontSize: 20),
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                    ),
+                    child: Text('Agregar ajuste de orden'),
+                  ),
+                );
+              } else if (index ==
+                  headerCount +
+                      orderItemsCount +
+                      orderAdjustmentsCount +
+                      (state.selectedOrder?.amountPaid != null &&
+                              state.selectedOrder!.amountPaid! > 0
+                          ? 4
+                          : 2)) {
+                return _buildAddProductButton(context);
+              }
+              throw Exception('Índice inesperado: $index');
+            },
+          ),
+          floatingActionButton: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Botón Registrar Pago
+              if (state.selectedOrder?.status == OrderStatus.prepared)
+                FloatingActionButton(
+                  onPressed: () {
+                    _showPaymentDialog(
+                        context, state.selectedOrder!.totalCost ?? 0.0, state);
+                    // Asumiendo que _showPaymentDialog eventualmente emite RegisterPayment
+                    // y que quieres regresar inmediatamente después de registrar el pago,
+                    // puedes escuchar el estado del Bloc para saber cuándo regresar.
+                    // Sin embargo, este enfoque puede no ser ideal si _showPaymentDialog es asíncrono.
+                    // Considera esperar a una confirmación de éxito antes de hacer pop.
+                  },
+                  child: Icon(Icons.payment),
+                  tooltip: 'Registrar Pago',
+                  backgroundColor: Colors.blue,
                 ),
-              );
-            } else if (index ==
-                headerCount + orderItemsCount + orderAdjustmentsCount + 2) {
-              return _buildAddProductButton(context);
-            }
-            throw Exception('Índice inesperado: $index');
-          },
+
+              if (state.selectedOrder?.status == OrderStatus.prepared &&
+                  state.selectedOrder?.amountPaid != null &&
+                  state.selectedOrder!.amountPaid! -
+                          calculateTotal(
+                              state.orderItems, state.orderAdjustments) ==
+                      0)
+                SizedBox(height: 10),
+
+              // Botón Terminar Orden
+              if (state.selectedOrder?.amountPaid != null &&
+                  state.selectedOrder!.amountPaid! -
+                          calculateTotal(
+                              state.orderItems, state.orderAdjustments) ==
+                      0)
+                FloatingActionButton(
+                  onPressed: () {
+                    if (state.selectedOrder?.id != null) {
+                      BlocProvider.of<OrderUpdateBloc>(context)
+                          .add(FinishOrder(orderId: state.selectedOrder!.id!));
+                      // Navegar de vuelta a la página anterior después de terminar la orden
+                      Navigator.popUntil(context, (route) => route.isFirst);
+                    }
+                  },
+                  child: Icon(Icons.check),
+                  backgroundColor: Colors.green,
+                  tooltip: 'Terminar Orden',
+                ),
+            ],
+          ),
         );
       },
     );
@@ -1029,6 +1148,100 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                   Text(existingAdjustment == null ? 'Agregar' : 'Actualizar'),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showPaymentDialog(
+      BuildContext context, double totalCost, OrderUpdateState state) {
+    final TextEditingController _paymentController = TextEditingController();
+    double _amountPaid = 0.0;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Registrar Pago'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment
+                    .start, // Alinea el contenido a la izquierda
+                children: <Widget>[
+                  Text(
+                    'Total: \$${totalCost.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 20, // Hace el texto más grande
+                    ),
+                  ),
+                  TextField(
+                    controller: _paymentController,
+                    keyboardType:
+                        TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: 'Cantidad Pagada',
+                    ),
+                    onChanged: (value) {
+                      final parsedValue = double.tryParse(value) ?? 0.0;
+                      setState(() {
+                        _amountPaid = parsedValue;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 20),
+                  if (_amountPaid >= totalCost)
+                    Text(
+                      'Cambio: \$${(_amountPaid - totalCost).toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize:
+                            16, // Ajusta el tamaño del texto del cambio si lo deseas
+                      ),
+                    ),
+                ],
+              ),
+              actions: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment
+                      .spaceBetween, // Alinea los botones a los extremos
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text('Cancelar'),
+                    ),
+                    TextButton(
+                      onPressed: _amountPaid >= totalCost
+                          ? () {
+                              if (state.selectedOrder?.id != null) {
+                                // Aquí se usa totalCost en lugar de _amountPaid para registrar el pago
+                                BlocProvider.of<OrderUpdateBloc>(context).add(
+                                  RegisterPayment(
+                                      orderId: state.selectedOrder!.id!,
+                                      amount: totalCost),
+                                );
+                                Navigator.popUntil(
+                                    context, (route) => route.isFirst);
+                              }
+                            }
+                          : null, // Deshabilita el botón si la condición no se cumple
+                      child: Text('Registrar Pago'),
+                      style: ButtonStyle(
+                        foregroundColor:
+                            MaterialStateProperty.resolveWith<Color?>(
+                          (Set<MaterialState> states) {
+                            if (states.contains(MaterialState.disabled))
+                              return Colors.grey;
+                            return null; // Dejar el color predeterminado para estados habilitados
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
         );
       },
     );

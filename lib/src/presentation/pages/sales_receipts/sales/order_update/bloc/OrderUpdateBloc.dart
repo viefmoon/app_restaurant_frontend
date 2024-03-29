@@ -56,6 +56,8 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     on<OrderAdjustmentRemoved>(_onOrderAdjustmentRemoved);
     on<OrderAdjustmentUpdated>(_onOrderAdjustmentUpdated);
     on<UpdateTotalCost>(_onUpdateTotalCost);
+    on<RegisterPayment>(_onRegisterPayment);
+    on<FinishOrder>(_onFinishOrder);
   }
 
   Future<void> _onResetOrderUpdateState(
@@ -83,6 +85,7 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
       selectedSubcategoryId: null,
       filteredProducts: [],
       isTimePickerEnabled: false,
+      selectedOrder: null,
     ));
     await _onLoadOpenOrders(LoadOpenOrders(), emit);
   }
@@ -115,12 +118,13 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
             Loading())); // Añadir esta línea para manejar el estado de carga
     // Recuperar la orden usando el ID proporcionado
     final Resource<Order> orderResource =
-        await ordersUseCases.getOrderForUpdate.run(event.orderId);
-
+        await ordersUseCases.getOrderForUpdate.run(event.selectedOrder.id!);
     if (orderResource is Success<Order>) {
       final Order order = orderResource.data;
+      print("order.totalCost: ${order.totalCost}");
+      print("order.amountPaid: ${order.amountPaid}");
 
-      // Asegúrate de convertir la fecha y hora programadas a la zona horaria local antes de crear TimeOfDay
+      // Asegrate de convertir la fecha y hora programadas a la zona horaria local antes de crear TimeOfDay
       final DateTime? localScheduledDeliveryTime =
           order.scheduledDeliveryTime?.toLocal();
 
@@ -144,7 +148,11 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
         orderItems: order.orderItems,
         isTimePickerEnabled: localScheduledDeliveryTime != null,
         orderAdjustments: order.orderAdjustments,
+        selectedOrder: order,
       ));
+
+      print("order.totalCost: ${state.selectedOrder?.totalCost}");
+      print("order.amountPaid: ${state.selectedOrder?.amountPaid}");
 
       // Emitir el evento AreaSelected solo si hay un área seleccionada y el tipo de orden es DineIn
       if (order.orderType == OrderType.dineIn && state.selectedAreaId != null) {
@@ -499,5 +507,37 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     }
 
     emit(state.copyWith(totalCost: totalCost));
+  }
+
+  Future<void> _onRegisterPayment(
+      RegisterPayment event, Emitter<OrderUpdateState> emit) async {
+    emit(state.copyWith(response: Loading()));
+
+    // Aquí iría la lógica para registrar el pago, por ejemplo:
+    final Resource result =
+        await ordersUseCases.registerPayment.run(event.orderId, event.amount);
+
+    if (result is Success) {
+      // Suponiendo que el resultado exitoso incluye la orden actualizada
+      emit(state.copyWith(response: Success(result.data)));
+    } else if (result is Error) {
+      emit(state.copyWith(response: Error(result.message)));
+    }
+  }
+
+  Future<void> _onFinishOrder(
+      FinishOrder event, Emitter<OrderUpdateState> emit) async {
+    emit(state.copyWith(response: Loading()));
+
+    // Aquí iría la lógica para marcar la orden como finalizada
+    final Resource result =
+        await ordersUseCases.completeOrder.run(event.orderId);
+
+    if (result is Success) {
+      // Suponiendo que el resultado exitoso incluye la orden actualizada
+      emit(state.copyWith(response: Success(result.data)));
+    } else if (result is Error) {
+      emit(state.copyWith(response: Error(result.message)));
+    }
   }
 }

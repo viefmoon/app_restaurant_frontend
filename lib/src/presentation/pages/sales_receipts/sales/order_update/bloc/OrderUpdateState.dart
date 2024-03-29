@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 class OrderUpdateState extends Equatable {
   final List<Order>? orders;
   final int? orderIdSelectedForUpdate;
+  final Order? selectedOrder;
   final OrderType? selectedOrderType;
   final List<Area>? areas;
   final List<TableModel.Table>? tables;
@@ -39,6 +40,7 @@ class OrderUpdateState extends Equatable {
   const OrderUpdateState({
     this.orders,
     this.orderIdSelectedForUpdate,
+    this.selectedOrder,
     this.selectedOrderType,
     this.areas,
     this.tables,
@@ -66,6 +68,7 @@ class OrderUpdateState extends Equatable {
   OrderUpdateState copyWith({
     List<Order>? orders,
     int? orderIdSelectedForUpdate,
+    Order? selectedOrder,
     OrderType? selectedOrderType,
     List<Area>? areas,
     List<TableModel.Table>? tables,
@@ -94,6 +97,7 @@ class OrderUpdateState extends Equatable {
       orders: orders ?? this.orders,
       orderIdSelectedForUpdate: orderIdSelectedForUpdate ??
           this.orderIdSelectedForUpdate, // Asignar el nuevo parámetro
+      selectedOrder: selectedOrder ?? this.selectedOrder,
       selectedOrderType: selectedOrderType ?? this.selectedOrderType,
       areas: areas ?? this.areas,
       tables: tables ?? this.tables,
@@ -126,6 +130,7 @@ class OrderUpdateState extends Equatable {
   List<Object?> get props => [
         orders,
         orderIdSelectedForUpdate, // Añadir el nuevo parámetro a props
+        selectedOrder,
         selectedOrderType,
         areas,
         tables,

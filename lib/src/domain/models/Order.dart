@@ -146,8 +146,8 @@ class Order {
                   json['pizzaPreparationStatus'],
               orElse: () => OrderPreparationStatus.created)
           : OrderPreparationStatus.created,
-      amountPaid: json['price'] != null
-          ? double.tryParse(json['price'].toString())
+      amountPaid: json['amountPaid'] != null
+          ? double.tryParse(json['amountPaid'].toString())
           : null,
       creationDate: json['creationDate'] != null
           ? DateTime.tryParse(json['creationDate'])

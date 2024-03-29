@@ -145,7 +145,7 @@ class _OpenOrdersPageState extends State<OpenOrdersPage> {
                       style: TextStyle(color: statusColor, fontSize: 18)),
                   onTap: () {
                     // Emitir el evento al BLoC con la orden seleccionada
-                    bloc.add(OrderSelectedForUpdate(order.id ?? 0));
+                    bloc.add(OrderSelectedForUpdate(order));
 
                     // Navegar a la página de actualización de la orden sin pasar la orden como parámetro
                     Navigator.push(

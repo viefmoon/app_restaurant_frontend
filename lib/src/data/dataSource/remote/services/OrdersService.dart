@@ -37,7 +37,6 @@ class OrdersService {
         headers: {"Content-Type": "application/json"},
       );
       if (response.statusCode == 200) {
-        print(response.body);
         List<dynamic> data = (json.decode(response.body) as List<dynamic>);
         List<Order> orders =
             data.map((orderJson) => Order.fromJson(orderJson)).toList();
@@ -52,6 +51,7 @@ class OrdersService {
 
   Future<Resource<Order>> getOrderForUpdate(int orderId) async {
     try {
+      print("Obteniendo orden para actualizar");
       String apiEcommerce = await ApiConfig.getApiEcommerce();
       Uri url = Uri.http(apiEcommerce, '/orders/$orderId');
       final response = await http.get(
@@ -60,6 +60,8 @@ class OrdersService {
       );
       if (response.statusCode == 200) {
         Order order = Order.fromJson(json.decode(response.body));
+        print(
+            "orden: ${json.encode(order.toJson())}"); // Modificado para imprimir la orden serializada
         return Success(order);
       } else {
         return Error(
@@ -72,7 +74,6 @@ class OrdersService {
 
   Future<Resource<Order>> updateOrder(Order order) async {
     try {
-      print("order actualizarde: $order");
       String apiEcommerce = await ApiConfig.getApiEcommerce();
 
       final prefs = await SharedPreferences.getInstance();
