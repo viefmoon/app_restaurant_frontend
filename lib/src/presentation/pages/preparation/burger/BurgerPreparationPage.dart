@@ -58,23 +58,23 @@ class _BurgerPreparationPageState extends State<BurgerPreparationPage> {
     final bloc = BlocProvider.of<BurgerPreparationBloc>(context);
     switch (gesture) {
       case 'swipe_left':
-        bloc.add(UpdateOrderPreparationStatusEvent(
-            order.id!,
-            OrderPreparationStatus.in_preparation,
-            PreparationStatusType.burgerPreparationStatus));
+        if (order.burgerPreparationStatus != OrderPreparationStatus.prepared &&
+            order.burgerPreparationStatus !=
+                OrderPreparationStatus.in_preparation) {
+          bloc.add(UpdateOrderPreparationStatusEvent(
+              order.id!,
+              OrderPreparationStatus.in_preparation,
+              PreparationStatusType.burgerPreparationStatus));
+        }
         break;
       case 'swipe_right':
-        bloc.add(UpdateOrderPreparationStatusEvent(
-            order.id!,
-            OrderPreparationStatus.created,
-            PreparationStatusType.burgerPreparationStatus));
-        // Cambia el estado de todos los OrderItems visibles a creado
-        order.orderItems?.forEach((orderItem) {
-          bloc.add(UpdateOrderItemStatusEvent(
-              orderId: order.id!,
-              orderItemId: orderItem.id!,
-              newStatus: OrderItemStatus.created));
-        });
+        if (order.burgerPreparationStatus != OrderPreparationStatus.prepared &&
+            order.burgerPreparationStatus != OrderPreparationStatus.created) {
+          bloc.add(UpdateOrderPreparationStatusEvent(
+              order.id!,
+              OrderPreparationStatus.created,
+              PreparationStatusType.burgerPreparationStatus));
+        }
         break;
       case 'swipe_to_prepared':
         bloc.add(UpdateOrderPreparationStatusEvent(
@@ -82,12 +82,6 @@ class _BurgerPreparationPageState extends State<BurgerPreparationPage> {
             OrderPreparationStatus.prepared,
             PreparationStatusType.burgerPreparationStatus));
         // Cambia el estado de todos los OrderItems visibles a preparado
-        order.orderItems?.forEach((orderItem) {
-          bloc.add(UpdateOrderItemStatusEvent(
-              orderId: order.id!,
-              orderItemId: orderItem.id!,
-              newStatus: OrderItemStatus.prepared));
-        });
         break;
       case 'swipe_to_in_preparation':
         bloc.add(UpdateOrderPreparationStatusEvent(
@@ -100,23 +94,16 @@ class _BurgerPreparationPageState extends State<BurgerPreparationPage> {
   }
 
   void _handleOrderItemTap(Order order, OrderItem orderItem) {
-    final bloc = BlocProvider.of<BurgerPreparationBloc>(context);
-    // Verifica si el OrderItem ya está preparado
-    if (orderItem.status == OrderItemStatus.prepared) {
-      // Decide el nuevo estado basado en el estado de la Order
-      final newStatus = order.status == OrderStatus.in_preparation
+    if (order.burgerPreparationStatus ==
+        OrderPreparationStatus.in_preparation) {
+      final bloc = BlocProvider.of<BurgerPreparationBloc>(context);
+      final newStatus = orderItem.status == OrderItemStatus.prepared
           ? OrderItemStatus.in_preparation
-          : OrderItemStatus.created;
+          : OrderItemStatus.prepared;
       bloc.add(UpdateOrderItemStatusEvent(
           orderId: order.id!,
           orderItemId: orderItem.id!,
           newStatus: newStatus));
-    } else {
-      // Si el OrderItem no está preparado, procede como antes
-      bloc.add(UpdateOrderItemStatusEvent(
-          orderId: order.id!,
-          orderItemId: orderItem.id!,
-          newStatus: OrderItemStatus.prepared));
     }
   }
 
@@ -175,11 +162,16 @@ class _BurgerPreparationPageState extends State<BurgerPreparationPage> {
             itemCount: filteredOrders.length,
             itemBuilder: (context, index) {
               final order = filteredOrders[index];
-              return OrderBurgerPreparationWidget(
-                order: order,
-                onOrderGesture: _handleOrderGesture,
-                onOrderItemTap: _handleOrderItemTap,
-              );
+              if (order.burgerPreparationStatus !=
+                  OrderPreparationStatus.not_required) {
+                return OrderBurgerPreparationWidget(
+                  order: order,
+                  onOrderGesture: _handleOrderGesture,
+                  onOrderItemTap: _handleOrderItemTap,
+                );
+              } else {
+                return SizedBox.shrink();
+              }
             },
           );
         },

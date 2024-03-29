@@ -12,6 +12,7 @@ enum OrderPreparationStatus { created, in_preparation, prepared, not_required }
 
 class Order {
   final int? id;
+  final int? orderNumber;
   final OrderType? orderType;
   final OrderStatus? status;
   final OrderPreparationStatus? barPreparationStatus;
@@ -38,6 +39,7 @@ class Order {
 
   Order({
     this.id,
+    this.orderNumber,
     this.orderType,
     this.status,
     this.barPreparationStatus,
@@ -61,6 +63,7 @@ class Order {
 
   Order copyWith({
     int? id,
+    int? orderNumber,
     OrderType? orderType,
     OrderStatus? status,
     OrderPreparationStatus? barPreparationStatus,
@@ -83,6 +86,7 @@ class Order {
   }) {
     return Order(
       id: id ?? this.id,
+      orderNumber: orderNumber ?? this.orderNumber,
       orderType: orderType ?? this.orderType,
       status: status ?? this.status,
       barPreparationStatus: barPreparationStatus ?? this.barPreparationStatus,
@@ -111,6 +115,7 @@ class Order {
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
       id: json['id'],
+      orderNumber: json['orderNumber'],
       orderType: json['orderType'] != null
           ? OrderType.values.firstWhere(
               (e) => e.toString().split(".").last == json['orderType'],
@@ -185,6 +190,7 @@ class Order {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
     data['id'] = id;
+    data['orderNumber'] = orderNumber;
     data['orderType'] = orderType.toString().split(".").last;
     data['status'] = status.toString().split(".").last;
     data['barPreparationStatus'] =

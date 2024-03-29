@@ -8,7 +8,7 @@ import 'package:app/src/domain/models/SelectedProductObservation.dart';
 import 'package:app/src/domain/models/Order.dart' as OrderModel;
 import 'package:uuid/uuid.dart';
 
-enum OrderItemStatus { created, in_preparation, prepared, canceled }
+enum OrderItemStatus { created, in_preparation, prepared }
 
 class OrderItem {
   final int? id;

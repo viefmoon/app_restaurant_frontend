@@ -58,23 +58,23 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
     final bloc = BlocProvider.of<BarPreparationBloc>(context);
     switch (gesture) {
       case 'swipe_left':
-        bloc.add(UpdateOrderPreparationStatusEvent(
-            order.id!,
-            OrderPreparationStatus.in_preparation,
-            PreparationStatusType.barPreparationStatus));
+        if (order.barPreparationStatus != OrderPreparationStatus.prepared &&
+            order.barPreparationStatus !=
+                OrderPreparationStatus.in_preparation) {
+          bloc.add(UpdateOrderPreparationStatusEvent(
+              order.id!,
+              OrderPreparationStatus.in_preparation,
+              PreparationStatusType.barPreparationStatus));
+        }
         break;
       case 'swipe_right':
-        bloc.add(UpdateOrderPreparationStatusEvent(
-            order.id!,
-            OrderPreparationStatus.created,
-            PreparationStatusType.barPreparationStatus));
-        // Cambia el estado de todos los OrderItems visibles a creado
-        order.orderItems?.forEach((orderItem) {
-          bloc.add(UpdateOrderItemStatusEvent(
-              orderId: order.id!,
-              orderItemId: orderItem.id!,
-              newStatus: OrderItemStatus.created));
-        });
+        if (order.barPreparationStatus != OrderPreparationStatus.prepared &&
+            order.barPreparationStatus != OrderPreparationStatus.created) {
+          bloc.add(UpdateOrderPreparationStatusEvent(
+              order.id!,
+              OrderPreparationStatus.created,
+              PreparationStatusType.barPreparationStatus));
+        }
         break;
       case 'swipe_to_prepared':
         bloc.add(UpdateOrderPreparationStatusEvent(
@@ -82,12 +82,6 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
             OrderPreparationStatus.prepared,
             PreparationStatusType.barPreparationStatus));
         // Cambia el estado de todos los OrderItems visibles a preparado
-        order.orderItems?.forEach((orderItem) {
-          bloc.add(UpdateOrderItemStatusEvent(
-              orderId: order.id!,
-              orderItemId: orderItem.id!,
-              newStatus: OrderItemStatus.prepared));
-        });
         break;
       case 'swipe_to_in_preparation':
         bloc.add(UpdateOrderPreparationStatusEvent(
@@ -100,23 +94,15 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
   }
 
   void _handleOrderItemTap(Order order, OrderItem orderItem) {
-    final bloc = BlocProvider.of<BarPreparationBloc>(context);
-    // Verifica si el OrderItem ya está preparado
-    if (orderItem.status == OrderItemStatus.prepared) {
-      // Decide el nuevo estado basado en el estado de la Order
-      final newStatus = order.status == OrderStatus.in_preparation
+    if (order.barPreparationStatus == OrderPreparationStatus.in_preparation) {
+      final bloc = BlocProvider.of<BarPreparationBloc>(context);
+      final newStatus = orderItem.status == OrderItemStatus.prepared
           ? OrderItemStatus.in_preparation
-          : OrderItemStatus.created;
+          : OrderItemStatus.prepared;
       bloc.add(UpdateOrderItemStatusEvent(
           orderId: order.id!,
           orderItemId: orderItem.id!,
           newStatus: newStatus));
-    } else {
-      // Si el OrderItem no está preparado, procede como antes
-      bloc.add(UpdateOrderItemStatusEvent(
-          orderId: order.id!,
-          orderItemId: orderItem.id!,
-          newStatus: OrderItemStatus.prepared));
     }
   }
 
@@ -175,11 +161,14 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
             itemCount: filteredOrders.length,
             itemBuilder: (context, index) {
               final order = filteredOrders[index];
-              return OrderBarPreparationWidget(
-                order: order,
-                onOrderGesture: _handleOrderGesture,
-                onOrderItemTap: _handleOrderItemTap,
-              );
+              if (order.barPreparationStatus !=
+                  OrderPreparationStatus.not_required) {
+                return OrderBarPreparationWidget(
+                  order: order,
+                  onOrderGesture: _handleOrderGesture,
+                  onOrderItemTap: _handleOrderItemTap,
+                );
+              }
             },
           );
         },

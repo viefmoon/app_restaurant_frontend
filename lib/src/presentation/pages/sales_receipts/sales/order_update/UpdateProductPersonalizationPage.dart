@@ -76,8 +76,16 @@ class _UpdateProductPersonalizationPageState
         widget.product.pizzaIngredients != null &&
         widget.product.pizzaIngredients!.isNotEmpty;
 
-    bool enableSaveButton =
-        selectedVariant != null; // Siempre requiere una variante seleccionada
+    bool enableSaveButton = true; // Inicialmente habilitado
+
+// Verifica si hay variantes de producto disponibles
+    bool hasVariants = widget.product.productVariants != null &&
+        widget.product.productVariants!.isNotEmpty;
+
+// Si hay variantes, entonces requiere que una variante esté seleccionada para habilitar el botón
+    if (hasVariants) {
+      enableSaveButton = selectedVariant != null;
+    }
     if (isPizza) {
       if (!_showPizzaIngredients) {
         // Si "Armar pizza" está deshabilitado, requiere al menos un sabor de pizza seleccionado
@@ -210,7 +218,8 @@ class _UpdateProductPersonalizationPageState
     if (widget.existingOrderItem != null) {
       // Actualizar el OrderItem existente
       final updatedOrderItem = widget.existingOrderItem!.copyWith(
-        tempId: tempId, // Asegúrate de pasar el tempId existente
+        tempId: tempId,
+        product: widget.product, // Asegrate de pasar el tempId existente
         productVariant: selectedVariant,
         selectedModifiers: selectedModifiers,
         selectedProductObservations: selectedObservations,
@@ -227,6 +236,7 @@ class _UpdateProductPersonalizationPageState
       // Creación del OrderItem con los datos necesarios, incluyendo el precio calculado
       final orderItem = OrderItem(
         tempId: tempId, // Usa el nuevo tempId generado
+        product: widget.product,
         productVariant: selectedVariant,
         selectedModifiers: selectedModifiers,
         selectedProductObservations: selectedObservations,
@@ -235,7 +245,6 @@ class _UpdateProductPersonalizationPageState
         comments: comments,
         status: OrderItemStatus.created,
         price: price,
-        orderItemUpdates: [],
       );
 
       // Obtener el OrderCreationBloc y enviar el evento para añadir el OrderItem

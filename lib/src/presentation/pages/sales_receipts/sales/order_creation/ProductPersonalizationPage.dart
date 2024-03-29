@@ -77,8 +77,16 @@ class _ProductPersonalizationPageState
         widget.product.pizzaIngredients!.isNotEmpty;
 
     // Determina si el botón de enviar debe habilitarse
-    bool enableSaveButton =
-        selectedVariant != null; // Siempre requiere una variante seleccionada
+    bool enableSaveButton = true; // Inicialmente habilitado
+
+// Verifica si hay variantes de producto disponibles
+    bool hasVariants = widget.product.productVariants != null &&
+        widget.product.productVariants!.isNotEmpty;
+
+// Si hay variantes, entonces requiere que una variante esté seleccionada para habilitar el botón
+    if (hasVariants) {
+      enableSaveButton = selectedVariant != null;
+    }
     if (isPizza) {
       if (!_showPizzaIngredients) {
         // Si "Armar pizza" está deshabilitado, requiere al menos un sabor de pizza seleccionado

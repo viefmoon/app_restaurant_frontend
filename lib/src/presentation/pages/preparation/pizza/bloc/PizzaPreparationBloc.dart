@@ -83,7 +83,6 @@ class PizzaPreparationBloc
       WebSocketMessageReceived event, Emitter<PizzaPreparationState> emit) {
     final data = json.decode(event.message);
     final messageType = data['messageType'];
-
     switch (messageType) {
       case 'orderItemStatusUpdated':
         _handleOrderItemStatusUpdate(data, emit);
