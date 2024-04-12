@@ -125,7 +125,10 @@ class OrderCreationContainer extends StatelessWidget {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop(true); // Cierra el diálogo
-              Navigator.of(context).pop(); // Cierra la página actual
+              Navigator.popUntil(
+                  context,
+                  ModalRoute.withName(
+                      'salesHome')); // Lleva al usuario a salesHome
             },
             child: Text('Salir'),
           ),
@@ -134,8 +137,10 @@ class OrderCreationContainer extends StatelessWidget {
     );
 
     if (shouldPop == true) {
-      Navigator.of(context)
-          .pop(); // Asegúrate de que esta línea solo se ejecute si el usuario confirma que quiere salir
+      Navigator.popUntil(
+          context,
+          ModalRoute.withName(
+              'salesHome')); // Asegúrate de que esta línea solo se ejecute si el usuario confirma que quiere salir
     }
   }
 }

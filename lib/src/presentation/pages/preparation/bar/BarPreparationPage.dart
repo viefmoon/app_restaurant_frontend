@@ -98,7 +98,7 @@ class _BarPreparationPageState extends State<BarPreparationPage> {
     Product? product = orderItem.product;
 
     if (order.barPreparationStatus == OrderPreparationStatus.in_preparation &&
-        product?.subcategory?.category?.name == "Bebidas") {
+        product?.subcategory?.category?.name == "Bebida") {
       // Verifica si es de la categoría "Bebidas"
       final bloc = BlocProvider.of<BarPreparationBloc>(context);
       final newStatus = orderItem.status == OrderItemStatus.prepared

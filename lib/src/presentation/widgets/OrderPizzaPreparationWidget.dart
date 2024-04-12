@@ -466,7 +466,7 @@ class _OrderPizzaPreparationWidgetState
             orderItem.selectedPizzaFlavors!
                 .map((flavor) => flavor.pizzaFlavor?.name)
                 .join(' / '),
-            style: textStyle.copyWith(color: colorForItem),
+            style: smallerDecoratedTextStyle.copyWith(color: colorForItem),
           ),
         ...orderItem.selectedModifiers?.map((modifier) => Text(
                   modifier.modifier!.name,
@@ -518,7 +518,7 @@ class _OrderPizzaPreparationWidgetState
 // Añadir ingredientes que no pertenecen a ninguna mitad
       if (ingredientsNone.isNotEmpty) {
         itemWidgets.add(Text(
-          'Con: ${ingredientsNone.join(', ')}',
+          ingredientsNone.join(', '),
           style: smallerDecoratedTextStyle.copyWith(color: colorForItem),
         ));
       }
