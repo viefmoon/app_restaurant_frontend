@@ -800,21 +800,16 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Botón Registrar Pago
-              if (state.selectedOrder?.status == OrderStatus.prepared)
-                FloatingActionButton(
-                  onPressed: () {
-                    _showPaymentDialog(
-                        context, state.selectedOrder!.totalCost ?? 0.0, state);
-                    // Asumiendo que _showPaymentDialog eventualmente emite RegisterPayment
-                    // y que quieres regresar inmediatamente después de registrar el pago,
-                    // puedes escuchar el estado del Bloc para saber cuándo regresar.
-                    // Sin embargo, este enfoque puede no ser ideal si _showPaymentDialog es asíncrono.
-                    // Considera esperar a una confirmación de éxito antes de hacer pop.
-                  },
-                  child: Icon(Icons.payment),
-                  tooltip: 'Registrar Pago',
-                  backgroundColor: Colors.blue,
-                ),
+              // Se elimina la condición que verifica si el estado de la orden es OrderStatus.prepared
+              FloatingActionButton(
+                onPressed: () {
+                  _showPaymentDialog(
+                      context, state.selectedOrder!.totalCost ?? 0.0, state);
+                },
+                child: Icon(Icons.payment),
+                tooltip: 'Registrar Pago',
+                backgroundColor: Colors.blue,
+              ),
 
               if (state.selectedOrder?.status == OrderStatus.prepared &&
                   state.selectedOrder?.amountPaid != null &&
@@ -825,11 +820,10 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                 SizedBox(height: 10),
 
               // Botón Terminar Orden
-              if (state.selectedOrder?.amountPaid != null &&
-                  state.selectedOrder!.amountPaid! -
-                          calculateTotal(
-                              state.orderItems, state.orderAdjustments) ==
-                      0)
+              if (state.selectedOrder?.status == OrderStatus.prepared &&
+                  state.selectedOrder?.amountPaid != null &&
+                  state.selectedOrder!.amountPaid! >=
+                      calculateTotal(state.orderItems, state.orderAdjustments))
                 FloatingActionButton(
                   onPressed: () {
                     if (state.selectedOrder?.id != null) {
@@ -1167,13 +1161,12 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
               title: Text('Registrar Pago'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment
-                    .start, // Alinea el contenido a la izquierda
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
                     'Total: \$${totalCost.toStringAsFixed(2)}',
                     style: TextStyle(
-                      fontSize: 20, // Hace el texto más grande
+                      fontSize: 20,
                     ),
                   ),
                   TextField(
@@ -1195,16 +1188,14 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                     Text(
                       'Cambio: \$${(_amountPaid - totalCost).toStringAsFixed(2)}',
                       style: TextStyle(
-                        fontSize:
-                            16, // Ajusta el tamaño del texto del cambio si lo deseas
+                        fontSize: 16,
                       ),
                     ),
                 ],
               ),
               actions: <Widget>[
                 Row(
-                  mainAxisAlignment: MainAxisAlignment
-                      .spaceBetween, // Alinea los botones a los extremos
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
@@ -1214,17 +1205,23 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                       onPressed: _amountPaid >= totalCost
                           ? () {
                               if (state.selectedOrder?.id != null) {
-                                // Aquí se usa totalCost en lugar de _amountPaid para registrar el pago
                                 BlocProvider.of<OrderUpdateBloc>(context).add(
                                   RegisterPayment(
-                                      orderId: state.selectedOrder!.id!,
-                                      amount: totalCost),
+                                    orderId: state.selectedOrder!.id!,
+                                    amount: totalCost,
+                                  ),
                                 );
-                                Navigator.popUntil(
-                                    context, (route) => route.isFirst);
+                                Navigator.pop(
+                                    context); // Cierra la página actual antes de navegar
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => OrderUpdatePage(),
+                                  ),
+                                );
                               }
                             }
-                          : null, // Deshabilita el botón si la condición no se cumple
+                          : null,
                       child: Text('Registrar Pago'),
                       style: ButtonStyle(
                         foregroundColor:
@@ -1232,7 +1229,7 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                           (Set<MaterialState> states) {
                             if (states.contains(MaterialState.disabled))
                               return Colors.grey;
-                            return null; // Dejar el color predeterminado para estados habilitados
+                            return null;
                           },
                         ),
                       ),

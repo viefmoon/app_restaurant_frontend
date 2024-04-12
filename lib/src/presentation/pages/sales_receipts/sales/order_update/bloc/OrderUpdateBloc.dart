@@ -116,13 +116,12 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     emit(state.copyWith(
         response:
             Loading())); // Añadir esta línea para manejar el estado de carga
+
     // Recuperar la orden usando el ID proporcionado
     final Resource<Order> orderResource =
         await ordersUseCases.getOrderForUpdate.run(event.selectedOrder.id!);
     if (orderResource is Success<Order>) {
       final Order order = orderResource.data;
-      print("order.totalCost: ${order.totalCost}");
-      print("order.amountPaid: ${order.amountPaid}");
 
       // Asegrate de convertir la fecha y hora programadas a la zona horaria local antes de crear TimeOfDay
       final DateTime? localScheduledDeliveryTime =
@@ -150,9 +149,6 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
         orderAdjustments: order.orderAdjustments,
         selectedOrder: order,
       ));
-
-      print("order.totalCost: ${state.selectedOrder?.totalCost}");
-      print("order.amountPaid: ${state.selectedOrder?.amountPaid}");
 
       // Emitir el evento AreaSelected solo si hay un área seleccionada y el tipo de orden es DineIn
       if (order.orderType == OrderType.dineIn && state.selectedAreaId != null) {
@@ -511,17 +507,16 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
 
   Future<void> _onRegisterPayment(
       RegisterPayment event, Emitter<OrderUpdateState> emit) async {
-    emit(state.copyWith(response: Loading()));
-
-    // Aquí iría la lógica para registrar el pago, por ejemplo:
     final Resource result =
         await ordersUseCases.registerPayment.run(event.orderId, event.amount);
 
     if (result is Success) {
       // Suponiendo que el resultado exitoso incluye la orden actualizada
-      emit(state.copyWith(response: Success(result.data)));
+      //emit(state.copyWith(response: Success(result.data)));
+      // Emitir el evento OrderSelectedForUpdate después de registrar el pago
+      add(OrderSelectedForUpdate(state.selectedOrder!));
     } else if (result is Error) {
-      emit(state.copyWith(response: Error(result.message)));
+      //emit(state.copyWith(response: Error(result.message)));
     }
   }
 
