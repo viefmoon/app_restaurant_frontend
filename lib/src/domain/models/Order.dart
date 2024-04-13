@@ -6,7 +6,14 @@ import 'package:app/src/domain/models/Area.dart';
 
 enum OrderType { delivery, dineIn, pickUpWait }
 
-enum OrderStatus { created, in_preparation, prepared, finished, canceled }
+enum OrderStatus {
+  created,
+  in_preparation,
+  prepared,
+  in_delivery,
+  finished,
+  canceled
+}
 
 enum OrderPreparationStatus { created, in_preparation, prepared, not_required }
 

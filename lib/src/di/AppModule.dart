@@ -27,8 +27,11 @@ import 'package:app/src/domain/useCases/orders/CancelOrderUseCase.dart';
 import 'package:app/src/domain/useCases/orders/CompleteOrderUseCase.dart';
 import 'package:app/src/domain/useCases/orders/CreateOrderUseCase.dart';
 import 'package:app/src/domain/useCases/orders/FindOrderItemsWithCounts.dart';
+import 'package:app/src/domain/useCases/orders/GetClosedOrdersUseCase.dart';
+import 'package:app/src/domain/useCases/orders/GetDeliveryOrdersUseCase.dart';
 import 'package:app/src/domain/useCases/orders/GetOpenOrdersUseCase.dart';
 import 'package:app/src/domain/useCases/orders/GetOrderForUpdateUseCase.dart';
+import 'package:app/src/domain/useCases/orders/MarkOrdersAsInDeliveryUseCase.dart';
 import 'package:app/src/domain/useCases/orders/OrdersUseCases.dart';
 import 'package:app/src/domain/useCases/orders/RegisterPaymentUseCase.dart';
 import 'package:app/src/domain/useCases/orders/SynchronizeDataUseCase.dart';
@@ -128,6 +131,7 @@ abstract class AppModule {
   OrdersUseCases get ordersUseCases => OrdersUseCases(
         createOrder: CreateOrderUseCase(ordersRepository),
         getOpenOrders: GetOpenOrdersUseCase(ordersRepository),
+        getClosedOrders: GetClosedOrdersUseCase(ordersRepository),
         getOrderForUpdate: GetOrderForUpdateUseCase(ordersRepository),
         updateOrder: UpdateOrderUseCase(ordersRepository),
         updateOrderStatus: UpdateOrderStatusUseCase(ordersRepository),
@@ -138,5 +142,7 @@ abstract class AppModule {
         registerPayment: RegisterPaymentUseCase(ordersRepository),
         completeOrder: CompleteOrderUseCase(ordersRepository),
         cancelOrder: CancelOrderUseCase(ordersRepository),
+        getDeliveryOrders: GetDeliveryOrdersUseCase(ordersRepository),
+        markOrdersAsInDelivery: MarkOrdersAsInDeliveryUseCase(ordersRepository),
       );
 }

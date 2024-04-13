@@ -1,4 +1,6 @@
 import 'package:app/main.dart';
+import 'package:app/src/presentation/pages/sales_receipts/delivery_orders/DeliveryOrdersPage.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/pending_order_items/PendingOrderItemsPage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/sales_options/SalesOptionsPage.dart';
 import 'package:app/src/presentation/pages/setting/SettingsPage.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +8,7 @@ import 'bloc/SalesHomeBloc.dart';
 import 'bloc/SalesHomeEvent.dart';
 import 'bloc/SalesHomeState.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:app/src/presentation/pages/sales_receipts/receipts/ReceiptsPage.dart';
+import 'package:app/src/presentation/pages/sales_receipts/closed_orders/ClosedOrdersPage.dart';
 
 class SalesHomePage extends StatefulWidget {
   const SalesHomePage({super.key});
@@ -20,7 +22,9 @@ class _SalesHomePageState extends State<SalesHomePage> {
 
   List<Widget> pageList = <Widget>[
     SalesOptionsPage(),
-    ReceiptsPage(),
+    PendingOrderItemsPage(),
+    DeliveryOrdersPage(),
+    ClosedOrdersPage(),
     SettingsPage(),
   ];
 
@@ -71,7 +75,8 @@ class _SalesHomePageState extends State<SalesHomePage> {
                     },
                   ),
                   ListTile(
-                    title: Text('Recibos', style: TextStyle(fontSize: 22)),
+                    title: Text('Productos pendientes',
+                        style: TextStyle(fontSize: 22)),
                     selected: state.pageIndex == 1,
                     onTap: () {
                       _bloc?.add(SalesChangeDrawerPage(pageIndex: 1));
@@ -79,11 +84,28 @@ class _SalesHomePageState extends State<SalesHomePage> {
                     },
                   ),
                   ListTile(
-                    title:
-                        Text('Configuración', style: TextStyle(fontSize: 22)),
-                    selected: state.pageIndex == 1,
+                    title: Text('Ordenes de entrega',
+                        style: TextStyle(fontSize: 22)),
+                    selected: state.pageIndex == 2,
                     onTap: () {
                       _bloc?.add(SalesChangeDrawerPage(pageIndex: 2));
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    title: Text('Recibos', style: TextStyle(fontSize: 22)),
+                    selected: state.pageIndex == 3,
+                    onTap: () {
+                      _bloc?.add(SalesChangeDrawerPage(pageIndex: 3));
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    title:
+                        Text('Configuración', style: TextStyle(fontSize: 22)),
+                    selected: state.pageIndex == 4,
+                    onTap: () {
+                      _bloc?.add(SalesChangeDrawerPage(pageIndex: 4));
                       Navigator.pop(context);
                     },
                   ),

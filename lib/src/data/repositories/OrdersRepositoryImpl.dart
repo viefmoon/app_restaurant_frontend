@@ -21,6 +21,21 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }
 
   @override
+  Future<Resource<List<Order>>> getClosedOrders() async {
+    return ordersService.getClosedOrders();
+  }
+
+  @override
+  Future<Resource<List<Order>>> getDeliveryOrders() async {
+    return ordersService.getDeliveryOrders();
+  }
+
+  @override
+  Future<Resource<void>> markOrdersAsInDelivery(List<Order> orders) async {
+    return ordersService.markOrdersAsInDelivery(orders);
+  }
+
+  @override
   Future<Resource<Order>> getOrderForUpdate(int orderId) {
     return ordersService.getOrderForUpdate(orderId);
   }

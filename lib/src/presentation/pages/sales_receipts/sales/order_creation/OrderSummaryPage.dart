@@ -441,31 +441,49 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                       details.add(Text('Comentarios: ${orderItem.comments}'));
                     }
 
-                    return InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ProductPersonalizationPage(
-                              product: orderItem.product!,
-                              existingOrderItem: orderItem,
-                            ),
-                          ),
-                        );
+                    return Dismissible(
+                      key: Key(orderItem.tempId
+                          .toString()), // Usa tempId si está disponible, de lo contrario usa id
+                      direction: DismissDirection
+                          .endToStart, // Deslizar solo de derecha a izquierda
+                      onDismissed: (direction) {
+                        // Aquí manejas la eliminación del elemento
+                        // Emite un evento para eliminar el OrderItem del estado usando tempId o id
+                        BlocProvider.of<OrderCreationBloc>(context)
+                            .add(RemoveOrderItem(tempId: orderItem.tempId!));
                       },
-                      child: ListTile(
-                        title: Row(
-                          children: [
-                            Expanded(
-                              child: Text(orderItem.product?.name ?? ''),
+                      background: Container(
+                        color: Colors.red,
+                        alignment: Alignment.centerRight,
+                        padding: EdgeInsets.only(right: 20),
+                        child: Icon(Icons.delete, color: Colors.white),
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductPersonalizationPage(
+                                product: orderItem.product!,
+                                existingOrderItem: orderItem,
+                              ),
                             ),
-                            Text(
-                                '\$${orderItem.price?.toStringAsFixed(2) ?? ''}'),
-                          ],
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: details,
+                          );
+                        },
+                        child: ListTile(
+                          title: Row(
+                            children: [
+                              Expanded(
+                                child: Text(orderItem.product?.name ?? ''),
+                              ),
+                              Text(
+                                  '\$${orderItem.price?.toStringAsFixed(2) ?? ''}'),
+                            ],
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: details,
+                          ),
                         ),
                       ),
                     );

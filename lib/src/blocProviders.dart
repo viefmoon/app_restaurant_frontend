@@ -14,9 +14,12 @@ import 'package:app/src/presentation/pages/preparation/burger/bloc/BurgerPrepara
 import 'package:app/src/presentation/pages/preparation/burger/home/bloc/BurgerHomeBloc.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationBloc.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/home/bloc/PizzaHomeBloc.dart';
+import 'package:app/src/presentation/pages/sales_receipts/closed_orders/bloc/ClosedOrdersBloc.dart';
+import 'package:app/src/presentation/pages/sales_receipts/delivery_orders/bloc/DeliveryOrdersBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/home/bloc/SalesHomeBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateBloc.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/pending_order_items/bloc/PendingOrderItemsBloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 List<BlocProvider> blocProviders = [
@@ -35,6 +38,15 @@ List<BlocProvider> blocProviders = [
           areasUseCases: locator<AreasUseCases>(),
           ordersUseCases: locator<OrdersUseCases>(),
           authUseCases: locator<AuthUseCases>())),
+  BlocProvider<ClosedOrdersBloc>(
+      create: (context) =>
+          ClosedOrdersBloc(ordersUseCases: locator<OrdersUseCases>())),
+  BlocProvider<PendingOrderItemsBloc>(
+      create: (context) =>
+          PendingOrderItemsBloc(ordersUseCases: locator<OrdersUseCases>())),
+  BlocProvider<DeliveryOrdersBloc>(
+      create: (context) =>
+          DeliveryOrdersBloc(ordersUseCases: locator<OrdersUseCases>())),
   BlocProvider<OrderUpdateBloc>(
       create: (context) => OrderUpdateBloc(
           ordersUseCases: locator<OrdersUseCases>(),

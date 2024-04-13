@@ -49,6 +49,49 @@ class OrdersService {
     }
   }
 
+  Future<Resource<List<Order>>> getClosedOrders() async {
+    try {
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/orders/closed');
+      final response = await http.get(
+        url,
+        headers: {"Content-Type": "application/json"},
+      );
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body) as List<dynamic>;
+        List<Order> orders =
+            data.map((orderJson) => Order.fromJson(orderJson)).toList();
+        return Success(orders);
+      } else {
+        return Error("Error al obtener las órdenes cerradas: ${response.body}");
+      }
+    } catch (e) {
+      return Error(e.toString());
+    }
+  }
+
+  Future<Resource<List<Order>>> getDeliveryOrders() async {
+    try {
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/orders/delivery');
+      final response = await http.get(
+        url,
+        headers: {"Content-Type": "application/json"},
+      );
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body) as List<dynamic>;
+        List<Order> orders =
+            data.map((orderJson) => Order.fromJson(orderJson)).toList();
+        return Success(orders);
+      } else {
+        return Error(
+            "Error al obtener las órdenes de entrega: ${response.body}");
+      }
+    } catch (e) {
+      return Error(e.toString());
+    }
+  }
+
   Future<Resource<Order>> getOrderForUpdate(int orderId) async {
     try {
       print("Obteniendo orden para actualizar");
@@ -259,6 +302,27 @@ class OrdersService {
         return Success(canceledOrder);
       } else {
         return Error("Error al cancelar la orden: ${response.body}");
+      }
+    } catch (e) {
+      return Error(e.toString());
+    }
+  }
+
+  Future<Resource<void>> markOrdersAsInDelivery(List<Order> orders) async {
+    try {
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/orders/delivery/mark-in-delivery');
+      final response = await http.patch(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: json.encode(orders.map((order) => order.toJson()).toList()),
+      );
+      if (response.statusCode == 200) {
+        return Success(
+            null); // No hay objeto de respuesta específico, así que devolvemos null con Success.
+      } else {
+        return Error(
+            "Error al marcar las órdenes como en reparto: ${response.body}");
       }
     } catch (e) {
       return Error(e.toString());

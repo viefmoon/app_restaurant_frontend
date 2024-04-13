@@ -548,127 +548,173 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                   ));
                 }
 
-                return InkWell(
-                  onTap: () {
-                    final orderItemStatus = orderItem.status;
-                    switch (orderItemStatus) {
-                      case OrderItemStatus.created:
-                        // Buscar el producto por ID en las categorías cargadas en el estado
-                        Product? foundProduct;
-                        for (var category in state.categories!) {
-                          for (var subcategory
-                              in category.subcategories ?? []) {
-                            for (var product in subcategory.products ?? []) {
-                              if (product.id == orderItem.product!.id) {
-                                foundProduct = product;
-                                break;
+                return Dismissible(
+                  key: Key(orderItem.tempId
+                      .toString()), // Asegúrate de que la clave sea única para cada elemento
+                  direction: orderItem.status == OrderItemStatus.prepared
+                      ? DismissDirection.none
+                      : DismissDirection.endToStart,
+                  confirmDismiss: (direction) async {
+                    if (orderItem.status == OrderItemStatus.in_preparation) {
+                      return await showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text("Confirmación"),
+                            content: Text(
+                                "Este producto está en preparación. ¿Deseas eliminarlo?"),
+                            actions: <Widget>[
+                              TextButton(
+                                child: Text("No"),
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
+                              ),
+                              TextButton(
+                                child: Text("Sí"),
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }
+                    return orderItem.status != OrderItemStatus.prepared;
+                  },
+                  onDismissed: (direction) {
+                    // Aquí manejas la eliminación del elemento
+                    BlocProvider.of<OrderUpdateBloc>(context)
+                        .add(RemoveOrderItem(tempId: orderItem.tempId!));
+                  },
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: EdgeInsets.only(right: 20),
+                    child: Icon(Icons.delete, color: Colors.white),
+                  ),
+                  child: InkWell(
+                    onTap: () {
+                      final orderItemStatus = orderItem.status;
+                      switch (orderItemStatus) {
+                        case OrderItemStatus.created:
+                          // Buscar el producto por ID en las categorías cargadas en el estado
+                          Product? foundProduct;
+                          for (var category in state.categories!) {
+                            for (var subcategory
+                                in category.subcategories ?? []) {
+                              for (var product in subcategory.products ?? []) {
+                                if (product.id == orderItem.product!.id) {
+                                  foundProduct = product;
+                                  break;
+                                }
                               }
+                              if (foundProduct != null) break;
                             }
                             if (foundProduct != null) break;
                           }
-                          if (foundProduct != null) break;
-                        }
 
-                        // Asumiendo que siempre se encuentra el producto, redirige a la página de personalización
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                UpdateProductPersonalizationPage(
-                              product:
-                                  foundProduct!, // Aquí se asume que el producto siempre se encuentra
-                              existingOrderItem: orderItem,
+                          // Asumiendo que siempre se encuentra el producto, redirige a la página de personalización
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  UpdateProductPersonalizationPage(
+                                product:
+                                    foundProduct!, // Aquí se asume que el producto siempre se encuentra
+                                existingOrderItem: orderItem,
+                              ),
                             ),
-                          ),
-                        );
-                        break;
-                      case OrderItemStatus.in_preparation:
-                        // Muestra un diálogo para confirmar si desea actualizar un producto en preparación
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text("Confirmación"),
-                              content: Text(
-                                  "Este producto está en preparación. ¿Deseas actualizarlo?"),
-                              actions: <Widget>[
-                                TextButton(
-                                  child: Text("Cancelar"),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                                TextButton(
-                                  child: Text("Actualizar"),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                    // Buscar el producto por ID
-                                    Product? foundProduct;
-                                    for (var category in state.categories!) {
-                                      for (var subcategory
-                                          in category.subcategories ?? []) {
-                                        for (var product
-                                            in subcategory.products ?? []) {
-                                          if (product.id ==
-                                              orderItem.product!.id) {
-                                            foundProduct = product;
-                                            break;
+                          );
+                          break;
+                        case OrderItemStatus.in_preparation:
+                          // Muestra un diálogo para confirmar si desea actualizar un producto en preparación
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text("Confirmación"),
+                                content: Text(
+                                    "Este producto está en preparación. ¿Deseas actualizarlo?"),
+                                actions: <Widget>[
+                                  TextButton(
+                                    child: Text("Cancelar"),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  TextButton(
+                                    child: Text("Actualizar"),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      // Buscar el producto por ID
+                                      Product? foundProduct;
+                                      for (var category in state.categories!) {
+                                        for (var subcategory
+                                            in category.subcategories ?? []) {
+                                          for (var product
+                                              in subcategory.products ?? []) {
+                                            if (product.id ==
+                                                orderItem.product!.id) {
+                                              foundProduct = product;
+                                              break;
+                                            }
                                           }
+                                          if (foundProduct != null) break;
                                         }
                                         if (foundProduct != null) break;
                                       }
-                                      if (foundProduct != null) break;
-                                    }
 
-                                    // Asumiendo que siempre se encuentra el producto, redirige a la página de personalización
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            UpdateProductPersonalizationPage(
-                                          product:
-                                              foundProduct!, // Aquí se asume que el producto siempre se encuentra
-                                          existingOrderItem: orderItem,
+                                      // Asumiendo que siempre se encuentra el producto, redirige a la página de personalización
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              UpdateProductPersonalizationPage(
+                                            product:
+                                                foundProduct!, // Aquí se asume que el producto siempre se encuentra
+                                            existingOrderItem: orderItem,
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                        break;
-                      case OrderItemStatus.prepared:
-                        // No permite la redirección y muestra un mensaje
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                                "Este producto ya está preparado y no puede ser modificado."),
-                            duration: Duration(milliseconds: 700),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                          break;
+                        case OrderItemStatus.prepared:
+                          // No permite la redirección y muestra un mensaje
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  "Este producto ya está preparado y no puede ser modificado."),
+                              duration: Duration(milliseconds: 700),
+                            ),
+                          );
+                          break;
+                        default:
+                          // Manejo de otros estados si es necesario
+                          break;
+                      }
+                    },
+                    child: ListTile(
+                      title: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              orderItem.product?.name ?? '',
+                              style: TextStyle(color: textColor),
+                            ),
                           ),
-                        );
-                        break;
-                      default:
-                        // Manejo de otros estados si es necesario
-                        break;
-                    }
-                  },
-                  child: ListTile(
-                    title: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            orderItem.product?.name ?? '',
-                            style: TextStyle(color: textColor),
-                          ),
-                        ),
-                        Text('\$${orderItem.price?.toStringAsFixed(2) ?? ''}'),
-                      ],
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: details,
+                          Text(
+                              '\$${orderItem.price?.toStringAsFixed(2) ?? ''}'),
+                        ],
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: details,
+                      ),
                     ),
                   ),
                 );
@@ -741,11 +787,10 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                           orderItemsCount +
                           orderAdjustmentsCount +
                           2) {
-                print(state.selectedOrder!.amountPaid!);
-                print(calculateTotal(state.orderItems, state.orderAdjustments));
                 // Widget para mostrar el restante
-                final remaining = state.selectedOrder!.amountPaid! -
-                    calculateTotal(state.orderItems, state.orderAdjustments);
+                final remaining =
+                    calculateTotal(state.orderItems, state.orderAdjustments) -
+                        state.selectedOrder!.amountPaid!;
                 return ListTile(
                   title: Text(
                     'Restante',

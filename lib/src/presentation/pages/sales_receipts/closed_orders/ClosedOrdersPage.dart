@@ -1,46 +1,48 @@
-import 'package:app/src/domain/models/Order.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/OrderUpdatePage.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateEvent.dart';
+import 'package:app/src/domain/utils/Resource.dart';
+import 'package:app/src/presentation/pages/sales_receipts/closed_orders/ClosedOrderDetailsPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateBloc.dart';
-import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateState.dart';
-import 'package:app/src/domain/utils/Resource.dart';
+import 'package:app/src/domain/models/Order.dart';
+import 'package:app/src/presentation/pages/sales_receipts/closed_orders/bloc/ClosedOrdersBloc.dart';
+import 'package:app/src/presentation/pages/sales_receipts/closed_orders/bloc/ClosedOrdersEvent.dart';
+import 'package:app/src/presentation/pages/sales_receipts/closed_orders/bloc/ClosedOrdersState.dart';
 import 'package:intl/intl.dart';
 
-class OpenOrdersPage extends StatefulWidget {
+class ClosedOrdersPage extends StatefulWidget {
   @override
-  _OpenOrdersPageState createState() => _OpenOrdersPageState();
+  _ClosedOrdersPageState createState() => _ClosedOrdersPageState();
 }
 
-class _OpenOrdersPageState extends State<OpenOrdersPage> {
+class _ClosedOrdersPageState extends State<ClosedOrdersPage> {
   OrderType? selectedFilter; // null representa el filtro "Todas"
-  String? selectedArea; // null representa "Todas las áreas"
 
   @override
   Widget build(BuildContext context) {
-    final OrderUpdateBloc bloc = BlocProvider.of<OrderUpdateBloc>(context);
-    bloc.add(LoadOpenOrders());
+    final ClosedOrdersBloc bloc = BlocProvider.of<ClosedOrdersBloc>(context);
+    bloc.add(LoadClosedOrders());
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Órdenes Abiertas', style: TextStyle(fontSize: 24)),
+        title: Text('Cerradas', style: TextStyle(fontSize: 24)),
         actions: <Widget>[
           DropdownButton<OrderType?>(
             value: selectedFilter,
             onChanged: (OrderType? newValue) {
               setState(() {
                 selectedFilter = newValue;
-                if (newValue != OrderType.dineIn) {
-                  selectedArea =
-                      null; // Resetea el filtro de área si no es 'Cenar'
-                }
               });
             },
-            iconSize: 20,
-            style: TextStyle(fontSize: 20, color: Colors.white),
-            dropdownColor: Colors.black,
-            underline: Container(height: 2, color: Colors.white),
+            iconSize: 60, // Ajusta el tamaño del ícono del dropdown
+            style: TextStyle(
+                fontSize: 20,
+                color: Colors.white), // Ajusta el estilo global del texto
+            dropdownColor:
+                Colors.black, // Cambia el color de fondo del men desplegable
+            underline: Container(
+              // Personaliza la línea debajo del dropdown
+              height: 2,
+              color: Colors.white,
+            ),
             items: OrderType.values.map((orderType) {
               String displayText;
               switch (orderType) {
@@ -64,41 +66,13 @@ class _OpenOrdersPageState extends State<OpenOrdersPage> {
               ..insert(
                   0,
                   DropdownMenuItem(
-                      value: null,
-                      child: Text("Todas", style: TextStyle(fontSize: 20)))),
+                    value: null,
+                    child: Text("Todas", style: TextStyle(fontSize: 20)),
+                  )),
           ),
-          SizedBox(width: 5),
-          if (selectedFilter ==
-              OrderType
-                  .dineIn) // Solo muestra este dropdown si el filtro es 'Cenar'
-            DropdownButton<String?>(
-              value: selectedArea,
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedArea = newValue;
-                });
-              },
-              iconSize: 20,
-              style: TextStyle(fontSize: 20, color: Colors.white),
-              dropdownColor: Colors.black,
-              underline: Container(height: 2, color: Colors.white),
-              items: ['ARCO', 'BAR', 'ENTRADA', 'EQUIPAL', 'JARDIN']
-                  .map((String area) {
-                return DropdownMenuItem<String?>(
-                  value: area,
-                  child: Text(area, style: TextStyle(fontSize: 20)),
-                );
-              }).toList()
-                ..insert(
-                    0,
-                    DropdownMenuItem(
-                        value: null,
-                        child: Text("Todas las áreas",
-                            style: TextStyle(fontSize: 20)))),
-            ),
         ],
       ),
-      body: BlocBuilder<OrderUpdateBloc, OrderUpdateState>(
+      body: BlocBuilder<ClosedOrdersBloc, ClosedOrdersState>(
         builder: (context, state) {
           if (state.response is Loading) {
             return Center(child: CircularProgressIndicator());
@@ -106,15 +80,8 @@ class _OpenOrdersPageState extends State<OpenOrdersPage> {
             List<Order> filteredOrders = selectedFilter == null
                 ? state.orders!
                 : state.orders!
-                    .where((order) => order.orderType == selectedFilter)
+                    .where((order) => order.status == selectedFilter)
                     .toList();
-
-            if (selectedFilter == OrderType.dineIn && selectedArea != null) {
-              filteredOrders = filteredOrders
-                  .where((order) =>
-                      order.area != null && order.area!.name == selectedArea)
-                  .toList();
-            }
 
             return ListView.builder(
               itemCount: filteredOrders.length,
@@ -177,19 +144,16 @@ class _OpenOrdersPageState extends State<OpenOrdersPage> {
                       subtitle + scheduledDeliveryTimeText + statusText,
                       style: TextStyle(color: statusColor, fontSize: 18)),
                   onTap: () {
-                    // Emitir el evento al BLoC con la orden seleccionada
-                    bloc.add(OrderSelectedForUpdate(order));
-
-                    // Navegar a la página de actualización de la orden sin pasar la orden como parámetro
+                    print(
+                        "Navegando a ClosedOrderDetailsPage con orden: $order");
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            OrderUpdatePage(), // Ahora OrderUpdatePage no necesita parámetros
+                            ClosedOrderDetailsPage(order: order),
                       ),
                     );
                   },
-                  // Agrega más detalles según sea necesario
                 );
               },
             );
@@ -197,45 +161,31 @@ class _OpenOrdersPageState extends State<OpenOrdersPage> {
             final errorMessage = (state.response as Error).message;
             return Center(child: Text('Error: $errorMessage'));
           } else {
-            return Center(child: Text('No hay órdenes abiertas.'));
+            return Center(child: Text('No hay órdenes cerradas.'));
           }
         },
       ),
     );
   }
 
-  // Añade esta función dentro de la clase OpenOrdersPage para determinar el color basado en el estado
   Color _getStatusColor(OrderStatus? status) {
     switch (status) {
-      case OrderStatus.created:
-        return Colors.blue;
-      case OrderStatus.in_preparation:
-        return Colors.orange;
-      case OrderStatus.prepared:
-        return Colors.green;
-      case OrderStatus.finished:
-        return Colors.grey;
       case OrderStatus.canceled:
         return Colors.red;
+      case OrderStatus.finished:
+        return Colors.grey;
       default:
         return Colors
             .black; // Color por defecto si el estado es nulo o no reconocido
     }
   }
 
-  // Añade esta función dentro de la clase OpenOrdersPage para traducir el estado a español
   String _translateOrderStatus(OrderStatus? status) {
     switch (status) {
-      case OrderStatus.created:
-        return 'Creado';
-      case OrderStatus.in_preparation:
-        return 'En preparación';
-      case OrderStatus.prepared:
-        return 'Preparado';
-      case OrderStatus.finished:
-        return 'Finalizado';
       case OrderStatus.canceled:
         return 'Cancelado';
+      case OrderStatus.finished:
+        return 'Finalizado';
       default:
         return 'Desconocido'; // Texto por defecto si el estado es nulo o no reconocido
     }
