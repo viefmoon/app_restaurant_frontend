@@ -39,6 +39,9 @@ class _ProductPersonalizationPageState
   bool _showPizzaIngredients = false;
   bool _createTwoHalves = false;
   double _currentPrice = 0.0;
+  bool _isIngredientsExpanded = false;
+  bool _isLeftExpanded = false;
+  bool _isRightExpanded = false;
 
   @override
   void initState() {
@@ -463,33 +466,63 @@ class _ProductPersonalizationPageState
   }
 
   Widget _buildPizzaIngredientSelector(List<PizzaIngredient> ingredients) {
-    Widget buildIngredientList(PizzaHalf half) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: ingredients
-            .map((ingredient) => CheckboxListTile(
-                  title: Text(ingredient.name),
-                  value: selectedPizzaIngredients.any((selectedIngredient) =>
-                      selectedIngredient.pizzaIngredient?.id ==
-                          ingredient.id && // Compara por ID
-                      selectedIngredient.half == half),
-                  onChanged: (bool? value) {
-                    setState(() {
-                      if (value == true) {
-                        selectedPizzaIngredients.add(SelectedPizzaIngredient(
-                            pizzaIngredient: ingredient, half: half));
-                      } else {
-                        selectedPizzaIngredients.removeWhere(
+    Widget buildIngredientList(PizzaHalf half, String title) {
+      return ExpansionPanelList(
+        expansionCallback: (int index, bool isExpanded) {
+          setState(() {
+            if (half == PizzaHalf.left) {
+              _isLeftExpanded = !_isLeftExpanded;
+            } else if (half == PizzaHalf.right) {
+              _isRightExpanded = !_isRightExpanded;
+            } else {
+              _isIngredientsExpanded = !_isIngredientsExpanded;
+            }
+          });
+        },
+        children: [
+          ExpansionPanel(
+            headerBuilder: (BuildContext context, bool isExpanded) {
+              return ListTile(
+                title: Text(title,
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              );
+            },
+            body: Column(
+              children: ingredients
+                  .map((ingredient) => CheckboxListTile(
+                        title: Text(ingredient.name),
+                        value: selectedPizzaIngredients.any(
                             (selectedIngredient) =>
                                 selectedIngredient.pizzaIngredient?.id ==
                                     ingredient.id && // Compara por ID
-                                selectedIngredient.half == half);
-                      }
-                      _updatePrice();
-                    });
-                  },
-                ))
-            .toList(),
+                                selectedIngredient.half == half),
+                        onChanged: (bool? value) {
+                          setState(() {
+                            if (value == true) {
+                              selectedPizzaIngredients.add(
+                                  SelectedPizzaIngredient(
+                                      pizzaIngredient: ingredient, half: half));
+                            } else {
+                              selectedPizzaIngredients.removeWhere(
+                                  (selectedIngredient) =>
+                                      selectedIngredient.pizzaIngredient?.id ==
+                                          ingredient.id && // Compara por ID
+                                      selectedIngredient.half == half);
+                            }
+                            _updatePrice();
+                          });
+                        },
+                      ))
+                  .toList(),
+            ),
+            isExpanded: (half == PizzaHalf.left)
+                ? _isLeftExpanded
+                : (half == PizzaHalf.right)
+                    ? _isRightExpanded
+                    : _isIngredientsExpanded,
+          ),
+        ],
       );
     }
 
@@ -501,14 +534,11 @@ class _ProductPersonalizationPageState
           child: Text('Ingredientes de Pizza',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         ),
-        if (!_createTwoHalves) buildIngredientList(PizzaHalf.none),
+        if (!_createTwoHalves)
+          buildIngredientList(PizzaHalf.none, 'Ingredientes'),
         if (_createTwoHalves) ...[
-          Text('  Primera mitad:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          buildIngredientList(PizzaHalf.left),
-          Text('  Segunda mitad:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          buildIngredientList(PizzaHalf.right),
+          buildIngredientList(PizzaHalf.left, 'Primera mitad:'),
+          buildIngredientList(PizzaHalf.right, 'Segunda mitad:'),
         ],
       ],
     );

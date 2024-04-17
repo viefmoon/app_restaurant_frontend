@@ -32,6 +32,8 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
   late TextEditingController _customerNameController;
   late TextEditingController _commentsController;
 
+  BluetoothDevice? _selectedPrinter;
+
   @override
   void initState() {
     super.initState();
@@ -152,12 +154,8 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
       title: Text('Resumen Orden #${state.orderIdSelectedForUpdate ?? ''}'),
       actions: [
         IconButton(
-          icon: Icon(Icons.near_me, size: 30),
-          onPressed: () => _selectPrinter(context),
-        ),
-        IconButton(
           icon: Icon(Icons.print, size: 30),
-          onPressed: () => _printTicket(context, state),
+          onPressed: () => _selectAndPrintTicket(context, state),
         ),
         SizedBox(width: 30), // Añade un espaciado aquí
         IconButton(
@@ -1289,18 +1287,17 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
     );
   }
 
-  BluetoothDevice? _selectedPrinter;
-
-// Función para seleccionar la impresora Bluetooth
-  Future<void> _selectPrinter(BuildContext context) async {
+  Future<void> _selectAndPrintTicket(
+      BuildContext context, OrderUpdateState state) async {
     BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
 
+    // Obtener dispositivos emparejados
     List<BluetoothDevice> devices = await bluetooth.getBondedDevices();
     if (devices.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('No se encontraron impresoras Bluetooth.'),
-          duration: Duration(seconds: 1),
+          duration: Duration(seconds: 2),
         ),
       );
       return;
@@ -1331,60 +1328,36 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
     );
 
     if (selectedDevice != null) {
-      setState(() {
-        _selectedPrinter = selectedDevice;
-      });
-    }
-  }
+      try {
+        // Conecta con la impresora seleccionada
+        await bluetooth.connect(selectedDevice);
 
-  Future<void> _printTicket(
-      BuildContext context, OrderUpdateState state) async {
-    if (_selectedPrinter == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No se ha seleccionado una impresora.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
+        // Agrega un retraso antes de imprimir
+        await Future.delayed(Duration(milliseconds: 500));
 
-    BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
+        // Genera el contenido del ticket
+        String ticketContent = _generateTicketContent(state);
 
-    try {
-      // Desconecta de la impresora si ya está conectado
-      if (await bluetooth.isConnected ?? false) {
+        // Imprime el ticket
+        await bluetooth.printCustom(ticketContent, 0, 1);
+
+        // Desconecta de la impresora
         await bluetooth.disconnect();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ticket impreso correctamente.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al imprimir el ticket: $e'),
+            duration: Duration(seconds: 2),
+          ),
+        );
       }
-
-      // Conecta con la impresora seleccionada
-      await bluetooth.connect(_selectedPrinter!);
-
-      // Agrega un retraso antes de imprimir
-      await Future.delayed(Duration(milliseconds: 500));
-
-      // Genera el contenido del ticket
-      String ticketContent = _generateTicketContent(state);
-
-      // Imprime el ticket
-      await bluetooth.printCustom(ticketContent, 0, 1);
-
-      // Desconecta de la impresora
-      await bluetooth.disconnect();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Ticket impreso correctamente.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al imprimir el ticket: $e'),
-          duration: Duration(seconds: 2),
-        ),
-      );
     }
   }
 

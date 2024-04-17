@@ -39,6 +39,9 @@ class _UpdateProductPersonalizationPageState
   bool _showPizzaIngredients = false;
   bool _createTwoHalves = false;
   double _currentPrice = 0.0;
+  bool _isIngredientsExpanded = false;
+  bool _isLeftIngredientsExpanded = false;
+  bool _isRightIngredientsExpanded = false;
 
   @override
   void initState() {
@@ -457,33 +460,59 @@ class _UpdateProductPersonalizationPageState
   }
 
   Widget _buildPizzaIngredientSelector(List<PizzaIngredient> ingredients) {
-    Widget buildIngredientList(PizzaHalf half) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: ingredients
-            .map((ingredient) => CheckboxListTile(
-                  title: Text(ingredient.name),
-                  value: selectedPizzaIngredients.any((selectedIngredient) =>
-                      selectedIngredient.pizzaIngredient?.id ==
-                          ingredient.id && // Compara por ID
-                      selectedIngredient.half == half),
-                  onChanged: (bool? value) {
-                    setState(() {
-                      if (value == true) {
-                        selectedPizzaIngredients.add(SelectedPizzaIngredient(
-                            pizzaIngredient: ingredient, half: half));
-                      } else {
-                        selectedPizzaIngredients.removeWhere(
+    Widget buildIngredientPanel(String title, PizzaHalf half, bool isExpanded) {
+      return ExpansionPanelList(
+        expansionCallback: (int index, bool isExpanded) {
+          setState(() {
+            if (half == PizzaHalf.left) {
+              _isLeftIngredientsExpanded = !_isLeftIngredientsExpanded;
+            } else if (half == PizzaHalf.right) {
+              _isRightIngredientsExpanded = !_isRightIngredientsExpanded;
+            } else {
+              _isIngredientsExpanded = !_isIngredientsExpanded;
+            }
+          });
+        },
+        children: [
+          ExpansionPanel(
+            headerBuilder: (BuildContext context, bool isExpanded) {
+              return ListTile(
+                title: Text(title,
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              );
+            },
+            body: Column(
+              children: ingredients
+                  .map((ingredient) => CheckboxListTile(
+                        title: Text(ingredient.name),
+                        value: selectedPizzaIngredients.any(
                             (selectedIngredient) =>
                                 selectedIngredient.pizzaIngredient?.id ==
-                                    ingredient.id && // Compara por ID
-                                selectedIngredient.half == half);
-                      }
-                      _updatePrice();
-                    });
-                  },
-                ))
-            .toList(),
+                                    ingredient.id &&
+                                selectedIngredient.half == half),
+                        onChanged: (bool? value) {
+                          setState(() {
+                            if (value == true) {
+                              selectedPizzaIngredients.add(
+                                  SelectedPizzaIngredient(
+                                      pizzaIngredient: ingredient, half: half));
+                            } else {
+                              selectedPizzaIngredients.removeWhere(
+                                  (selectedIngredient) =>
+                                      selectedIngredient.pizzaIngredient?.id ==
+                                          ingredient.id &&
+                                      selectedIngredient.half == half);
+                            }
+                            _updatePrice();
+                          });
+                        },
+                      ))
+                  .toList(),
+            ),
+            isExpanded: isExpanded,
+          ),
+        ],
       );
     }
 
@@ -495,14 +524,14 @@ class _UpdateProductPersonalizationPageState
           child: Text('Ingredientes de Pizza',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         ),
-        if (!_createTwoHalves) buildIngredientList(PizzaHalf.none),
+        if (!_createTwoHalves)
+          buildIngredientPanel(
+              'Ingredientes', PizzaHalf.none, _isIngredientsExpanded),
         if (_createTwoHalves) ...[
-          Text('  Primera mitad:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          buildIngredientList(PizzaHalf.left),
-          Text('  Segunda mitad:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          buildIngredientList(PizzaHalf.right),
+          buildIngredientPanel(
+              'Primera mitad:', PizzaHalf.left, _isLeftIngredientsExpanded),
+          buildIngredientPanel(
+              'Segunda mitad:', PizzaHalf.right, _isRightIngredientsExpanded),
         ],
       ],
     );

@@ -16,6 +16,8 @@ class OpenOrdersPage extends StatefulWidget {
 class _OpenOrdersPageState extends State<OpenOrdersPage> {
   OrderType? selectedFilter; // null representa el filtro "Todas"
   String? selectedArea; // null representa "Todas las áreas"
+  TextEditingController deliveryAddressController =
+      TextEditingController(); // Paso 1
 
   @override
   Widget build(BuildContext context) {
@@ -98,108 +100,142 @@ class _OpenOrdersPageState extends State<OpenOrdersPage> {
             ),
         ],
       ),
-      body: BlocBuilder<OrderUpdateBloc, OrderUpdateState>(
-        builder: (context, state) {
-          if (state.response is Loading) {
-            return Center(child: CircularProgressIndicator());
-          } else if (state.orders?.isNotEmpty ?? false) {
-            List<Order> filteredOrders = selectedFilter == null
-                ? state.orders!
-                : state.orders!
-                    .where((order) => order.orderType == selectedFilter)
-                    .toList();
+      body: Column(
+        children: [
+          if (selectedFilter == OrderType.delivery) // Paso 2
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: deliveryAddressController,
+                decoration: InputDecoration(
+                  labelText: 'Buscar por dirección de entrega',
+                  suffixIcon: Icon(Icons.search),
+                ),
+                onChanged: (value) {
+                  setState(() {}); // Actualiza la UI con cada cambio de texto
+                },
+              ),
+            ),
+          Expanded(
+            child: BlocBuilder<OrderUpdateBloc, OrderUpdateState>(
+              builder: (context, state) {
+                if (state.response is Loading) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (state.orders?.isNotEmpty ?? false) {
+                  List<Order> filteredOrders = selectedFilter == null
+                      ? state.orders!
+                      : state.orders!
+                          .where((order) => order.orderType == selectedFilter)
+                          .toList();
 
-            if (selectedFilter == OrderType.dineIn && selectedArea != null) {
-              filteredOrders = filteredOrders
-                  .where((order) =>
-                      order.area != null && order.area!.name == selectedArea)
-                  .toList();
-            }
+                  if (selectedFilter == OrderType.delivery &&
+                      deliveryAddressController.text.isNotEmpty) {
+                    filteredOrders = filteredOrders
+                        .where((order) =>
+                            order.deliveryAddress != null &&
+                            order.deliveryAddress!.toLowerCase().contains(
+                                deliveryAddressController.text.toLowerCase()))
+                        .toList();
+                  }
 
-            return ListView.builder(
-              itemCount: filteredOrders.length,
-              itemBuilder: (context, index) {
-                final order = filteredOrders[index];
-                String title =
-                    '#${order.id ?? ""}'; // Asegura que el ID siempre esté presente
+                  if (selectedFilter == OrderType.dineIn &&
+                      selectedArea != null) {
+                    filteredOrders = filteredOrders
+                        .where((order) =>
+                            order.area != null &&
+                            order.area!.name == selectedArea)
+                        .toList();
+                  }
 
-                // Convierte la fecha de creación a la zona horaria local y la formatea
-                String formattedDate = DateFormat('yyyy-MM-dd HH:mm')
-                    .format(order.creationDate?.toLocal() ?? DateTime.now());
-                String subtitle =
-                    formattedDate; // Usa la fecha formateada como subtítulo
+                  return ListView.builder(
+                    itemCount: filteredOrders.length,
+                    itemBuilder: (context, index) {
+                      final order = filteredOrders[index];
+                      String title =
+                          '#${order.id ?? ""}'; // Asegura que el ID siempre esté presente
 
-                // Agrega el scheduledDeliveryTime si está disponible, convirtiéndolo a la zona horaria local
-                String scheduledDeliveryTimeText = '';
-                if (order.scheduledDeliveryTime != null) {
-                  String formattedScheduledDeliveryTime =
-                      DateFormat('yyyy-MM-dd HH:mm')
-                          .format(order.scheduledDeliveryTime!.toLocal());
-                  scheduledDeliveryTimeText =
-                      ' - programada: $formattedScheduledDeliveryTime';
+                      // Convierte la fecha de creación a la zona horaria local y la formatea
+                      String formattedDate = DateFormat('yyyy-MM-dd HH:mm')
+                          .format(
+                              order.creationDate?.toLocal() ?? DateTime.now());
+                      String subtitle =
+                          formattedDate; // Usa la fecha formateada como subtítulo
+
+                      // Agrega el scheduledDeliveryTime si está disponible, convirtiéndolo a la zona horaria local
+                      String scheduledDeliveryTimeText = '';
+                      if (order.scheduledDeliveryTime != null) {
+                        String formattedScheduledDeliveryTime =
+                            DateFormat('yyyy-MM-dd HH:mm')
+                                .format(order.scheduledDeliveryTime!.toLocal());
+                        scheduledDeliveryTimeText =
+                            ' - programada: $formattedScheduledDeliveryTime';
+                      }
+
+                      // Agrega el tipo de pedido y detalles específicos según el tipo
+                      switch (order.orderType) {
+                        case OrderType.delivery:
+                          title += order.deliveryAddress != null
+                              ? ' - ${order.deliveryAddress}'
+                              : '';
+                          title += order.phoneNumber != null
+                              ? ' - Tel: ${order.phoneNumber}'
+                              : '';
+                          break;
+                        case OrderType.dineIn:
+                          title += ' - Dentro';
+                          if (order.area != null && order.table != null) {
+                            title +=
+                                ' - ${order.area!.name} ${order.table!.number}';
+                          }
+                          break;
+                        case OrderType.pickUpWait:
+                          title += ' - Recoger';
+                          title += order.customerName != null
+                              ? ' - ${order.customerName}'
+                              : '';
+                          break;
+                        default:
+                          // Maneja cualquier otro caso o tipo de pedido no especificado
+                          break;
+                      }
+
+                      // Traduce el estado del pedido a español y cambia el color según el estado
+                      String statusText =
+                          ' - Estado: ${_translateOrderStatus(order.status)}';
+                      Color statusColor = _getStatusColor(order.status);
+
+                      return ListTile(
+                        title: Text(title, style: TextStyle(fontSize: 20)),
+                        subtitle: Text(
+                            subtitle + scheduledDeliveryTimeText + statusText,
+                            style: TextStyle(color: statusColor, fontSize: 18)),
+                        onTap: () {
+                          // Emitir el evento al BLoC con la orden seleccionada
+                          bloc.add(OrderSelectedForUpdate(order));
+
+                          // Navegar a la página de actualización de la orden sin pasar la orden como parámetro
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  OrderUpdatePage(), // Ahora OrderUpdatePage no necesita parámetros
+                            ),
+                          );
+                        },
+                        // Agrega más detalles según sea necesario
+                      );
+                    },
+                  );
+                } else if (state.response is Error) {
+                  final errorMessage = (state.response as Error).message;
+                  return Center(child: Text('Error: $errorMessage'));
+                } else {
+                  return Center(child: Text('No hay órdenes abiertas.'));
                 }
-
-                // Agrega el tipo de pedido y detalles específicos según el tipo
-                switch (order.orderType) {
-                  case OrderType.delivery:
-                    title += order.deliveryAddress != null
-                        ? ' - ${order.deliveryAddress}'
-                        : '';
-                    title += order.phoneNumber != null
-                        ? ' - Tel: ${order.phoneNumber}'
-                        : '';
-                    break;
-                  case OrderType.dineIn:
-                    title += ' - Dentro';
-                    if (order.area != null && order.table != null) {
-                      title += ' - ${order.area!.name} ${order.table!.number}';
-                    }
-                    break;
-                  case OrderType.pickUpWait:
-                    title += ' - Recoger';
-                    title += order.customerName != null
-                        ? ' - ${order.customerName}'
-                        : '';
-                    break;
-                  default:
-                    // Maneja cualquier otro caso o tipo de pedido no especificado
-                    break;
-                }
-
-                // Traduce el estado del pedido a español y cambia el color según el estado
-                String statusText =
-                    ' - Estado: ${_translateOrderStatus(order.status)}';
-                Color statusColor = _getStatusColor(order.status);
-
-                return ListTile(
-                  title: Text(title, style: TextStyle(fontSize: 20)),
-                  subtitle: Text(
-                      subtitle + scheduledDeliveryTimeText + statusText,
-                      style: TextStyle(color: statusColor, fontSize: 18)),
-                  onTap: () {
-                    // Emitir el evento al BLoC con la orden seleccionada
-                    bloc.add(OrderSelectedForUpdate(order));
-
-                    // Navegar a la página de actualización de la orden sin pasar la orden como parámetro
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            OrderUpdatePage(), // Ahora OrderUpdatePage no necesita parámetros
-                      ),
-                    );
-                  },
-                  // Agrega más detalles según sea necesario
-                );
               },
-            );
-          } else if (state.response is Error) {
-            final errorMessage = (state.response as Error).message;
-            return Center(child: Text('Error: $errorMessage'));
-          } else {
-            return Center(child: Text('No hay órdenes abiertas.'));
-          }
-        },
+            ),
+          ),
+        ],
       ),
     );
   }
