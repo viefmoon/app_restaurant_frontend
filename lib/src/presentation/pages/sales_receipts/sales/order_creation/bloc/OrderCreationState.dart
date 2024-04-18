@@ -42,6 +42,8 @@ class OrderCreationState extends Equatable {
   final OrderCreationStep? step;
   final bool? isTimePickerEnabled;
   final List<OrderAdjustment>? orderAdjustments;
+  final bool isTemporaryTableEnabled;
+  final String? temporaryIdentifier;
 
   const OrderCreationState({
     this.selectedOrderType,
@@ -67,6 +69,8 @@ class OrderCreationState extends Equatable {
     this.step,
     this.isTimePickerEnabled = false,
     this.orderAdjustments,
+    this.isTemporaryTableEnabled = false,
+    this.temporaryIdentifier,
   });
 
   OrderCreationState copyWith({
@@ -93,6 +97,8 @@ class OrderCreationState extends Equatable {
     OrderCreationStep? step,
     bool? isTimePickerEnabled,
     List<OrderAdjustment>? orderAdjustments,
+    bool? isTemporaryTableEnabled,
+    String? temporaryIdentifier,
   }) {
     return OrderCreationState(
       selectedOrderType: selectedOrderType ?? this.selectedOrderType,
@@ -121,6 +127,9 @@ class OrderCreationState extends Equatable {
       step: step ?? this.step,
       isTimePickerEnabled: isTimePickerEnabled ?? this.isTimePickerEnabled,
       orderAdjustments: orderAdjustments ?? this.orderAdjustments,
+      isTemporaryTableEnabled:
+          isTemporaryTableEnabled ?? this.isTemporaryTableEnabled,
+      temporaryIdentifier: temporaryIdentifier ?? this.temporaryIdentifier,
     );
   }
 
@@ -149,5 +158,7 @@ class OrderCreationState extends Equatable {
         step,
         isTimePickerEnabled,
         orderAdjustments,
+        isTemporaryTableEnabled,
+        temporaryIdentifier,
       ];
 }

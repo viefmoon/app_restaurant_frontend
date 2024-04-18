@@ -1,31 +1,35 @@
 import 'Area.dart';
 
-enum Status { Disponible, Ocupada }
+enum TableStatus { Disponible, Ocupada }
 
 class Table {
-  final int id; // 'id' ahora es no nulo
-  final int number; // 'number' ahora es no nulo
-  final Status? status;
+  final int? id; // 'id' ahora es no nulo
+  final int? number; // 'number' ahora es nullable
+  final TableStatus? status;
   Area? area;
+  final String? temporaryIdentifier; // Nueva columna 'temporaryIdentifier'
 
   Table({
-    required this.id,
-    required this.number,
+    this.id,
+    this.number,
     this.status,
     this.area,
+    this.temporaryIdentifier,
   });
 
   factory Table.fromJson(Map<String, dynamic> json) {
     return Table(
       id: json['id'], // Asumimos que 'id' siempre está presente
-      number: json['number'], // Asumimos que 'number' siempre está presente
+      number: json['number'], // 'number' ahora puede ser nulo
       status: json['status'] != null
-          ? Status.values.firstWhere(
+          ? TableStatus.values.firstWhere(
               (e) => e.toString().split('.').last == json['status'],
-              orElse: () => Status.Disponible,
+              orElse: () => TableStatus.Disponible,
             )
           : null,
       area: json['area'] != null ? Area.fromJson(json['area']) : null,
+      temporaryIdentifier: json[
+          'temporaryIdentifier'], // Añadido el manejo de 'temporaryIdentifier'
     );
   }
 
@@ -37,6 +41,8 @@ class Table {
     if (area != null) {
       data['area'] = area?.toJson();
     }
+    data['temporaryIdentifier'] =
+        temporaryIdentifier; // Añadido 'temporaryIdentifier' al JSON
     return data;
   }
 }

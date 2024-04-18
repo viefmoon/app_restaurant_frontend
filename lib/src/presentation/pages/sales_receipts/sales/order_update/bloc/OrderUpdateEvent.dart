@@ -227,3 +227,21 @@ class FinishOrder extends OrderUpdateEvent {
   @override
   List<Object> get props => [orderId];
 }
+
+class ToggleTemporaryTable extends OrderUpdateEvent {
+  final bool isEnabled;
+
+  const ToggleTemporaryTable(this.isEnabled);
+
+  @override
+  List<Object> get props => [isEnabled];
+}
+
+class UpdateTemporaryIdentifier extends OrderUpdateEvent {
+  final String identifier;
+
+  const UpdateTemporaryIdentifier(this.identifier);
+
+  @override
+  List<Object> get props => [identifier];
+}

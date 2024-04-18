@@ -12,6 +12,14 @@ class TableSelectionPage extends StatefulWidget {
 }
 
 class _TableSelectionPageState extends State<TableSelectionPage> {
+  final TextEditingController _tempTableController = TextEditingController();
+
+  @override
+  void dispose() {
+    _tempTableController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -22,6 +30,14 @@ class _TableSelectionPageState extends State<TableSelectionPage> {
     });
   }
 
+  void _onTemporaryTableChanged(bool value) {
+    final OrderCreationBloc bloc = BlocProvider.of<OrderCreationBloc>(context);
+    bloc.add(ToggleTemporaryTable(value));
+    if (value) {
+      _tempTableController.clear();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final OrderCreationBloc bloc = BlocProvider.of<OrderCreationBloc>(context);
@@ -30,16 +46,32 @@ class _TableSelectionPageState extends State<TableSelectionPage> {
       builder: (context, state) {
         return Column(
           children: [
-            SizedBox(height: 250),
-            _buildAreaDropdown(bloc, state),
             SizedBox(height: 20),
-            if (state.selectedAreaId != null) _buildTableDropdown(bloc, state),
+            SwitchListTile(
+              title: Text("Crear mesa temporal"),
+              value: state.isTemporaryTableEnabled,
+              onChanged: _onTemporaryTableChanged,
+            ),
+            SizedBox(height: 20),
+            _buildAreaDropdown(bloc, state),
+            SizedBox(
+                height:
+                    20), // Espaciado adicional entre el selector de área y el campo del identificador temporal
+            if (state.isTemporaryTableEnabled)
+              _buildTemporaryTableField(bloc, state),
+            SizedBox(height: 20),
+            if (!state.isTemporaryTableEnabled && state.selectedAreaId != null)
+              _buildTableDropdown(bloc, state),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed:
-                  state.selectedAreaId != null && state.selectedTableId != null
-                      ? () => bloc.add(TableSelectionContinue())
-                      : null,
+              onPressed: state.selectedAreaId != null &&
+                      ((state.isTemporaryTableEnabled &&
+                              state.temporaryIdentifier?.isNotEmpty == true) ||
+                          (!state.isTemporaryTableEnabled &&
+                              state.selectedTableId != null &&
+                              state.selectedTableId != 0))
+                  ? () => bloc.add(TableSelectionContinue())
+                  : null,
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(horizontal: 70, vertical: 30),
               ),
@@ -49,6 +81,18 @@ class _TableSelectionPageState extends State<TableSelectionPage> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildTemporaryTableField(
+      OrderCreationBloc bloc, OrderCreationState state) {
+    return TextField(
+      controller: _tempTableController,
+      decoration: InputDecoration(
+        labelText: 'Identificador temporal de la mesa',
+        border: OutlineInputBorder(),
+      ),
+      onChanged: (value) => bloc.add(UpdateTemporaryIdentifier(value)),
     );
   }
 

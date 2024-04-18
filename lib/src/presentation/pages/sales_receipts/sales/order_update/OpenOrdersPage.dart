@@ -183,9 +183,16 @@ class _OpenOrdersPageState extends State<OpenOrdersPage> {
                           break;
                         case OrderType.dineIn:
                           title += ' - Dentro';
-                          if (order.area != null && order.table != null) {
-                            title +=
-                                ' - ${order.area!.name} ${order.table!.number}';
+                          if (order.area != null) {
+                            if (order.table != null &&
+                                order.table!.number != null) {
+                              title +=
+                                  ' - ${order.area!.name} ${order.table!.number}';
+                            } else if (order.table != null &&
+                                order.table!.temporaryIdentifier != null) {
+                              title +=
+                                  ' - ${order.area!.name} ${order.table!.temporaryIdentifier}';
+                            }
                           }
                           break;
                         case OrderType.pickUpWait:

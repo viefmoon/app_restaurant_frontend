@@ -28,6 +28,8 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
   late TextEditingController _addressController;
   late TextEditingController _customerNameController;
   late TextEditingController _commentsController;
+  late TextEditingController
+      _tempTableController; // Controlador para la mesa temporal
 
   @override
   void initState() {
@@ -36,6 +38,7 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
     _addressController = TextEditingController(text: "");
     _customerNameController = TextEditingController(text: "");
     _commentsController = TextEditingController(text: "");
+    _tempTableController = TextEditingController(text: "");
   }
 
   @override
@@ -44,6 +47,8 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
     _addressController.dispose();
     _customerNameController.dispose();
     _commentsController.dispose();
+    _tempTableController.dispose();
+
     super.dispose();
   }
 
@@ -102,6 +107,7 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
               _addressController.text = state.deliveryAddress ?? "";
               _customerNameController.text = state.customerName ?? "";
               _commentsController.text = state.comments ?? "";
+              _tempTableController.text = state.temporaryIdentifier ?? "";
 
               List<Widget> headerDetails = [];
               headerDetails.add(Padding(
@@ -150,8 +156,48 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                     headerDetails.add(_buildAreaDropdown(context, state));
                   }
 
-                  // Añadir Dropdown para Mesa si el área está seleccionada
-                  if (state.selectedOrderType == OrderType.dineIn &&
+                  // Añadir Switch para Crear Mesa Temporal
+                  headerDetails.add(SwitchListTile(
+                    title: Text("Crear Mesa Temporal"),
+                    value: state.isTemporaryTableEnabled,
+                    onChanged: (bool value) {
+                      // Aquí, en lugar de solo llamar a setState, también envías un evento al bloc
+                      BlocProvider.of<OrderCreationBloc>(context)
+                          .add(ToggleTemporaryTable(value));
+                    },
+                  ));
+
+                  // Añadir campo para Mesa Temporal si el switch está habilitado
+                  if (state.isTemporaryTableEnabled) {
+                    headerDetails.add(Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0, vertical: 10.0),
+                      child: TextField(
+                        controller: _tempTableController,
+                        decoration: InputDecoration(
+                          labelText: 'Mesa Temporal',
+                          hintText: 'Ingresa el nombre de la mesa temporal',
+                          contentPadding: EdgeInsets.symmetric(
+                              vertical: 10.0, horizontal: 10.0),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide:
+                                BorderSide(color: Colors.blue, width: 2.0),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide:
+                                BorderSide(color: Colors.green, width: 2.0),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          // Envía el evento al bloc con el nuevo valor
+                          BlocProvider.of<OrderCreationBloc>(context)
+                              .add(UpdateTemporaryIdentifier(value));
+                        },
+                      ),
+                    ));
+                  } else if (state.selectedOrderType == OrderType.dineIn &&
                       state.selectedAreaId != null &&
                       state.tables != null) {
                     headerDetails.add(_buildTableDropdown(context, state));
@@ -614,6 +660,9 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
   }
 
   Widget _buildTableDropdown(BuildContext context, OrderCreationState state) {
+    // Si el switch para crear mesa temporal está habilitado, no mostrar el dropdown de mesas
+    if (state.isTemporaryTableEnabled) return Container();
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 15.0),
       child: InputDecorator(
@@ -631,8 +680,9 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
         ),
         child: DropdownButtonHideUnderline(
           child: DropdownButtonFormField<int>(
-            value: state.tables
-                        ?.any((table) => table.id == state.selectedTableId) ??
+            value: state.tables?.any((table) =>
+                        table.id == state.selectedTableId &&
+                        table.number != null) ??
                     false
                 ? state.selectedTableId
                 : null,
@@ -643,7 +693,11 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                     .add(TableSelected(tableId: newValue));
               }
             },
-            items: state.tables?.map<DropdownMenuItem<int>>((table) {
+            items: state.tables
+                    ?.where((table) =>
+                        table.number !=
+                        null) // Filtrar mesas con número no nulo
+                    .map<DropdownMenuItem<int>>((table) {
                   return DropdownMenuItem<int>(
                     value: table.id,
                     child: Text(table.number.toString()),
@@ -699,11 +753,16 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
     // Verificaciones adicionales basadas en el tipo de orden
     switch (state.selectedOrderType) {
       case OrderType.dineIn:
-        if (state.selectedAreaId == null || state.selectedTableId == null) {
+        if (state.selectedAreaId == null ||
+            (!state.isTemporaryTableEnabled &&
+                (state.selectedTableId == null ||
+                    state.selectedTableId == 0)) ||
+            (state.isTemporaryTableEnabled &&
+                (_tempTableController.text.isEmpty))) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: Colors.orange,
-              content: Text('Selecciona un área y una mesa para continuar.',
+              content: Text('Selecciona un área y una mesa fija o temporal.',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
               duration: Duration(milliseconds: 800),
             ),

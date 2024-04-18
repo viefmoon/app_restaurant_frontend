@@ -58,6 +58,8 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     on<UpdateTotalCost>(_onUpdateTotalCost);
     on<RegisterPayment>(_onRegisterPayment);
     on<FinishOrder>(_onFinishOrder);
+    on<ToggleTemporaryTable>(_onToggleTemporaryTable);
+    on<UpdateTemporaryIdentifier>(_onUpdateTemporaryIdentifier);
   }
 
   Future<void> _onResetOrderUpdateState(
@@ -86,6 +88,8 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
       filteredProducts: [],
       isTimePickerEnabled: false,
       selectedOrder: null,
+      isTemporaryTableEnabled: false,
+      temporaryIdentifier: "",
     ));
     await _onLoadOpenOrders(LoadOpenOrders(), emit);
   }
@@ -133,7 +137,10 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
       emit(state.copyWith(
         orderIdSelectedForUpdate: order.id,
         selectedAreaId: order.area?.id,
-        selectedTableId: order.table?.id,
+        selectedTableId: order.table?.temporaryIdentifier == null ||
+                order.table!.temporaryIdentifier!.isEmpty
+            ? order.table?.id
+            : null,
         phoneNumber: order.phoneNumber,
         deliveryAddress: order.deliveryAddress,
         customerName: order.customerName,
@@ -148,6 +155,9 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
         isTimePickerEnabled: localScheduledDeliveryTime != null,
         orderAdjustments: order.orderAdjustments,
         selectedOrder: order,
+        isTemporaryTableEnabled: order.table?.temporaryIdentifier != null &&
+            order.table!.temporaryIdentifier!.isNotEmpty,
+        temporaryIdentifier: order.table?.temporaryIdentifier ?? "",
       ));
 
       // Emitir el evento AreaSelected solo si hay un área seleccionada y el tipo de orden es DineIn
@@ -369,6 +379,7 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     emit(state.copyWith(totalCost: totalCost));
 
     // Inicializa los campos comunes para todos los tipos de orden
+    // Inicializa los campos comunes para todos los tipos de orden
     Order order = Order(
       id: state.orderIdSelectedForUpdate,
       orderType: state.selectedOrderType,
@@ -390,12 +401,27 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     // Asigna los campos específicos según el tipo de orden
     switch (state.selectedOrderType) {
       case OrderType.dineIn:
-        order = order.copyWith(
-          area: state.areas
-              ?.firstWhereOrNull((area) => area.id == state.selectedAreaId),
-          table: state.tables
-              ?.firstWhereOrNull((table) => table.id == state.selectedTableId),
-        );
+        if (state.isTemporaryTableEnabled &&
+            (state.temporaryIdentifier?.isNotEmpty ?? false)) {
+          final newTable = appModel.Table(
+            id: null,
+            number: null,
+            temporaryIdentifier: state.temporaryIdentifier!,
+            status: appModel.TableStatus.Ocupada,
+          );
+          order = order.copyWith(
+            area: state.areas
+                ?.firstWhereOrNull((area) => area.id == state.selectedAreaId),
+            table: newTable,
+          );
+        } else {
+          order = order.copyWith(
+            area: state.areas
+                ?.firstWhereOrNull((area) => area.id == state.selectedAreaId),
+            table: state.tables?.firstWhereOrNull(
+                (table) => table.id == state.selectedTableId),
+          );
+        }
         break;
       case OrderType.delivery:
         order = order.copyWith(
@@ -534,5 +560,31 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     } else if (result is Error) {
       emit(state.copyWith(response: Error(result.message)));
     }
+  }
+
+  Future<void> _onToggleTemporaryTable(
+      ToggleTemporaryTable event, Emitter<OrderUpdateState> emit) async {
+    emit(state.copyWith(isTemporaryTableEnabled: event.isEnabled));
+
+    // Si se activa la mesa temporal, resetea la selección de mesa
+    if (event.isEnabled) {
+      emit(state.copyWith(
+        temporaryIdentifier: "",
+        selectedTableId: 0,
+        selectedTableNumber: 0,
+      ));
+    } else {
+      // Si se desactiva la mesa temporal, limpia el identificador temporal
+      emit(state.copyWith(
+        temporaryIdentifier: "",
+        selectedTableId: 0,
+        selectedTableNumber: 0,
+      ));
+    }
+  }
+
+  Future<void> _onUpdateTemporaryIdentifier(
+      UpdateTemporaryIdentifier event, Emitter<OrderUpdateState> emit) async {
+    emit(state.copyWith(temporaryIdentifier: event.identifier));
   }
 }

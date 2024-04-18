@@ -31,7 +31,10 @@ class OrderCreationContainer extends StatelessWidget {
               case OrderCreationStep.productSelection:
                 if (state.selectedOrderType == OrderType.dineIn) {
                   String area = state.selectedAreaName ?? 'N/A';
-                  String table = state.selectedTableNumber?.toString() ?? 'N/A';
+                  String table = (state.selectedTableNumber != null &&
+                          state.selectedTableNumber != 0)
+                      ? state.selectedTableNumber.toString()
+                      : (state.temporaryIdentifier ?? 'N/A');
                   return Text('$area: $table', style: TextStyle(fontSize: 26));
                 } else if (state.selectedOrderType == OrderType.delivery) {
                   String phoneNumber = state.phoneNumber ?? 'N/A';

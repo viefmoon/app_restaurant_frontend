@@ -203,3 +203,21 @@ class OrderAdjustmentUpdated extends OrderCreationEvent {
 class UpdateTotalCost extends OrderCreationEvent {
   const UpdateTotalCost();
 }
+
+class ToggleTemporaryTable extends OrderCreationEvent {
+  final bool isEnabled;
+
+  const ToggleTemporaryTable(this.isEnabled);
+
+  @override
+  List<Object> get props => [isEnabled];
+}
+
+class UpdateTemporaryIdentifier extends OrderCreationEvent {
+  final String identifier;
+
+  const UpdateTemporaryIdentifier(this.identifier);
+
+  @override
+  List<Object> get props => [identifier];
+}

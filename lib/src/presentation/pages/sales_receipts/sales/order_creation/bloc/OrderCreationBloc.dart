@@ -55,6 +55,8 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
     on<OrderAdjustmentRemoved>(_onOrderAdjustmentRemoved);
     on<OrderAdjustmentUpdated>(_onOrderAdjustmentUpdated);
     on<UpdateTotalCost>(_onUpdateTotalCost);
+    on<ToggleTemporaryTable>(_onToggleTemporaryTable);
+    on<UpdateTemporaryIdentifier>(_onUpdateTemporaryIdentifier);
   }
 
   Future<void> _onResetOrder(
@@ -82,6 +84,8 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
       response: null,
       step: OrderCreationStep.orderTypeSelection,
       isTimePickerEnabled: false,
+      isTemporaryTableEnabled: false,
+      temporaryIdentifier: "",
     ));
     await _onLoadAreas(LoadAreas(), emit);
   }
@@ -362,12 +366,27 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
     // Asigna los campos específicos segn el tipo de orden
     switch (state.selectedOrderType) {
       case OrderType.dineIn:
-        order = order.copyWith(
-          area: state.areas
-              ?.firstWhereOrNull((area) => area.id == state.selectedAreaId),
-          table: state.tables
-              ?.firstWhereOrNull((table) => table.id == state.selectedTableId),
-        );
+        if (state.isTemporaryTableEnabled &&
+            state.temporaryIdentifier != null) {
+          final newTable = appModel.Table(
+            id: null,
+            number: null,
+            temporaryIdentifier: state.temporaryIdentifier!,
+            status: appModel.TableStatus.Ocupada,
+          );
+          order = order.copyWith(
+            area: state.areas
+                ?.firstWhereOrNull((area) => area.id == state.selectedAreaId),
+            table: newTable,
+          );
+        } else {
+          order = order.copyWith(
+            area: state.areas
+                ?.firstWhereOrNull((area) => area.id == state.selectedAreaId),
+            table: state.tables?.firstWhereOrNull(
+                (table) => table.id == state.selectedTableId),
+          );
+        }
         break;
       case OrderType.delivery:
         order = order.copyWith(
@@ -442,5 +461,31 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
     }
 
     emit(state.copyWith(totalCost: totalCost));
+  }
+
+  Future<void> _onToggleTemporaryTable(
+      ToggleTemporaryTable event, Emitter<OrderCreationState> emit) async {
+    emit(state.copyWith(isTemporaryTableEnabled: event.isEnabled));
+
+    // Si se activa la mesa temporal, resetea la selección de mesa
+    if (event.isEnabled) {
+      emit(state.copyWith(
+        temporaryIdentifier: "",
+        selectedTableId: 0,
+        selectedTableNumber: 0,
+      ));
+    } else {
+      // Si se desactiva la mesa temporal, limpia el identificador temporal
+      emit(state.copyWith(
+        temporaryIdentifier: "",
+        selectedTableId: 0,
+        selectedTableNumber: 0,
+      ));
+    }
+  }
+
+  Future<void> _onUpdateTemporaryIdentifier(
+      UpdateTemporaryIdentifier event, Emitter<OrderCreationState> emit) async {
+    emit(state.copyWith(temporaryIdentifier: event.identifier));
   }
 }

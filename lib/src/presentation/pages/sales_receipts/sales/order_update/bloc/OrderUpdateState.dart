@@ -36,6 +36,8 @@ class OrderUpdateState extends Equatable {
   final List<Product>? filteredProducts;
   final bool? isTimePickerEnabled;
   final List<OrderAdjustment>? orderAdjustments;
+  final bool isTemporaryTableEnabled;
+  final String? temporaryIdentifier;
 
   const OrderUpdateState({
     this.orders,
@@ -63,6 +65,8 @@ class OrderUpdateState extends Equatable {
     this.filteredProducts,
     this.isTimePickerEnabled,
     this.orderAdjustments,
+    this.isTemporaryTableEnabled = false,
+    this.temporaryIdentifier,
   });
 
   OrderUpdateState copyWith({
@@ -92,6 +96,8 @@ class OrderUpdateState extends Equatable {
     List<Product>? filteredProducts,
     bool? isTimePickerEnabled,
     List<OrderAdjustment>? orderAdjustments,
+    bool? isTemporaryTableEnabled,
+    String? temporaryIdentifier,
   }) {
     return OrderUpdateState(
       orders: orders ?? this.orders,
@@ -123,6 +129,9 @@ class OrderUpdateState extends Equatable {
       filteredProducts: filteredProducts ?? this.filteredProducts,
       isTimePickerEnabled: isTimePickerEnabled ?? this.isTimePickerEnabled,
       orderAdjustments: orderAdjustments ?? this.orderAdjustments,
+      isTemporaryTableEnabled:
+          isTemporaryTableEnabled ?? this.isTemporaryTableEnabled,
+      temporaryIdentifier: temporaryIdentifier ?? this.temporaryIdentifier,
     );
   }
 
@@ -153,5 +162,7 @@ class OrderUpdateState extends Equatable {
         filteredProducts,
         isTimePickerEnabled,
         orderAdjustments,
+        isTemporaryTableEnabled,
+        temporaryIdentifier,
       ];
 }
