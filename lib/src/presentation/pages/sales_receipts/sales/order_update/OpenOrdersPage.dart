@@ -244,6 +244,12 @@ class _OpenOrdersPageState extends State<OpenOrdersPage> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          bloc.add(LoadOpenOrders());
+        },
+        child: Icon(Icons.refresh),
+      ),
     );
   }
 

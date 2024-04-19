@@ -58,6 +58,16 @@ class _UpdateProductPersonalizationPageState
       selectedPizzaIngredients =
           List.from(widget.existingOrderItem?.selectedPizzaIngredients ?? []);
       comments = widget.existingOrderItem!.comments;
+
+      // Detecta si se deben habilitar los botones de "Armar pizza" y "Crear dos mitades"
+      if (selectedPizzaIngredients.isNotEmpty) {
+        _showPizzaIngredients =
+            true; // Habilita "Armar pizza" si hay ingredientes seleccionados
+
+        // Verifica si hay ingredientes asignados a una mitad específica para habilitar "Crear dos mitades"
+        _createTwoHalves = selectedPizzaIngredients
+            .any((ingredient) => ingredient.half != PizzaHalf.none);
+      }
     }
 
     _updatePrice();
@@ -476,10 +486,24 @@ class _UpdateProductPersonalizationPageState
         children: [
           ExpansionPanel(
             headerBuilder: (BuildContext context, bool isExpanded) {
-              return ListTile(
-                title: Text(title,
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              return InkWell(
+                onTap: () {
+                  setState(() {
+                    if (half == PizzaHalf.left) {
+                      _isLeftIngredientsExpanded = !_isLeftIngredientsExpanded;
+                    } else if (half == PizzaHalf.right) {
+                      _isRightIngredientsExpanded =
+                          !_isRightIngredientsExpanded;
+                    } else {
+                      _isIngredientsExpanded = !_isIngredientsExpanded;
+                    }
+                  });
+                },
+                child: ListTile(
+                  title: Text(title,
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
               );
             },
             body: Column(

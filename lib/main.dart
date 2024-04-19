@@ -2,6 +2,7 @@ import 'package:app/src/presentation/pages/preparation/bar/home/BarHomePage.dart
 import 'package:app/src/presentation/pages/preparation/burger/home/BurgerHomePage.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/home/PizzaHomePage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/home/SalesHomePage.dart';
+import 'package:app/src/presentation/pages/sales_receipts/home_waiter/WaiterHomePage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderCreationContainer.dart';
 import 'package:app/src/presentation/pages/setting/SettingsPage.dart';
 import 'injection.dart';
@@ -59,6 +60,7 @@ class MyApp extends StatelessWidget {
           'login': (BuildContext context) => LoginPage(),
           'register': (BuildContext context) => RegisterPage(),
           'salesHome': (BuildContext context) => SalesHomePage(),
+          'waiterHome': (BuildContext context) => WaiterHomePage(),
           'order/create': (BuildContext context) => OrderCreationContainer(),
           'hamburgerHome': (BuildContext context) => BurgerHomePage(),
           'pizzaHome': (BuildContext context) => PizzaHomePage(),

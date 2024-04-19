@@ -1,3 +1,4 @@
+import 'package:app/src/domain/models/AuthResponse.dart';
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderAdjustment.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
@@ -30,6 +31,7 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
   late TextEditingController _commentsController;
   late TextEditingController
       _tempTableController; // Controlador para la mesa temporal
+  String? _userRole;
 
   @override
   void initState() {
@@ -39,6 +41,24 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
     _customerNameController = TextEditingController(text: "");
     _commentsController = TextEditingController(text: "");
     _tempTableController = TextEditingController(text: "");
+    _determineUserRole();
+  }
+
+  Future<void> _determineUserRole() async {
+    _userRole = await _getUserRole(context);
+    setState(
+        () {}); // Actualiza la UI una vez que el rol del usuario está disponible
+  }
+
+  Future<String?> _getUserRole(BuildContext context) async {
+    AuthResponse? userSession =
+        await BlocProvider.of<OrderCreationBloc>(context)
+            .authUseCases
+            .getUserSession
+            .run();
+    return userSession?.user.roles?.isNotEmpty == true
+        ? userSession?.user.roles!.first.name
+        : null;
   }
 
   @override
@@ -88,17 +108,18 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
           appBar: AppBar(
             title: Text('Resumen de la Orden'),
             actions: <Widget>[
-              PopupMenuButton<int>(
-                onSelected: (item) => onSelected(context, item),
-                itemBuilder: (context) => [
-                  PopupMenuItem<int>(
-                    value: 0,
-                    child: Text('Eliminar Orden',
-                        style: TextStyle(
-                            fontSize: 18)), // Tamaño de texto aumentado
-                  ),
-                ],
-              ),
+              if (_userRole == 'Administrador' || _userRole == 'Mesero') ...[
+                PopupMenuButton<int>(
+                  onSelected: (item) => onSelected(context, item),
+                  itemBuilder: (context) => [
+                    PopupMenuItem<int>(
+                      value: 0,
+                      child: Text('Eliminar Orden',
+                          style: TextStyle(fontSize: 18)),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
           body: BlocBuilder<OrderCreationBloc, OrderCreationState>(
@@ -612,11 +633,15 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
         ));
   }
 
-  void onSelected(BuildContext context, int item) {
+  void onSelected(BuildContext context, int item) async {
     switch (item) {
       case 0:
         BlocProvider.of<OrderCreationBloc>(context).add(ResetOrder());
-        Navigator.popUntil(context, ModalRoute.withName('salesHome'));
+        if (_userRole == 'Administrador') {
+          Navigator.popUntil(context, ModalRoute.withName('salesHome'));
+        } else if (_userRole == 'Mesero') {
+          Navigator.popUntil(context, ModalRoute.withName('waiterHome'));
+        }
         break;
     }
   }
@@ -736,7 +761,7 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
     return itemsTotal + adjustmentsTotal;
   }
 
-  void _sendOrder(BuildContext context, OrderCreationState state) {
+  void _sendOrder(BuildContext context, OrderCreationState state) async {
     // Verificar si la lista de OrderItems está vacía o es nula
     if (state.orderItems == null || state.orderItems!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -803,7 +828,13 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
     }
 
     BlocProvider.of<OrderCreationBloc>(context).add(SendOrder());
-    Navigator.popUntil(context, ModalRoute.withName('salesHome'));
+
+    // Decidir a qué página navegar basado en el rol del usuario
+    if (_userRole == 'Administrador') {
+      Navigator.popUntil(context, ModalRoute.withName('salesHome'));
+    } else if (_userRole == 'Mesero') {
+      Navigator.popUntil(context, ModalRoute.withName('waiterHome'));
+    }
   }
 
   Future<void> _showAddOrderAdjustmentDialog(BuildContext context,

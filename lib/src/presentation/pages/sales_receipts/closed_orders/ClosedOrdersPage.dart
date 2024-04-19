@@ -80,7 +80,7 @@ class _ClosedOrdersPageState extends State<ClosedOrdersPage> {
             List<Order> filteredOrders = selectedFilter == null
                 ? state.orders!
                 : state.orders!
-                    .where((order) => order.status == selectedFilter)
+                    .where((order) => order.orderType == selectedFilter)
                     .toList();
 
             return ListView.builder(
@@ -92,7 +92,7 @@ class _ClosedOrdersPageState extends State<ClosedOrdersPage> {
 
                 // Convierte la fecha de creación a la zona horaria local y la formatea
                 String formattedDate = DateFormat('yyyy-MM-dd HH:mm')
-                    .format(order.creationDate?.toLocal() ?? DateTime.now());
+                    .format(order.completionDate?.toLocal() ?? DateTime.now());
                 String subtitle =
                     formattedDate; // Usa la fecha formateada como subtítulo
 
@@ -119,7 +119,8 @@ class _ClosedOrdersPageState extends State<ClosedOrdersPage> {
                   case OrderType.dineIn:
                     title += ' - Dentro';
                     if (order.area != null && order.table != null) {
-                      title += ' - ${order.area!.name} ${order.table!.number}';
+                      title +=
+                          ' - ${order.area!.name} ${order.table!.number ?? order.table!.temporaryIdentifier}';
                     }
                     break;
                   case OrderType.pickUpWait:

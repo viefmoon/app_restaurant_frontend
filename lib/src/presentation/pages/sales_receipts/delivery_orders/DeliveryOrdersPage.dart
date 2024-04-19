@@ -37,13 +37,6 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
       appBar: AppBar(
         title: Text('Pedidos para Llevar'),
         actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.refresh),
-            iconSize: 40, // Tamaño más grande para el ícono
-            onPressed: () {
-              bloc.add(LoadDeliveryOrders());
-            },
-          ),
           if (selectedOrders.isNotEmpty)
             IconButton(
               icon: Icon(Icons.send),
@@ -138,6 +131,12 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
                 child: Text('No hay pedidos para llevar listos para entrega.'));
           }
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          bloc.add(LoadDeliveryOrders());
+        },
+        child: Icon(Icons.refresh),
       ),
     );
   }

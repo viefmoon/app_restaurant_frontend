@@ -17,6 +17,7 @@ import 'package:app/src/presentation/pages/preparation/pizza/home/bloc/PizzaHome
 import 'package:app/src/presentation/pages/sales_receipts/closed_orders/bloc/ClosedOrdersBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/delivery_orders/bloc/DeliveryOrdersBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/home/bloc/SalesHomeBloc.dart';
+import 'package:app/src/presentation/pages/sales_receipts/home_waiter/bloc/WaiterHomeBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/pending_order_items/bloc/PendingOrderItemsBloc.dart';
@@ -32,6 +33,8 @@ List<BlocProvider> blocProviders = [
             ..add(RegisterInitEvent())),
   BlocProvider<SalesHomeBloc>(
       create: (context) => SalesHomeBloc(locator<AuthUseCases>())),
+  BlocProvider<WaiterHomeBloc>(
+      create: (context) => WaiterHomeBloc(locator<AuthUseCases>())),
   BlocProvider<OrderCreationBloc>(
       create: (context) => OrderCreationBloc(
           categoriesUseCases: locator<CategoriesUseCases>(),

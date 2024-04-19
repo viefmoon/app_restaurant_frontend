@@ -57,7 +57,7 @@ class _LoginPageState extends State<LoginPage> {
                 destinationRoute = 'salesHome';
                 break;
               case 'WAITER':
-                destinationRoute = 'salesHome';
+                destinationRoute = 'waiterHome';
                 break;
               case 'PIZZA_CHEF':
                 destinationRoute = 'pizzaHome';

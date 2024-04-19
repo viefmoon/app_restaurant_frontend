@@ -1,3 +1,4 @@
+import 'package:app/src/domain/models/AuthResponse.dart';
 import 'package:app/src/domain/models/OrderAdjustment.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/Product.dart';
@@ -32,7 +33,7 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
   late TextEditingController _customerNameController;
   late TextEditingController _commentsController;
   late TextEditingController _tempTableController;
-
+  String? _userRole;
   BluetoothDevice? _selectedPrinter;
 
   @override
@@ -43,10 +44,26 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
     _customerNameController = TextEditingController(text: "");
     _commentsController = TextEditingController(text: "");
     _tempTableController = TextEditingController(text: "");
-
+    _determineUserRole();
     // Emitir el evento para cargar las categorías al iniciar la página
     BlocProvider.of<OrderUpdateBloc>(context, listen: false)
         .add(LoadCategoriesWithProducts());
+  }
+
+  Future<void> _determineUserRole() async {
+    _userRole = await _getUserRole(context);
+    setState(
+        () {}); // Actualiza la UI una vez que el rol del usuario está disponible
+  }
+
+  Future<String?> _getUserRole(BuildContext context) async {
+    AuthResponse? userSession = await BlocProvider.of<OrderUpdateBloc>(context)
+        .authUseCases
+        .getUserSession
+        .run();
+    return userSession?.user.roles?.isNotEmpty == true
+        ? userSession?.user.roles!.first.name
+        : null;
   }
 
   @override
@@ -156,28 +173,30 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
     return AppBar(
       title: Text('Resumen Orden #${state.orderIdSelectedForUpdate ?? ''}'),
       actions: [
-        IconButton(
-          icon: Icon(Icons.print, size: 30),
-          onPressed: () => _selectAndPrintTicket(context, state),
-        ),
-        SizedBox(width: 30), // Añade un espaciado aquí
+        if (_userRole == 'Administrador')
+          IconButton(
+            icon: Icon(Icons.print, size: 30),
+            onPressed: () => _selectAndPrintTicket(context, state),
+          ),
+        SizedBox(width: 30),
         IconButton(
           icon: Icon(Icons.save, size: 30),
           onPressed: () => _updateOrder(context, state),
         ),
-        PopupMenuButton<String>(
-          onSelected: (String result) {
-            if (result == 'cancel_order') {
-              _cancelOrder(context, state);
-            }
-          },
-          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-            const PopupMenuItem<String>(
-              value: 'cancel_order',
-              child: Text('Cancelar Orden'),
-            ),
-          ],
-        ),
+        if (_userRole == 'Administrador')
+          PopupMenuButton<String>(
+            onSelected: (String result) {
+              if (result == 'cancel_order') {
+                _cancelOrder(context, state);
+              }
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'cancel_order',
+                child: Text('Cancelar Orden'),
+              ),
+            ],
+          ),
       ],
     );
   }
@@ -884,18 +903,19 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Botón Registrar Pago
-              // Se elimina la condición que verifica si el estado de la orden es OrderStatus.prepared
-              FloatingActionButton(
-                onPressed: () {
-                  _showPaymentDialog(
-                      context, state.selectedOrder!.totalCost ?? 0.0, state);
-                },
-                child: Icon(Icons.payment),
-                tooltip: 'Registrar Pago',
-                backgroundColor: Colors.blue,
-              ),
+              if (_userRole == 'Administrador')
+                FloatingActionButton(
+                  onPressed: () {
+                    _showPaymentDialog(
+                        context, state.selectedOrder!.totalCost ?? 0.0, state);
+                  },
+                  child: Icon(Icons.payment),
+                  tooltip: 'Registrar Pago',
+                  backgroundColor: Colors.blue,
+                ),
 
-              if (state.selectedOrder?.status == OrderStatus.prepared &&
+              if (_userRole == 'Administrador' &&
+                  state.selectedOrder?.status == OrderStatus.prepared &&
                   state.selectedOrder?.amountPaid != null &&
                   state.selectedOrder!.amountPaid! -
                           calculateTotal(
@@ -904,7 +924,8 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                 SizedBox(height: 10),
 
               // Botón Terminar Orden
-              if (state.selectedOrder?.status == OrderStatus.prepared &&
+              if (_userRole == 'Administrador' &&
+                  state.selectedOrder?.status == OrderStatus.prepared &&
                   state.selectedOrder?.amountPaid != null &&
                   state.selectedOrder!.amountPaid! >=
                       calculateTotal(state.orderItems, state.orderAdjustments))

@@ -27,6 +27,7 @@ class Order {
   final OrderPreparationStatus? pizzaPreparationStatus;
   final double? amountPaid;
   final DateTime? creationDate;
+  final DateTime? completionDate;
   final double? totalCost;
   final String? comments;
   final DateTime? scheduledDeliveryTime;
@@ -54,6 +55,7 @@ class Order {
     this.pizzaPreparationStatus,
     this.amountPaid,
     this.creationDate,
+    this.completionDate,
     this.totalCost,
     this.comments,
     this.scheduledDeliveryTime,
@@ -78,6 +80,7 @@ class Order {
     OrderPreparationStatus? pizzaPreparationStatus,
     double? amountPaid,
     DateTime? creationDate,
+    DateTime? completionDate,
     double? totalCost,
     String? comments,
     DateTime? scheduledDeliveryTime,
@@ -103,6 +106,7 @@ class Order {
           pizzaPreparationStatus ?? this.pizzaPreparationStatus,
       amountPaid: amountPaid ?? this.amountPaid,
       creationDate: creationDate ?? this.creationDate,
+      completionDate: completionDate ?? this.completionDate,
       totalCost: totalCost ?? this.totalCost,
       comments: comments ?? this.comments,
       scheduledDeliveryTime:
@@ -159,6 +163,9 @@ class Order {
       creationDate: json['creationDate'] != null
           ? DateTime.tryParse(json['creationDate'])
           : null,
+      completionDate: json['completionDate'] != null
+          ? DateTime.tryParse(json['completionDate'])
+          : null,
       totalCost: json['totalCost'] != null
           ? double.tryParse(json['totalCost'].toString())
           : null,
@@ -208,6 +215,7 @@ class Order {
         pizzaPreparationStatus.toString().split(".").last;
     data['amountPaid'] = amountPaid;
     data['creationDate'] = creationDate?.toIso8601String();
+    data['completionDate'] = completionDate?.toIso8601String();
     data['totalCost'] = totalCost;
     data['comments'] = comments;
     data['scheduledDeliveryTime'] = scheduledDeliveryTime?.toIso8601String();

@@ -1,7 +1,6 @@
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderAdjustment.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
-import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/domain/models/SelectedPizzaIngredient.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:flutter/material.dart';
@@ -26,12 +25,8 @@ class _ClosedOrderDetailsPageState extends State<ClosedOrderDetailsPage> {
         title: Text('Orden #${widget.order.id}'),
         actions: [
           IconButton(
-            icon: Icon(Icons.near_me, size: 30),
-            onPressed: () => _selectPrinter(context),
-          ),
-          IconButton(
             icon: Icon(Icons.print, size: 30),
-            onPressed: () => _printTicket(context, widget.order),
+            onPressed: () => _selectAndPrintTicket(context, widget.order),
           ),
         ],
       ),
@@ -60,7 +55,11 @@ class _ClosedOrderDetailsPageState extends State<ClosedOrderDetailsPage> {
           _buildOrderTypeDetails(order),
           SizedBox(height: 8),
           Text(
-            'Fecha: ${DateFormat('yyyy-MM-dd HH:mm').format(order.creationDate!.toLocal())}',
+            'Fecha creacion: ${DateFormat('yyyy-MM-dd HH:mm').format(order.creationDate!.toLocal())}',
+            style: TextStyle(fontSize: 16),
+          ),
+          Text(
+            'Fecha finalizacion: ${DateFormat('yyyy-MM-dd HH:mm').format(order.completionDate!.toLocal())}',
             style: TextStyle(fontSize: 16),
           ),
           SizedBox(height: 8),
@@ -112,12 +111,12 @@ class _ClosedOrderDetailsPageState extends State<ClosedOrderDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Área: ${order.area?.name}',
+              'Area: ${order.area?.name}',
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 4),
             Text(
-              'Mesa: ${order.table?.number}',
+              'Mesa: ${order.table?.number ?? order.table?.temporaryIdentifier}',
               style: TextStyle(fontSize: 16),
             ),
           ],
@@ -365,7 +364,7 @@ class _ClosedOrderDetailsPageState extends State<ClosedOrderDetailsPage> {
     }
   }
 
-  Future<void> _selectPrinter(BuildContext context) async {
+  Future<void> _selectAndPrintTicket(BuildContext context, Order order) async {
     BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
 
     List<BluetoothDevice> devices = await bluetooth.getBondedDevices();
@@ -406,54 +405,33 @@ class _ClosedOrderDetailsPageState extends State<ClosedOrderDetailsPage> {
       setState(() {
         _selectedPrinter = selectedDevice;
       });
-    }
-  }
 
-  Future<void> _printTicket(BuildContext context, Order order) async {
-    if (_selectedPrinter == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No se ha seleccionado una impresora.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
+      try {
+        if (await bluetooth.isConnected ?? false) {
+          await bluetooth.disconnect();
+        }
 
-    BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
+        await bluetooth.connect(_selectedPrinter!);
+        await Future.delayed(Duration(milliseconds: 500));
 
-    try {
-      // Desconecta de la impresora si ya está conectado
-      if (await bluetooth.isConnected ?? false) {
+        String ticketContent = _generateTicketContent(order);
+        await bluetooth.printCustom(ticketContent, 0, 1);
         await bluetooth.disconnect();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ticket impreso correctamente.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al imprimir el ticket: $e'),
+            duration: Duration(seconds: 2),
+          ),
+        );
       }
-
-      // Conecta con la impresora seleccionada
-      await bluetooth.connect(_selectedPrinter!);
-
-      // Agrega un retraso antes de imprimir
-      await Future.delayed(Duration(milliseconds: 500));
-
-      // Genera el contenido del ticket
-      String ticketContent = _generateTicketContent(order);
-
-      // Imprime el ticket
-      await bluetooth.printCustom(ticketContent, 0, 1);
-      await bluetooth.disconnect();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Ticket impreso correctamente.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al imprimir el ticket: $e'),
-          duration: Duration(seconds: 2),
-        ),
-      );
     }
   }
 
