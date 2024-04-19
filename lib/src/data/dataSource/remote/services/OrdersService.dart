@@ -328,4 +328,23 @@ class OrdersService {
       return Error(e.toString());
     }
   }
+
+  Future<Resource<void>> resetDatabase() async {
+    try {
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, 'orders/reset-database');
+      final response = await http.delete(
+        url,
+        headers: {"Content-Type": "application/json"},
+      );
+      if (response.statusCode == 200) {
+        return Success(
+            null); // No hay objeto de respuesta específico, así que devolvemos null con Success.
+      } else {
+        return Error("Error al resetear la base de datos: ${response.body}");
+      }
+    } catch (e) {
+      return Error(e.toString());
+    }
+  }
 }

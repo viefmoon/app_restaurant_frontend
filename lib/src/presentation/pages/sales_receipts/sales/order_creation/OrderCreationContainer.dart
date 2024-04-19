@@ -1,3 +1,4 @@
+import 'package:app/src/domain/models/AuthResponse.dart';
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderSummaryPage.dart'; // Asegúrate de importar OrderSummaryPage
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/OrderTypeSelectionPage.dart';
@@ -126,12 +127,26 @@ class OrderCreationContainer extends StatelessWidget {
             child: Text('Cancelar'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).pop(true); // Cierra el diálogo
-              Navigator.popUntil(
-                  context,
-                  ModalRoute.withName(
-                      'salesHome')); // Lleva al usuario a salesHome
+              // Obtener la sesión del usuario
+              AuthResponse? userSession =
+                  await BlocProvider.of<OrderCreationBloc>(context)
+                      .authUseCases
+                      .getUserSession
+                      .run();
+              String? userRole = userSession?.user.roles?.isNotEmpty == true
+                  ? userSession?.user.roles!.first.name
+                  : null;
+
+              // Decidir a qué página navegar basado en el rol del usuario
+              if (userRole == 'Administrador') {
+                Navigator.pushNamed(context, 'salesHome');
+              } else if (userRole == 'Mesero') {
+                Navigator.pushNamed(context, 'waiterHome');
+              } else {
+                Navigator.popUntil(context, ModalRoute.withName('salesHome'));
+              }
             },
             child: Text('Salir'),
           ),
@@ -140,10 +155,7 @@ class OrderCreationContainer extends StatelessWidget {
     );
 
     if (shouldPop == true) {
-      Navigator.popUntil(
-          context,
-          ModalRoute.withName(
-              'salesHome')); // Asegúrate de que esta línea solo se ejecute si el usuario confirma que quiere salir
+      // Esta línea se ha movido dentro del TextButton para asegurar que se ejecute después de obtener la sesión del usuario
     }
   }
 }

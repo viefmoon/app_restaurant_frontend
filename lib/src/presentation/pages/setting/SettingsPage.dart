@@ -1,5 +1,8 @@
+import 'package:app/src/domain/repositories/OrdersRepository.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app/src/domain/utils/Resource.dart';
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -10,10 +13,13 @@ class _SettingsScreenState extends State<SettingsPage> {
   final TextEditingController _ipController = TextEditingController();
   final GlobalKey<ScaffoldState> _scaffoldKey =
       GlobalKey<ScaffoldState>(); // Añade esta línea
+  late OrdersRepository ordersRepository;
 
   @override
   void initState() {
     super.initState();
+    ordersRepository = GetIt.instance
+        .get<OrdersRepository>(); // Utiliza getIt para obtener la instancia
     _loadServerIP();
   }
 
@@ -76,6 +82,28 @@ class _SettingsScreenState extends State<SettingsPage> {
                 child: Text('Guardar',
                     style:
                         TextStyle(fontSize: 20)), // Aumenta el tamaño del texto
+              ),
+            ),
+            SizedBox(height: 20), // Espacio adicional para el nuevo botón
+            SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: ElevatedButton(
+                onPressed: () async {
+                  // Asegúrate de que ordersRepository está inicializado
+                  var result = await ordersRepository.resetDatabase();
+                  if (result is Success) {
+                    // Asegúrate de que Success está definido
+                    _showSnackBar('La base de datos ha sido reseteada.', true);
+                  } else {
+                    _showSnackBar('Error al resetear la base de datos.', false);
+                  }
+                },
+                child: Text('Resetear Base de Datos',
+                    style: TextStyle(fontSize: 20)),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        Colors.red), // Cambiado 'primary' a 'backgroundColor'
               ),
             ),
           ],

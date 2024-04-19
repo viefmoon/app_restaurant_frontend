@@ -41,7 +41,7 @@ class PizzaPreparationBloc
   void _registerSocketEvents() {
     socket?.on('connect', (_) => print('Connected'));
     socket?.on('disconnect', (_) => print('Disconnected'));
-    socket?.on('pendingOrderItems', _handleSocketData);
+    socket?.on('synchronizationEvent', _handleSocketData);
     socket?.on('orderStatusUpdated', _handleSocketData);
     socket?.on('orderItemStatusUpdated', _handleSocketData);
     socket?.on('newOrderItems', _handleSocketData);
@@ -93,8 +93,8 @@ class PizzaPreparationBloc
       case 'newOrderItems':
         _handleNewOrder(data, emit);
         break;
-      case 'pendingOrderItems':
-        _handleNewOrder(data, emit);
+      case 'synchronizationEvent':
+        _handleSynchronizationEvent(data, emit);
         break;
       case 'orderUpdated':
         _handleNewOrder(data, emit);
@@ -174,6 +174,20 @@ class PizzaPreparationBloc
     }
 
     emit(state.copyWith(orders: updatedOrders));
+  }
+
+  void _handleSynchronizationEvent(
+      Map<String, dynamic> data, Emitter<PizzaPreparationState> emit) {
+    final ordersData = data['data'] as List<dynamic>? ?? [];
+    List<Order> newOrders = ordersData.map((orderData) {
+      Order order = Order.fromJson(orderData['order']);
+      List<OrderItem> orderItems = (orderData['orderItems'] as List<dynamic>)
+          .map((itemData) => OrderItem.fromJson(itemData))
+          .toList();
+      order.orderItems = orderItems;
+      return order;
+    }).toList();
+    emit(state.copyWith(orders: newOrders));
   }
 
   void _onOrderPreparationUpdated(

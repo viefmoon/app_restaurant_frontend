@@ -8,6 +8,7 @@ import 'package:app/src/domain/useCases/orders/GetOpenOrdersUseCase.dart';
 import 'package:app/src/domain/useCases/orders/GetOrderForUpdateUseCase.dart';
 import 'package:app/src/domain/useCases/orders/MarkOrdersAsInDeliveryUseCase.dart';
 import 'package:app/src/domain/useCases/orders/RegisterPaymentUseCase.dart';
+import 'package:app/src/domain/useCases/orders/ResetDatabaseUseCase.dart';
 import 'package:app/src/domain/useCases/orders/SynchronizeDataUseCase.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderItemStatusUseCase.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderStatusUseCase.dart';
@@ -28,6 +29,7 @@ class OrdersUseCases {
   CancelOrderUseCase cancelOrder;
   GetDeliveryOrdersUseCase getDeliveryOrders;
   MarkOrdersAsInDeliveryUseCase markOrdersAsInDelivery;
+  ResetDatabaseUseCase resetDatabase;
 
   OrdersUseCases({
     required this.createOrder,
@@ -44,5 +46,6 @@ class OrdersUseCases {
     required this.cancelOrder,
     required this.getDeliveryOrders,
     required this.markOrdersAsInDelivery,
+    required this.resetDatabase,
   });
 }

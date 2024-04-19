@@ -19,4 +19,5 @@ abstract class OrdersRepository {
   Future<Resource<Order>> cancelOrder(int orderId);
   Future<Resource<List<Order>>> getDeliveryOrders();
   Future<Resource<void>> markOrdersAsInDelivery(List<Order> orders);
+  Future<Resource<void>> resetDatabase();
 }

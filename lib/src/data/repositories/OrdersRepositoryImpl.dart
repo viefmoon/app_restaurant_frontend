@@ -81,4 +81,8 @@ class OrdersRepositoryImpl implements OrdersRepository {
   Future<Resource<Order>> cancelOrder(int orderId) {
     return ordersService.cancelOrder(orderId);
   }
+
+  Future<Resource<void>> resetDatabase() async {
+    return ordersService.resetDatabase();
+  }
 }

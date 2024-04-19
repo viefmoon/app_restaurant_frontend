@@ -103,8 +103,9 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
     Product? product =
         orderItem.product; // Asume que tienes acceso al producto aquí.
     if (order.pizzaPreparationStatus == OrderPreparationStatus.in_preparation &&
-        product?.subcategory?.name == "Pizzas") {
-      // Verifica si es de la subcategoría "Pizzas"
+        (product?.subcategory?.name == "Pizzas" ||
+            product?.subcategory?.name == "Entradas")) {
+      // Verifica si es de la subcategoría "Pizzas" o "Entradas"
       final bloc = BlocProvider.of<PizzaPreparationBloc>(context);
       final newStatus = orderItem.status == OrderItemStatus.prepared
           ? OrderItemStatus.in_preparation
@@ -117,26 +118,18 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
   }
 
   void _fetchAndShowOrderItemsSummary() {
-    final currentState = BlocProvider.of<PizzaPreparationBloc>(context).state;
-    if (currentState.orderItemsSummary != null &&
-        currentState.orderItemsSummary!.isNotEmpty) {
-      // Si ya hay datos disponibles, muestra el diálogo directamente
-      _showOrderItemsSummaryDialog(currentState.orderItemsSummary!);
-    } else {
-      // Si no hay datos, dispara el evento para obtenerlos
-      final bloc = BlocProvider.of<PizzaPreparationBloc>(context);
-      bloc.add(FetchOrderItemsSummaryEvent());
+    final bloc = BlocProvider.of<PizzaPreparationBloc>(context);
+    bloc.add(FetchOrderItemsSummaryEvent());
 
-      StreamSubscription<PizzaPreparationState>? subscription;
-      // Escucha solo una vez al Bloc para obtener el nuevo estado con los datos
-      subscription = bloc.stream.listen((state) {
-        if (state.orderItemsSummary != null &&
-            state.orderItemsSummary!.isNotEmpty) {
-          _showOrderItemsSummaryDialog(state.orderItemsSummary!);
-          subscription?.cancel(); // No olvides cancelar la suscripción
-        }
-      });
-    }
+    StreamSubscription<PizzaPreparationState>? subscription;
+    // Escucha solo una vez al Bloc para obtener el nuevo estado con los datos
+    subscription = bloc.stream.listen((state) {
+      if (state.orderItemsSummary != null &&
+          state.orderItemsSummary!.isNotEmpty) {
+        _showOrderItemsSummaryDialog(state.orderItemsSummary!);
+        subscription?.cancel(); // No olvides cancelar la suscripción
+      }
+    });
   }
 
   void _showOrderItemsSummaryDialog(List<OrderItemSummary> summaries) {
@@ -147,7 +140,7 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
         builder: (BuildContext context) {
           // Construcción de tu diálogo...
           return AlertDialog(
-            title: Text('Proximos a preparar',
+            title: Text('A preparar siguientes 10 ordenes',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             content: SingleChildScrollView(
               child: ListBody(

@@ -34,6 +34,7 @@ import 'package:app/src/domain/useCases/orders/GetOrderForUpdateUseCase.dart';
 import 'package:app/src/domain/useCases/orders/MarkOrdersAsInDeliveryUseCase.dart';
 import 'package:app/src/domain/useCases/orders/OrdersUseCases.dart';
 import 'package:app/src/domain/useCases/orders/RegisterPaymentUseCase.dart';
+import 'package:app/src/domain/useCases/orders/ResetDatabaseUseCase.dart';
 import 'package:app/src/domain/useCases/orders/SynchronizeDataUseCase.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderItemStatusUseCase.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderStatusUseCase.dart';
@@ -144,5 +145,6 @@ abstract class AppModule {
         cancelOrder: CancelOrderUseCase(ordersRepository),
         getDeliveryOrders: GetDeliveryOrdersUseCase(ordersRepository),
         markOrdersAsInDelivery: MarkOrdersAsInDeliveryUseCase(ordersRepository),
+        resetDatabase: ResetDatabaseUseCase(ordersRepository),
       );
 }
