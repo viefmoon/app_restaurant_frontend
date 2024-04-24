@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:app/src/domain/models/AuthResponse.dart';
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderAdjustment.dart';
@@ -80,11 +81,11 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'Orden enviada con éxito',
+                  (state.response as Success).data,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 backgroundColor: Colors.green,
-                duration: Duration(seconds: 1),
+                duration: Duration(milliseconds: 1500),
               ),
             );
             BlocProvider.of<OrderCreationBloc>(context)
@@ -97,7 +98,7 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 backgroundColor: Colors.red,
-                duration: Duration(seconds: 2),
+                duration: Duration(milliseconds: 1500),
               ),
             );
             BlocProvider.of<OrderCreationBloc>(context)
@@ -762,7 +763,6 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
   }
 
   void _sendOrder(BuildContext context, OrderCreationState state) async {
-    // Verificar si la lista de OrderItems está vacía o es nula
     if (state.orderItems == null || state.orderItems!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -829,7 +829,20 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
 
     BlocProvider.of<OrderCreationBloc>(context).add(SendOrder());
 
-    // Decidir a qué página navegar basado en el rol del usuario
+    // Declarar la variable subscription antes de usarla
+    StreamSubscription<OrderCreationState>? subscription;
+    subscription = BlocProvider.of<OrderCreationBloc>(context)
+        .stream
+        .listen((updatedState) {
+      if (updatedState.response is Success<String> ||
+          updatedState.response is Error<String>) {
+        subscription?.cancel();
+        _navigateBasedOnRole(context);
+      }
+    });
+  }
+
+  void _navigateBasedOnRole(BuildContext context) {
     if (_userRole == 'Administrador') {
       Navigator.popUntil(context, ModalRoute.withName('salesHome'));
     } else if (_userRole == 'Mesero') {

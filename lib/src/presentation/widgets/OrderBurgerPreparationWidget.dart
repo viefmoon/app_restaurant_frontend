@@ -286,7 +286,8 @@ class _OrderBurgerPreparationWidgetState
           text,
           style: TextStyle(
             color: Colors.black,
-            fontSize: 15,
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
             fontFamily: 'Calibri',
           ),
         ),
@@ -341,7 +342,7 @@ class _OrderBurgerPreparationWidgetState
         break;
       case OrderType.dineIn:
         String detallesDineIn =
-            '${widget.order.area?.name} - ${widget.order.table?.number}';
+            '${widget.order.area?.name} - ${widget.order.table?.number ?? widget.order.table?.temporaryIdentifier}';
         if (widget.order.comments != null &&
             widget.order.comments!.isNotEmpty) {
           detallesDineIn += '\nComentarios: ${widget.order.comments}';

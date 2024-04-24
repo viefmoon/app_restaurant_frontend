@@ -405,7 +405,14 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
     }
 
     final result = await ordersUseCases.createOrder.run(order);
-    emit(state.copyWith(response: result));
+    if (result is Success<Order>) {
+      emit(
+          state.copyWith(response: Success<String>('Orden enviada con éxito')));
+    } else if (result is Error<Order>) {
+      emit(state.copyWith(response: Error<String>(result.message)));
+    } else {
+      emit(state.copyWith(response: Error<String>('Error al enviar la orden')));
+    }
   }
 
   Future<void> _onResetResponse(

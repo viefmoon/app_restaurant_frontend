@@ -186,72 +186,81 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final ScrollController _scrollController = ScrollController();
+
     return Scaffold(
-      body: BlocBuilder<PizzaPreparationBloc, PizzaPreparationState>(
-        builder: (context, state) {
-          final orders = state.orders ?? [];
-          final filteredOrders = orders.where((order) {
-            bool matchesType;
-            switch (widget.filterType) {
-              case OrderFilterType.delivery:
-                matchesType = order.orderType == OrderType.delivery;
-                break;
-              case OrderFilterType.dineIn:
-                matchesType = order.orderType == OrderType.dineIn;
-                break;
-              case OrderFilterType.pickUpWait:
-                matchesType = order.orderType == OrderType.pickUpWait;
-                break;
-              case OrderFilterType.all:
-              default:
-                matchesType = true;
-                break;
-            }
-
-            bool matchesPreparedStatus =
-                true; // Inicializa como true para incluir todos los pedidos por defecto.
-            if (widget.filterByPrepared) {
-              // Si el filtro por preparados está activo, solo incluye los pedidos que están preparados.
-              matchesPreparedStatus = order.pizzaPreparationStatus ==
-                  OrderPreparationStatus.prepared;
-            } else {
-              // Si el filtro por preparados está desactivado, excluye los pedidos que están preparados.
-              matchesPreparedStatus = order.pizzaPreparationStatus !=
-                  OrderPreparationStatus.prepared;
-            }
-
-            bool matchesScheduledDelivery = true; // Por defecto, mostrar todos
-            if (widget.filterByScheduledDelivery) {
-              matchesScheduledDelivery = order.scheduledDeliveryTime == null;
-            }
-
-            return matchesType &&
-                matchesPreparedStatus &&
-                matchesScheduledDelivery;
-          }).toList();
-
-          if (filteredOrders.isEmpty) {
-            return Center(child: Text('No hay pedidos para mostrar.'));
-          }
-
-          return ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: filteredOrders.length,
-            itemBuilder: (context, index) {
-              final order = filteredOrders[index];
-              if (order.pizzaPreparationStatus !=
-                  OrderPreparationStatus.not_required) {
-                return OrderPizzaPreparationWidget(
-                  order: order,
-                  onOrderGesture: _handleOrderGesture,
-                  onOrderItemTap: _handleOrderItemTap,
-                );
-              } else {
-                return SizedBox.shrink();
-              }
-            },
-          );
+      body: GestureDetector(
+        onHorizontalDragUpdate: (details) {
+          _scrollController.position
+              .moveTo(_scrollController.offset - details.primaryDelta!);
         },
+        child: BlocBuilder<PizzaPreparationBloc, PizzaPreparationState>(
+          builder: (context, state) {
+            final orders = state.orders ?? [];
+            final filteredOrders = orders.where((order) {
+              bool matchesType;
+              switch (widget.filterType) {
+                case OrderFilterType.delivery:
+                  matchesType = order.orderType == OrderType.delivery;
+                  break;
+                case OrderFilterType.dineIn:
+                  matchesType = order.orderType == OrderType.dineIn;
+                  break;
+                case OrderFilterType.pickUpWait:
+                  matchesType = order.orderType == OrderType.pickUpWait;
+                  break;
+                case OrderFilterType.all:
+                default:
+                  matchesType = true;
+                  break;
+              }
+
+              bool matchesPreparedStatus =
+                  true; // Inicializa como true para incluir todos los pedidos por defecto.
+              if (widget.filterByPrepared) {
+                // Si el filtro por preparados está activo, solo incluye los pedidos que están preparados.
+                matchesPreparedStatus = order.pizzaPreparationStatus ==
+                    OrderPreparationStatus.prepared;
+              } else {
+                // Si el filtro por preparados está desactivado, excluye los pedidos que están preparados.
+                matchesPreparedStatus = order.pizzaPreparationStatus !=
+                    OrderPreparationStatus.prepared;
+              }
+
+              bool matchesScheduledDelivery = true;
+              if (widget.filterByScheduledDelivery) {
+                matchesScheduledDelivery = order.scheduledDeliveryTime == null;
+              }
+
+              return matchesType &&
+                  matchesPreparedStatus &&
+                  matchesScheduledDelivery;
+            }).toList();
+
+            if (filteredOrders.isEmpty) {
+              return Center(child: Text('No hay pedidos para mostrar.'));
+            }
+
+            return ListView.builder(
+              controller: _scrollController,
+              scrollDirection: Axis.horizontal,
+              itemCount: filteredOrders.length,
+              itemBuilder: (context, index) {
+                final order = filteredOrders[index];
+                if (order.pizzaPreparationStatus !=
+                    OrderPreparationStatus.not_required) {
+                  return OrderPizzaPreparationWidget(
+                    order: order,
+                    onOrderGesture: _handleOrderGesture,
+                    onOrderItemTap: _handleOrderItemTap,
+                  );
+                } else {
+                  return SizedBox.shrink();
+                }
+              },
+            );
+          },
+        ),
       ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,

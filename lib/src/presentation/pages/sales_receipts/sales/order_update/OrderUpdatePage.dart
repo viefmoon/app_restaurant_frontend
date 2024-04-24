@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:app/src/domain/models/AuthResponse.dart';
 import 'package:app/src/domain/models/OrderAdjustment.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
@@ -130,6 +131,16 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
             BlocProvider.of<OrderUpdateBloc>(context)
               ..add(ResetResponseEvent())
               ..add(ResetOrderUpdateState());
+
+            StreamSubscription<OrderUpdateState>? subscription;
+            subscription = BlocProvider.of<OrderUpdateBloc>(context)
+                .stream
+                .listen((updatedState) {
+              if (updatedState.response is Initial) {
+                subscription?.cancel();
+                _navigateToHomePage(context);
+              }
+            });
           } else if (state.response is Error) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -141,9 +152,9 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                 duration: Duration(seconds: 2),
               ),
             );
+            // Recargar los datos de la orden actual
             BlocProvider.of<OrderUpdateBloc>(context)
-              ..add(ResetResponseEvent())
-              ..add(ResetOrderUpdateState());
+                .add(OrderSelectedForUpdate(state.selectedOrder!));
           }
         },
         child: Scaffold(
@@ -167,6 +178,14 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
         ),
       ),
     );
+  }
+
+  void _navigateToHomePage(BuildContext context) {
+    if (_userRole == 'Administrador') {
+      Navigator.popUntil(context, ModalRoute.withName('salesHome'));
+    } else if (_userRole == 'Mesero') {
+      Navigator.popUntil(context, ModalRoute.withName('waiterHome'));
+    }
   }
 
   Widget _buildAppBar(BuildContext context, OrderUpdateState state) {
@@ -1037,7 +1056,6 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
         break; // No se requieren verificaciones adicionales para otros tipos de orden
     }
     BlocProvider.of<OrderUpdateBloc>(context).add(UpdateOrder());
-    Navigator.pop(context);
   }
 
   Widget _buildAreaDropdown(BuildContext context, OrderUpdateState state) {

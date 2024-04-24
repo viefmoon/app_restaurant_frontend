@@ -152,7 +152,7 @@ class _OrderPizzaPreparationWidgetState
                       _displayOrderStatus(widget.order.pizzaPreparationStatus),
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: Colors.black,
-                          fontSize: 18,
+                          fontSize: 22,
                           fontFamily: 'Arial',
                           fontStyle: FontStyle.italic),
                     ),
@@ -165,7 +165,8 @@ class _OrderPizzaPreparationWidgetState
                               text: 'Creado hace: ',
                               style: TextStyle(
                                 color: Colors.black,
-                                fontSize: 16,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
@@ -175,7 +176,7 @@ class _OrderPizzaPreparationWidgetState
                                   .textTheme
                                   .titleMedium
                                   ?.copyWith(
-                                      fontSize: 16,
+                                      fontSize: 20,
                                       fontStyle: FontStyle.italic,
                                       color: _getColorBasedOnTime(
                                           _timeSinceCreation)),
@@ -184,7 +185,7 @@ class _OrderPizzaPreparationWidgetState
                               text: '- ${widget.order.createdBy}',
                               style: TextStyle(
                                 color: Colors.black,
-                                fontSize: 16,
+                                fontSize: 20,
                                 fontStyle: FontStyle.italic,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -202,7 +203,7 @@ class _OrderPizzaPreparationWidgetState
                                   'Programado: ${DateFormat('HH:mm').format(widget.order.scheduledDeliveryTime!)}',
                               style: TextStyle(
                                 color: Colors.black,
-                                fontSize: 15,
+                                fontSize: 20,
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
@@ -211,7 +212,7 @@ class _OrderPizzaPreparationWidgetState
                                   ' - En: ${_formatDuration(_timeUntilScheduled)}',
                               style: TextStyle(
                                 color: Colors.black,
-                                fontSize: 15,
+                                fontSize: 20,
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
@@ -256,13 +257,13 @@ class _OrderPizzaPreparationWidgetState
 
   Widget _OrderHeaderGestureDetector({required Widget child}) {
     return GestureDetector(
-      onPanStart: (details) {
+      onHorizontalDragStart: (details) {
         _initialSwipeX = details.globalPosition.dx;
       },
-      onPanUpdate: (details) {
+      onHorizontalDragUpdate: (details) {
         _swipeDistanceX = details.globalPosition.dx - _initialSwipeX;
       },
-      onPanEnd: (details) {
+      onHorizontalDragEnd: (details) {
         if (_swipeDistanceX.abs() > _swipeThreshold) {
           if (_swipeDistanceX > 0) {
             widget.onOrderGesture(widget.order, 'swipe_right');
@@ -304,7 +305,8 @@ class _OrderPizzaPreparationWidgetState
           text,
           style: TextStyle(
             color: Colors.black,
-            fontSize: 15,
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
             fontFamily: 'Calibri',
           ),
         ),
@@ -324,7 +326,7 @@ class _OrderPizzaPreparationWidgetState
             child: Text(
               'Actualizado: $formattedTimeAgo por ${update.updatedBy}',
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 18,
                 fontStyle: FontStyle.italic,
                 color: color,
                 height: 1,
@@ -359,7 +361,7 @@ class _OrderPizzaPreparationWidgetState
         break;
       case OrderType.dineIn:
         String detallesDineIn =
-            '${widget.order.area?.name} - ${widget.order.table?.number}';
+            '${widget.order.area?.name} - ${widget.order.table?.number ?? widget.order.table?.temporaryIdentifier}';
         if (widget.order.comments != null &&
             widget.order.comments!.isNotEmpty) {
           detallesDineIn += '\nComentarios: ${widget.order.comments}';
@@ -414,7 +416,7 @@ class _OrderPizzaPreparationWidgetState
       TextStyle smallerTextStyle =
           Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 20,
                   ) ??
               TextStyle();
 
