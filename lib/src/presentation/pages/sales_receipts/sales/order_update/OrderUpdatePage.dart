@@ -1381,6 +1381,12 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
       BuildContext context, OrderUpdateState state) async {
     BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
 
+    // Verificar si ya está conectado y desconectar si es necesario
+    bool? isConnected = await bluetooth.isConnected;
+    if (isConnected != null && isConnected) {
+      await bluetooth.disconnect();
+    }
+
     // Obtener dispositivos emparejados
     List<BluetoothDevice> devices = await bluetooth.getBondedDevices();
     if (devices.isEmpty) {
@@ -1440,6 +1446,11 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
             duration: Duration(seconds: 2),
           ),
         );
+        if (state.orderIdSelectedForUpdate != null) {
+          BlocProvider.of<OrderUpdateBloc>(context).add(
+            RegisterTicketPrint(orderId: state.orderIdSelectedForUpdate!),
+          );
+        }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

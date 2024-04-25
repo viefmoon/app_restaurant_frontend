@@ -1,4 +1,5 @@
 import 'package:app/src/domain/useCases/orders/CancelOrderUseCase.dart';
+import 'package:app/src/domain/useCases/orders/CompleteMultipleOrdersUseCase.dart';
 import 'package:app/src/domain/useCases/orders/CompleteOrderUseCase.dart';
 import 'package:app/src/domain/useCases/orders/CreateOrderUseCase.dart';
 import 'package:app/src/domain/useCases/orders/FindOrderItemsWithCounts.dart';
@@ -6,9 +7,13 @@ import 'package:app/src/domain/useCases/orders/GetClosedOrdersUseCase.dart';
 import 'package:app/src/domain/useCases/orders/GetDeliveryOrdersUseCase.dart';
 import 'package:app/src/domain/useCases/orders/GetOpenOrdersUseCase.dart';
 import 'package:app/src/domain/useCases/orders/GetOrderForUpdateUseCase.dart';
+import 'package:app/src/domain/useCases/orders/GetPrintedOrdersUseCase.dart';
+import 'package:app/src/domain/useCases/orders/GetSalesReportUseCase.dart';
 import 'package:app/src/domain/useCases/orders/MarkOrdersAsInDeliveryUseCase.dart';
 import 'package:app/src/domain/useCases/orders/RegisterPaymentUseCase.dart';
+import 'package:app/src/domain/useCases/orders/RegisterTicketPrintUseCase.dart';
 import 'package:app/src/domain/useCases/orders/ResetDatabaseUseCase.dart';
+import 'package:app/src/domain/useCases/orders/RevertMultipleOrdersUseCase%20copy.dart';
 import 'package:app/src/domain/useCases/orders/SynchronizeDataUseCase.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderItemStatusUseCase.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderStatusUseCase.dart';
@@ -30,6 +35,11 @@ class OrdersUseCases {
   GetDeliveryOrdersUseCase getDeliveryOrders;
   MarkOrdersAsInDeliveryUseCase markOrdersAsInDelivery;
   ResetDatabaseUseCase resetDatabase;
+  GetPrintedOrdersUseCase getPrintedOrders;
+  RegisterTicketPrintUseCase registerTicketPrint;
+  CompleteMultipleOrdersUseCase completeMultipleOrders;
+  RevertMultipleOrdersUseCase revertMultipleOrders;
+  GetSalesReportUseCase getSalesReport;
 
   OrdersUseCases({
     required this.createOrder,
@@ -47,5 +57,10 @@ class OrdersUseCases {
     required this.getDeliveryOrders,
     required this.markOrdersAsInDelivery,
     required this.resetDatabase,
+    required this.getPrintedOrders,
+    required this.registerTicketPrint,
+    required this.completeMultipleOrders,
+    required this.revertMultipleOrders,
+    required this.getSalesReport,
   });
 }

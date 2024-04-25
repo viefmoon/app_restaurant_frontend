@@ -13,7 +13,8 @@ class DeliveryOrdersBloc
       : super(DeliveryOrdersState()) {
     on<LoadDeliveryOrders>(_onLoadDeliveryOrders);
     on<MarkOrdersAsInDelivery>(_onMarkOrdersAsInDelivery);
-    on<MarkOrderAsDelivered>(_onMarkOrderAsDelivered);
+    on<MarkOrdersAsDelivered>(_onMarkOrdersAsDelivered);
+    on<RevertOrdersToPrepared>(_onRevertOrdersToPrepared);
   }
 
   Future<void> _onLoadDeliveryOrders(
@@ -32,28 +33,65 @@ class DeliveryOrdersBloc
   Future<void> _onMarkOrdersAsInDelivery(
       MarkOrdersAsInDelivery event, Emitter<DeliveryOrdersState> emit) async {
     emit(state.copyWith(response: Loading()));
-    await ordersUseCases.markOrdersAsInDelivery.run(event.orders);
-    Resource<List<Order>> response =
-        await ordersUseCases.getDeliveryOrders.run();
-    if (response is Success<List<Order>>) {
-      List<Order> orders = response.data;
-      emit(state.copyWith(orders: orders, response: Initial()));
-    } else {
-      emit(state.copyWith(orders: [], response: Initial()));
+    try {
+      await ordersUseCases.markOrdersAsInDelivery.run(event.orders);
+      Resource<List<Order>> response =
+          await ordersUseCases.getDeliveryOrders.run();
+      if (response is Success<List<Order>>) {
+        List<Order> orders = response.data;
+        emit(state.copyWith(orders: orders, response: Success(orders)));
+      } else {
+        emit(state.copyWith(
+            orders: [],
+            response: Error('Error al marcar las órdenes como en reparto')));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+          response: Error('Error al marcar las órdenes como en reparto: $e')));
     }
   }
 
-  Future<void> _onMarkOrderAsDelivered(
-      MarkOrderAsDelivered event, Emitter<DeliveryOrdersState> emit) async {
+  Future<void> _onMarkOrdersAsDelivered(
+      MarkOrdersAsDelivered event, Emitter<DeliveryOrdersState> emit) async {
     emit(state.copyWith(response: Loading()));
-    await ordersUseCases.completeOrder.run(event.order.id!);
-    Resource<List<Order>> response =
-        await ordersUseCases.getDeliveryOrders.run();
-    if (response is Success<List<Order>>) {
-      List<Order> orders = response.data;
-      emit(state.copyWith(orders: orders, response: Initial()));
-    } else {
-      emit(state.copyWith(orders: [], response: Initial()));
+    try {
+      List<int> orderIds = event.orders.map((order) => order.id!).toList();
+      await ordersUseCases.completeMultipleOrders.run(orderIds);
+      Resource<List<Order>> response =
+          await ordersUseCases.getDeliveryOrders.run();
+      if (response is Success<List<Order>>) {
+        List<Order> orders = response.data;
+        emit(state.copyWith(orders: orders, response: Success(orders)));
+      } else {
+        emit(state.copyWith(
+            orders: [],
+            response: Error('Error al marcar las órdenes como entregadas')));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+          response: Error('Error al marcar las órdenes como entregadas: $e')));
+    }
+  }
+
+  Future<void> _onRevertOrdersToPrepared(
+      RevertOrdersToPrepared event, Emitter<DeliveryOrdersState> emit) async {
+    emit(state.copyWith(response: Loading()));
+    try {
+      List<int> orderIds = event.orders.map((order) => order.id!).toList();
+      await ordersUseCases.revertMultipleOrders.run(orderIds);
+      Resource<List<Order>> response =
+          await ordersUseCases.getDeliveryOrders.run();
+      if (response is Success<List<Order>>) {
+        List<Order> orders = response.data;
+        emit(state.copyWith(orders: orders, response: Success(orders)));
+      } else {
+        emit(state.copyWith(
+            orders: [],
+            response: Error('Error al revertir las órdenes a "Preparado"')));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+          response: Error('Error al revertir las órdenes a "Preparado": $e')));
     }
   }
 }

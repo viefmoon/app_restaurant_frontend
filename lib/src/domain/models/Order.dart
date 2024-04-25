@@ -1,5 +1,6 @@
 import 'package:app/src/domain/models/OrderAdjustment.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/OrderPrint.dart';
 import 'package:app/src/domain/models/OrderUpdate.dart';
 import 'package:app/src/domain/models/Table.dart' as TableModel;
 import 'package:app/src/domain/models/Area.dart';
@@ -40,6 +41,7 @@ class Order {
   List<OrderItem>? orderItems;
   List<OrderAdjustment>? orderAdjustments;
   List<OrderUpdate>? orderUpdates;
+  List<OrderPrint>? orderPrints;
 
   void updateItems(List<OrderItem> newItems) {
     orderItems = newItems;
@@ -68,6 +70,7 @@ class Order {
     this.orderItems,
     this.orderAdjustments,
     this.orderUpdates,
+    this.orderPrints,
   });
 
   Order copyWith({
@@ -93,6 +96,7 @@ class Order {
     List<OrderItem>? orderItems,
     List<OrderAdjustment>? orderAdjustments,
     List<OrderUpdate>? orderUpdates,
+    List<OrderPrint>? orderPrints,
   }) {
     return Order(
       id: id ?? this.id,
@@ -120,6 +124,7 @@ class Order {
       orderItems: orderItems ?? this.orderItems,
       orderAdjustments: orderAdjustments ?? this.orderAdjustments,
       orderUpdates: orderUpdates ?? this.orderUpdates,
+      orderPrints: orderPrints ?? this.orderPrints,
     );
   }
 
@@ -198,6 +203,11 @@ class Order {
               .map((i) => OrderUpdate.fromJson(i))
               .toList()
           : null,
+      orderPrints: json['orderPrints'] != null
+          ? (json['orderPrints'] as List)
+              .map((i) => OrderPrint.fromJson(i))
+              .toList()
+          : null,
     );
   }
 
@@ -234,6 +244,9 @@ class Order {
     }
     if (orderUpdates != null) {
       data['orderUpdates'] = orderUpdates!.map((v) => v.toJson()).toList();
+    }
+    if (orderPrints != null) {
+      data['orderPrints'] = orderPrints!.map((v) => v.toJson()).toList();
     }
     return data;
   }

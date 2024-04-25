@@ -1,4 +1,5 @@
 import 'package:app/src/domain/models/Area.dart';
+import 'package:app/src/domain/models/AuthResponse.dart';
 import 'package:app/src/domain/models/Category.dart';
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderAdjustment.dart';
@@ -60,6 +61,7 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
     on<FinishOrder>(_onFinishOrder);
     on<ToggleTemporaryTable>(_onToggleTemporaryTable);
     on<UpdateTemporaryIdentifier>(_onUpdateTemporaryIdentifier);
+    on<RegisterTicketPrint>(_onRegisterTicketPrint);
   }
 
   Future<void> _onResetOrderUpdateState(
@@ -586,5 +588,23 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
   Future<void> _onUpdateTemporaryIdentifier(
       UpdateTemporaryIdentifier event, Emitter<OrderUpdateState> emit) async {
     emit(state.copyWith(temporaryIdentifier: event.identifier));
+  }
+
+  Future<void> _onRegisterTicketPrint(
+      RegisterTicketPrint event, Emitter<OrderUpdateState> emit) async {
+    emit(state.copyWith(response: Loading()));
+
+    // Obtener el nombre de usuario
+    AuthResponse? userSession = await authUseCases.getUserSession.run();
+    String? printedBy = userSession?.user.name;
+
+    final Resource result = await ordersUseCases.registerTicketPrint
+        .run(event.orderId, printedBy ?? '');
+
+    if (result is Success) {
+      emit(state.copyWith(response: Success(result.data)));
+    } else if (result is Error) {
+      emit(state.copyWith(response: Error(result.message)));
+    }
   }
 }

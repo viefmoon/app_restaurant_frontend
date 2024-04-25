@@ -367,6 +367,12 @@ class _ClosedOrderDetailsPageState extends State<ClosedOrderDetailsPage> {
   Future<void> _selectAndPrintTicket(BuildContext context, Order order) async {
     BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
 
+    // Verificar si ya está conectado y desconectar si es necesario
+    bool? isConnected = await bluetooth.isConnected;
+    if (isConnected != null && isConnected) {
+      await bluetooth.disconnect();
+    }
+
     List<BluetoothDevice> devices = await bluetooth.getBondedDevices();
     if (devices.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

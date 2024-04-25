@@ -2,6 +2,8 @@ import 'package:app/src/data/dataSource/remote/services/OrdersService.dart';
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/OrderItemSummary.dart';
+import 'package:app/src/domain/models/OrderPrint.dart';
+import 'package:app/src/domain/models/SalesReport.dart';
 import 'package:app/src/domain/repositories/OrdersRepository.dart';
 import 'package:app/src/domain/utils/Resource.dart';
 
@@ -78,11 +80,38 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }
 
   @override
+  Future<Resource<List<Order>>> completeMultipleOrders(List<int> orderIds) {
+    return ordersService.completeMultipleOrders(orderIds);
+  }
+
+  @override
+  Future<Resource<List<Order>>> revertMultipleOrdersToPrepared(
+      List<int> orderIds) {
+    return ordersService.revertMultipleOrdersToPrepared(orderIds);
+  }
+
+  @override
   Future<Resource<Order>> cancelOrder(int orderId) {
     return ordersService.cancelOrder(orderId);
   }
 
   Future<Resource<void>> resetDatabase() async {
     return ordersService.resetDatabase();
+  }
+
+  @override
+  Future<Resource<List<Order>>> getPrintedOrders() async {
+    return ordersService.getPrintedOrders();
+  }
+
+  @override
+  Future<Resource<OrderPrint>> registerTicketPrint(
+      int orderId, String printedBy) {
+    return ordersService.registerTicketPrint(orderId, printedBy);
+  }
+
+  @override
+  Future<Resource<SalesReport>> getSalesReport() {
+    return ordersService.getSalesReport();
   }
 }

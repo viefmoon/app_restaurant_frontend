@@ -37,9 +37,27 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
       appBar: AppBar(
         title: Text('Pedidos para Llevar'),
         actions: <Widget>[
+          if (selectedOrders.isNotEmpty &&
+              selectedOrders
+                  .any((order) => order.status == OrderStatus.in_delivery))
+            IconButton(
+              icon: Icon(Icons.undo, size: 40),
+              onPressed: () {
+                // Revertir las órdenes seleccionadas a "Preparado"
+                bloc.add(RevertOrdersToPrepared(selectedOrders
+                    .where((order) => order.status == OrderStatus.in_delivery)
+                    .toList()));
+                setState(() {
+                  selectedOrders.removeWhere(
+                      (order) => order.status == OrderStatus.in_delivery);
+                });
+              },
+            ),
+          if (selectedOrders.isNotEmpty)
+            SizedBox(width: 20), // Espacio entre iconos
           if (selectedOrders.isNotEmpty)
             IconButton(
-              icon: Icon(Icons.send),
+              icon: Icon(Icons.send, size: 40),
               onPressed: () {
                 // Asegurarse de enviar las órdenes seleccionadas antes de limpiar la lista
                 bloc.add(MarkOrdersAsInDelivery(List.from(selectedOrders)));
@@ -48,15 +66,18 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
                 });
               },
             ),
+          if (selectedOrders.isNotEmpty)
+            SizedBox(width: 20), // Espacio entre iconos
           if (selectedOrders.isNotEmpty &&
               selectedOrders
                   .any((order) => order.status == OrderStatus.in_delivery))
             IconButton(
-              icon: Icon(Icons.check_circle),
+              icon: Icon(Icons.check_circle, size: 40),
               onPressed: () {
-                // Marcar la primera orden seleccionada como entregada
-                bloc.add(MarkOrderAsDelivered(selectedOrders.firstWhere(
-                    (order) => order.status == OrderStatus.in_delivery)));
+                // Marcar las órdenes seleccionadas como entregadas
+                bloc.add(MarkOrdersAsDelivered(selectedOrders
+                    .where((order) => order.status == OrderStatus.in_delivery)
+                    .toList()));
                 setState(() {
                   selectedOrders.removeWhere(
                       (order) => order.status == OrderStatus.in_delivery);
@@ -68,13 +89,38 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
             child: Center(
               child: Text(
                 'Total: \$${totalCost.toStringAsFixed(2)}',
-                style: TextStyle(fontSize: 20),
+                style: TextStyle(fontSize: 24),
               ),
             ),
           ),
         ],
       ),
-      body: BlocBuilder<DeliveryOrdersBloc, DeliveryOrdersState>(
+      body: BlocConsumer<DeliveryOrdersBloc, DeliveryOrdersState>(
+        listener: (context, state) {
+          if (state.response is Success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Operación realizada con éxito.',
+                  style: TextStyle(fontSize: 18, color: Colors.white),
+                ),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          } else if (state.response is Error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Error: ${(state.response as Error).message}',
+                  style: TextStyle(fontSize: 18, color: Colors.white),
+                ),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        },
         builder: (context, state) {
           if (state.response is Loading) {
             return Center(child: CircularProgressIndicator());
@@ -101,11 +147,15 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
                 return CheckboxListTile(
                   title: Text(
                     '#${order.id} - ${order.deliveryAddress}, Tel: ${order.phoneNumber}',
-                    style: TextStyle(color: textColor),
+                    style: TextStyle(
+                        color: textColor,
+                        fontSize: 22), // Aumenta el tamaño aquí
                   ),
                   subtitle: Text(
                     'Total: \$${order.totalCost?.toStringAsFixed(2) ?? ''} - Estado: $statusText',
-                    style: TextStyle(color: textColor),
+                    style: TextStyle(
+                        color: textColor,
+                        fontSize: 22), // Aumenta el tamaño aquí
                   ),
                   value: selectedOrders.contains(order),
                   onChanged: (bool? value) {

@@ -21,11 +21,20 @@ class MarkOrdersAsInDelivery extends DeliveryOrdersEvent {
   List<Object> get props => [orders];
 }
 
-class MarkOrderAsDelivered extends DeliveryOrdersEvent {
-  final Order order;
+class MarkOrdersAsDelivered extends DeliveryOrdersEvent {
+  final List<Order> orders;
 
-  const MarkOrderAsDelivered(this.order);
+  const MarkOrdersAsDelivered(this.orders);
 
   @override
-  List<Object> get props => [order];
+  List<Object> get props => [orders];
+}
+
+class RevertOrdersToPrepared extends DeliveryOrdersEvent {
+  final List<Order> orders;
+
+  const RevertOrdersToPrepared(this.orders);
+
+  @override
+  List<Object> get props => [orders];
 }

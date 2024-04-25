@@ -245,3 +245,12 @@ class UpdateTemporaryIdentifier extends OrderUpdateEvent {
   @override
   List<Object> get props => [identifier];
 }
+
+class RegisterTicketPrint extends OrderUpdateEvent {
+  final int orderId;
+
+  const RegisterTicketPrint({required this.orderId});
+
+  @override
+  List<Object> get props => [orderId];
+}

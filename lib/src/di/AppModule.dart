@@ -24,6 +24,7 @@ import 'package:app/src/domain/useCases/areas/GetTablesFromAreaUseCase.dart';
 import 'package:app/src/domain/useCases/categories/CategoriesUseCases.dart';
 import 'package:app/src/domain/useCases/categories/GetCategoriesWithProductsUseCase.dart';
 import 'package:app/src/domain/useCases/orders/CancelOrderUseCase.dart';
+import 'package:app/src/domain/useCases/orders/CompleteMultipleOrdersUseCase.dart';
 import 'package:app/src/domain/useCases/orders/CompleteOrderUseCase.dart';
 import 'package:app/src/domain/useCases/orders/CreateOrderUseCase.dart';
 import 'package:app/src/domain/useCases/orders/FindOrderItemsWithCounts.dart';
@@ -31,10 +32,14 @@ import 'package:app/src/domain/useCases/orders/GetClosedOrdersUseCase.dart';
 import 'package:app/src/domain/useCases/orders/GetDeliveryOrdersUseCase.dart';
 import 'package:app/src/domain/useCases/orders/GetOpenOrdersUseCase.dart';
 import 'package:app/src/domain/useCases/orders/GetOrderForUpdateUseCase.dart';
+import 'package:app/src/domain/useCases/orders/GetPrintedOrdersUseCase.dart';
+import 'package:app/src/domain/useCases/orders/GetSalesReportUseCase.dart';
 import 'package:app/src/domain/useCases/orders/MarkOrdersAsInDeliveryUseCase.dart';
 import 'package:app/src/domain/useCases/orders/OrdersUseCases.dart';
 import 'package:app/src/domain/useCases/orders/RegisterPaymentUseCase.dart';
+import 'package:app/src/domain/useCases/orders/RegisterTicketPrintUseCase.dart';
 import 'package:app/src/domain/useCases/orders/ResetDatabaseUseCase.dart';
+import 'package:app/src/domain/useCases/orders/RevertMultipleOrdersUseCase%20copy.dart';
 import 'package:app/src/domain/useCases/orders/SynchronizeDataUseCase.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderItemStatusUseCase.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderStatusUseCase.dart';
@@ -142,9 +147,14 @@ abstract class AppModule {
             FindOrderItemsWithCountsUseCase(ordersRepository),
         registerPayment: RegisterPaymentUseCase(ordersRepository),
         completeOrder: CompleteOrderUseCase(ordersRepository),
+        completeMultipleOrders: CompleteMultipleOrdersUseCase(ordersRepository),
         cancelOrder: CancelOrderUseCase(ordersRepository),
         getDeliveryOrders: GetDeliveryOrdersUseCase(ordersRepository),
         markOrdersAsInDelivery: MarkOrdersAsInDeliveryUseCase(ordersRepository),
         resetDatabase: ResetDatabaseUseCase(ordersRepository),
+        getPrintedOrders: GetPrintedOrdersUseCase(ordersRepository),
+        registerTicketPrint: RegisterTicketPrintUseCase(ordersRepository),
+        revertMultipleOrders: RevertMultipleOrdersUseCase(ordersRepository),
+        getSalesReport: GetSalesReportUseCase(ordersRepository),
       );
 }

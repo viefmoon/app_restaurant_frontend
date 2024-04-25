@@ -37,6 +37,9 @@ class _WaiterHomePageState extends State<WaiterHomePage> {
     return Scaffold(
         appBar: AppBar(
           title: Text('ORDENES', style: TextStyle(fontSize: 24)),
+          iconTheme: IconThemeData(
+            size: 40,
+          ),
         ),
         drawer: BlocBuilder<WaiterHomeBloc, WaiterHomeState>(
           builder: (context, state) {

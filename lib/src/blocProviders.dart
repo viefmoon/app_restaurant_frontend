@@ -18,9 +18,11 @@ import 'package:app/src/presentation/pages/sales_receipts/closed_orders/bloc/Clo
 import 'package:app/src/presentation/pages/sales_receipts/delivery_orders/bloc/DeliveryOrdersBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/home/bloc/SalesHomeBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/home_waiter/bloc/WaiterHomeBloc.dart';
+import 'package:app/src/presentation/pages/sales_receipts/printed_orders/bloc/PrintedOrdersBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/pending_order_items/bloc/PendingOrderItemsBloc.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales_report/bloc/SalesReportBloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 List<BlocProvider> blocProviders = [
@@ -75,6 +77,16 @@ List<BlocProvider> blocProviders = [
   BlocProvider<BurgerPreparationBloc>(
     create: (context) => BurgerPreparationBloc(
       orderUseCases: locator<OrdersUseCases>(),
+    ),
+  ),
+  BlocProvider<PrintedOrdersBloc>(
+    create: (context) => PrintedOrdersBloc(
+      ordersUseCases: locator<OrdersUseCases>(),
+    ),
+  ),
+  BlocProvider<SalesReportBloc>(
+    create: (context) => SalesReportBloc(
+      ordersUseCases: locator<OrdersUseCases>(),
     ),
   ),
 ];

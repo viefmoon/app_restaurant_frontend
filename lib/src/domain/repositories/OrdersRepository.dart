@@ -1,5 +1,7 @@
 import 'package:app/src/domain/models/OrderItem.dart';
 import 'package:app/src/domain/models/OrderItemSummary.dart';
+import 'package:app/src/domain/models/OrderPrint.dart';
+import 'package:app/src/domain/models/SalesReport.dart';
 import 'package:app/src/domain/utils/Resource.dart';
 import 'package:app/src/domain/models/Order.dart';
 
@@ -16,8 +18,15 @@ abstract class OrdersRepository {
       {List<String>? subcategories, int? ordersLimit});
   Future<Resource<Order>> registerPayment(int orderId, double amount);
   Future<Resource<Order>> completeOrder(int orderId);
+  Future<Resource<List<Order>>> completeMultipleOrders(List<int> orderIds);
+  Future<Resource<List<Order>>> revertMultipleOrdersToPrepared(
+      List<int> orderIds);
   Future<Resource<Order>> cancelOrder(int orderId);
   Future<Resource<List<Order>>> getDeliveryOrders();
   Future<Resource<void>> markOrdersAsInDelivery(List<Order> orders);
   Future<Resource<void>> resetDatabase();
+  Future<Resource<List<Order>>> getPrintedOrders();
+  Future<Resource<OrderPrint>> registerTicketPrint(
+      int orderId, String printedBy);
+  Future<Resource<SalesReport>> getSalesReport();
 }

@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
+import 'package:app/src/domain/models/OrderPrint.dart';
+import 'package:app/src/domain/models/SalesReport.dart';
 import 'package:http/http.dart' as http;
 import 'package:app/src/data/api/ApiConfig.dart';
 import 'package:app/src/domain/utils/Resource.dart';
@@ -86,6 +88,27 @@ class OrdersService {
       } else {
         return Error(
             "Error al obtener las órdenes de entrega: ${response.body}");
+      }
+    } catch (e) {
+      return Error(e.toString());
+    }
+  }
+
+  Future<Resource<List<Order>>> getPrintedOrders() async {
+    try {
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/orders/with-prints');
+      final response = await http.get(
+        url,
+        headers: {"Content-Type": "application/json"},
+      );
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body) as List<dynamic>;
+        List<Order> orders =
+            data.map((orderJson) => Order.fromJson(orderJson)).toList();
+        return Success(orders);
+      } else {
+        return Error("Error al obtener las órdenes impresas: ${response.body}");
       }
     } catch (e) {
       return Error(e.toString());
@@ -287,6 +310,53 @@ class OrdersService {
     }
   }
 
+  Future<Resource<List<Order>>> completeMultipleOrders(
+      List<int> orderIds) async {
+    try {
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/orders/complete-multiple');
+      final response = await http.patch(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: json.encode(orderIds),
+      );
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body) as List<dynamic>;
+        List<Order> completedOrders =
+            data.map((orderJson) => Order.fromJson(orderJson)).toList();
+        return Success(completedOrders);
+      } else {
+        return Error("Error al completar las órdenes: ${response.body}");
+      }
+    } catch (e) {
+      return Error(e.toString());
+    }
+  }
+
+  Future<Resource<List<Order>>> revertMultipleOrdersToPrepared(
+      List<int> orderIds) async {
+    try {
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/orders/revert-prepared-multiple');
+      final response = await http.patch(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: json.encode(orderIds),
+      );
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body) as List<dynamic>;
+        List<Order> revertedOrders =
+            data.map((orderJson) => Order.fromJson(orderJson)).toList();
+        return Success(revertedOrders);
+      } else {
+        return Error(
+            "Error al revertir las órdenes a preparadas: ${response.body}");
+      }
+    } catch (e) {
+      return Error(e.toString());
+    }
+  }
+
   Future<Resource<Order>> cancelOrder(int orderId) async {
     try {
       print("cancelling order");
@@ -342,6 +412,51 @@ class OrdersService {
             null); // No hay objeto de respuesta específico, así que devolvemos null con Success.
       } else {
         return Error("Error al resetear la base de datos: ${response.body}");
+      }
+    } catch (e) {
+      return Error(e.toString());
+    }
+  }
+
+  Future<Resource<OrderPrint>> registerTicketPrint(
+      int orderId, String printedBy) async {
+    try {
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/orders/$orderId/print');
+      final response = await http.patch(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({
+          "printedBy": printedBy,
+          "printTime": DateTime.now().toIso8601String()
+        }),
+      );
+      if (response.statusCode == 200) {
+        OrderPrint orderPrint = OrderPrint.fromJson(json.decode(response.body));
+        return Success(orderPrint);
+      } else {
+        return Error(
+            "Error al registrar la impresión del ticket: ${response.body}");
+      }
+    } catch (e) {
+      return Error(e.toString());
+    }
+  }
+
+  Future<Resource<SalesReport>> getSalesReport() async {
+    try {
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce, '/orders/sales-report');
+      final response = await http.get(
+        url,
+        headers: {"Content-Type": "application/json"},
+      );
+      if (response.statusCode == 200) {
+        var data = json.decode(response.body);
+        SalesReport report = SalesReport.fromJson(data);
+        return Success(report);
+      } else {
+        return Error("Error al obtener el informe de ventas: ${response.body}");
       }
     } catch (e) {
       return Error(e.toString());
