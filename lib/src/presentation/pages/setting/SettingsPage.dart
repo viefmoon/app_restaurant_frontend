@@ -13,8 +13,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsPage> {
   final TextEditingController _ipController = TextEditingController();
-  final GlobalKey<ScaffoldState> _scaffoldKey =
-      GlobalKey<ScaffoldState>(); // Añade esta línea
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late OrdersRepository ordersRepository;
   late AuthUseCases authUseCases;
   String? _userRole;
@@ -46,7 +45,6 @@ class _SettingsScreenState extends State<SettingsPage> {
   _saveServerIP() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      // Asume que _ipController.text solo contiene la dirección IP sin el puerto
       await prefs.setString('serverIP', _ipController.text);
       _showSnackBar('Dirección IP guardada con éxito', true);
     } catch (e) {
@@ -68,59 +66,88 @@ class _SettingsScreenState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey, // Asigna el GlobalKey al Scaffold
+      key: _scaffoldKey,
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
             TextField(
               controller: _ipController,
-              style: TextStyle(fontSize: 20), // Aumenta el tamaño del texto
+              style: TextStyle(fontSize: 20),
               decoration: InputDecoration(
                 labelText: 'Dirección IP del Servidor',
-                labelStyle: TextStyle(
-                    fontSize: 26), // Aumenta el tamaño del texto del label
+                labelStyle: TextStyle(fontSize: 26),
               ),
             ),
+            SizedBox(height: 20),
             SizedBox(
-                height:
-                    20), // Añade una separación entre el campo de texto y el botón
-            SizedBox(
-              width: double
-                  .infinity, // Hace que el botón se expanda a lo largo del ancho disponible
-              height: 60, // Aumenta la altura del botón
+              width: double.infinity,
+              height: 60,
               child: ElevatedButton(
                 onPressed: () {
                   _saveServerIP();
                 },
-                child: Text('Guardar',
-                    style:
-                        TextStyle(fontSize: 20)), // Aumenta el tamaño del texto
+                child: Text('Guardar', style: TextStyle(fontSize: 20)),
               ),
             ),
-            SizedBox(height: 20), // Espacio adicional para el nuevo botón
-            if (_userRole == "Administrador") // Condición para mostrar el botón
+            SizedBox(height: 20),
+            if (_userRole == "Administrador")
               SizedBox(
                 width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
                   onPressed: () async {
-                    // Asegúrate de que ordersRepository está inicializado
-                    var result = await ordersRepository.resetDatabase();
-                    if (result is Success) {
-                      // Asegúrate de que Success está definido
-                      _showSnackBar(
-                          'La base de datos ha sido reseteada.', true);
-                    } else {
-                      _showSnackBar(
-                          'Error al resetear la base de datos.', false);
-                    }
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        TextEditingController passwordController =
+                            TextEditingController();
+                        return AlertDialog(
+                          title: Text('Confirmación de reseteo'),
+                          content: TextField(
+                            controller: passwordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: 'Ingrese contraseña para resetear',
+                            ),
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text('Cancelar'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            TextButton(
+                              child: Text('Aceptar'),
+                              onPressed: () async {
+                                Navigator.of(context).pop();
+                                if (passwordController.text == "root") {
+                                  var result =
+                                      await ordersRepository.resetDatabase();
+                                  if (result is Success) {
+                                    _showSnackBar(
+                                        'La base de datos ha sido reseteada.',
+                                        true);
+                                  } else {
+                                    _showSnackBar(
+                                        'Error al resetear la base de datos.',
+                                        false);
+                                  }
+                                } else {
+                                  _showSnackBar(
+                                      'Contraseña incorrecta.', false);
+                                }
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
                   },
                   child: Text('Resetear Base de Datos',
                       style: TextStyle(fontSize: 20)),
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          Colors.red), // Cambiado 'primary' a 'backgroundColor'
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 ),
               ),
           ],
