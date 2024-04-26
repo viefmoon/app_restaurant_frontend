@@ -117,7 +117,6 @@ class OrdersService {
 
   Future<Resource<Order>> getOrderForUpdate(int orderId) async {
     try {
-      print("Obteniendo orden para actualizar");
       String apiEcommerce = await ApiConfig.getApiEcommerce();
       Uri url = Uri.http(apiEcommerce, '/orders/$orderId');
       final response = await http.get(
@@ -126,8 +125,6 @@ class OrdersService {
       );
       if (response.statusCode == 200) {
         Order order = Order.fromJson(json.decode(response.body));
-        print(
-            "orden: ${json.encode(order.toJson())}"); // Modificado para imprimir la orden serializada
         return Success(order);
       } else {
         return Error(
@@ -159,14 +156,12 @@ class OrdersService {
         body: json.encode(order.toJson()),
       );
       if (response.statusCode == 200) {
-        print('response.body: ${response.body}');
         Order updatedOrder = Order.fromJson(json.decode(response.body));
         return Success(updatedOrder);
       } else {
         return Error("Error al actualizar la orden: ${response.body}");
       }
     } catch (e) {
-      print('Errors: $e');
       return Error(e.toString());
     }
   }
@@ -194,7 +189,6 @@ class OrdersService {
 
   Future<Resource<OrderItem>> updateOrderItemStatus(OrderItem orderItem) async {
     try {
-      print('Updatingdddds order item status');
       String apiEcommerce = await ApiConfig.getApiEcommerce();
       Uri url =
           Uri.http(apiEcommerce, '/orders/orderitems/${orderItem.id}/status');
@@ -203,7 +197,6 @@ class OrdersService {
         headers: {"Content-Type": "application/json"},
         body: json.encode(orderItem.toJson()),
       );
-      print('response: $response');
       if (response.statusCode == 200) {
         OrderItem updatedOrderItem =
             OrderItem.fromJson(json.decode(response.body));
@@ -238,7 +231,6 @@ class OrdersService {
 
   Future<Resource<List<OrderItemSummary>>> findOrderItemsWithCounts(
       {List<String>? subcategories, int? ordersLimit}) async {
-    print("fetching summary2");
     try {
       String apiEcommerce = await ApiConfig.getApiEcommerce();
       Map<String, dynamic> queryParams = {};
@@ -254,13 +246,11 @@ class OrdersService {
         url,
         headers: {"Content-Type": "application/json"},
       );
-      print("response: ${response.statusCode}");
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
         List<OrderItemSummary> summaries = data
             .map((itemJson) => OrderItemSummary.fromJson(itemJson))
             .toList();
-        print("summariesssss: $summaries");
         return Success(summaries);
       } else {
         return Error(
@@ -359,14 +349,12 @@ class OrdersService {
 
   Future<Resource<Order>> cancelOrder(int orderId) async {
     try {
-      print("cancelling order");
       String apiEcommerce = await ApiConfig.getApiEcommerce();
       Uri url = Uri.http(apiEcommerce, '/orders/$orderId/cancel');
       final response = await http.patch(
         url,
         headers: {"Content-Type": "application/json"},
       );
-      print("response: ${response.statusCode}");
       if (response.statusCode == 200) {
         Order canceledOrder = Order.fromJson(json.decode(response.body));
         return Success(canceledOrder);

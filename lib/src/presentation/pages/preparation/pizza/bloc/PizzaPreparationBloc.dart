@@ -71,11 +71,8 @@ class PizzaPreparationBloc
   }
 
   void disconnectWebSocket() {
-    print('disconnect');
-    print('socket: $socket');
     if (socket?.connected ?? false) {
       socket?.disconnect();
-      print('WebSocket Disconnected');
     }
   }
 

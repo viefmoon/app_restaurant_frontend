@@ -34,7 +34,6 @@ class _SettingsScreenState extends State<SettingsPage> {
       _userRole = userSession?.user.roles?.isNotEmpty == true
           ? userSession?.user.roles!.first.name
           : null;
-      print("El rol del usuario es: $_userRole"); // Imprime el rol del usuari
     });
   }
 

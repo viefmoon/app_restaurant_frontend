@@ -145,8 +145,6 @@ class _ClosedOrdersPageState extends State<ClosedOrdersPage> {
                       subtitle + scheduledDeliveryTimeText + statusText,
                       style: TextStyle(color: statusColor, fontSize: 18)),
                   onTap: () {
-                    print(
-                        "Navegando a ClosedOrderDetailsPage con orden: $order");
                     Navigator.push(
                       context,
                       MaterialPageRoute(

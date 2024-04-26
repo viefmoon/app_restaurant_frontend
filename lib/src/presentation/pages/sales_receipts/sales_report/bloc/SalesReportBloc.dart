@@ -16,7 +16,6 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
       LoadSalesReport event, Emitter<SalesReportState> emit) async {
     emit(state.copyWith(response: Loading()));
     Resource<SalesReport> response = await ordersUseCases.getSalesReport.run();
-    print(response);
     if (response is Success<SalesReport>) {
       SalesReport salesReport = response.data;
       emit(state.copyWith(

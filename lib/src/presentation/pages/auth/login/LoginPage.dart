@@ -41,7 +41,6 @@ class _LoginPageState extends State<LoginPage> {
         } else if (responseState is Success) {
           WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
             final authResponse = responseState.data as AuthResponse;
-            debugPrint('RESPUESTA DE AUTENTICACIÓN: ${authResponse.toJson()}');
             _bloc?.add(LoginSaveUserSession(authResponse: authResponse));
 
             // Determinar el rol del usuario

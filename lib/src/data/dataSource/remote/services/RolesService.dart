@@ -14,13 +14,11 @@ class RolesService {
         List<dynamic> data = json.decode(response.body);
         List<Role> roles =
             data.map((dynamic item) => Role.fromJson(item)).toList();
-        print('Roles: $roles');
         return Success(roles);
       } else {
         return Error("Error al recuperar los roles: ${response.body}");
       }
     } catch (e) {
-      print('Error: $e');
       return Error(e.toString());
     }
   }

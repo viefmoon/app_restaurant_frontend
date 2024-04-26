@@ -32,7 +32,6 @@ class UsersService {
         return Error(listToString(data['message']));
       }
     } catch (e) {
-      print('Error: $e');
       return Error(e.toString());
     }
   }

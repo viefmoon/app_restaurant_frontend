@@ -23,7 +23,6 @@ class AuthService {
         return Error(listToString(data['message']));
       }
     } catch (e) {
-      print('Error: $e');
       return Error(e.toString());
     }
   }
@@ -43,7 +42,6 @@ class AuthService {
         return Error(listToString(data['message']));
       }
     } catch (e) {
-      print('Error: $e');
       return Error(e.toString());
     }
   }
