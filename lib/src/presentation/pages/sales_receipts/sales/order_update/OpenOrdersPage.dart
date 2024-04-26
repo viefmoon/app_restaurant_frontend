@@ -1,3 +1,4 @@
+import 'package:app/src/domain/models/AuthResponse.dart';
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/OrderUpdatePage.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateEvent.dart';
@@ -16,8 +17,33 @@ class OpenOrdersPage extends StatefulWidget {
 class _OpenOrdersPageState extends State<OpenOrdersPage> {
   OrderType? selectedFilter; // null representa el filtro "Todas"
   String? selectedArea; // null representa "Todas las áreas"
-  TextEditingController deliveryAddressController =
-      TextEditingController(); // Paso 1
+  TextEditingController deliveryAddressController = TextEditingController();
+  String? _userRole;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeFiltersBasedOnRole();
+  }
+
+  Future<void> _initializeFiltersBasedOnRole() async {
+    _userRole = await _getUserRole(context);
+    if (_userRole == "Mesero") {
+      setState(() {
+        selectedFilter = OrderType.dineIn;
+      });
+    }
+  }
+
+  Future<String?> _getUserRole(BuildContext context) async {
+    AuthResponse? userSession = await BlocProvider.of<OrderUpdateBloc>(context)
+        .authUseCases
+        .getUserSession
+        .run();
+    return userSession?.user.roles?.isNotEmpty == true
+        ? userSession?.user.roles!.first.name
+        : null;
+  }
 
   @override
   Widget build(BuildContext context) {
