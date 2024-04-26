@@ -23,7 +23,7 @@ class _ClosedOrdersPageState extends State<ClosedOrdersPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Cerradas', style: TextStyle(fontSize: 24)),
+        title: Text('Ordenes cerradas', style: TextStyle(fontSize: 24)),
         actions: <Widget>[
           DropdownButton<OrderType?>(
             value: selectedFilter,

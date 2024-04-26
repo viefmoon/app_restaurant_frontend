@@ -25,8 +25,8 @@ class _SalesHomePageState extends State<SalesHomePage> {
   List<Widget> pageList = <Widget>[
     SalesOptionsPage(),
     PrintedOrdersPage(),
-    PendingOrderItemsPage(),
     DeliveryOrdersPage(),
+    PendingOrderItemsPage(),
     ClosedOrdersPage(),
     SalesReportPage(),
     SettingsPage(),

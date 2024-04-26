@@ -40,7 +40,7 @@ class OrderCreationContainer extends StatelessWidget {
                   return Text('$area: $table', style: TextStyle(fontSize: 26));
                 } else if (state.selectedOrderType == OrderType.delivery) {
                   String phoneNumber = state.phoneNumber ?? 'N/A';
-                  return Text('Teléfono: $phoneNumber',
+                  return Text('Telefono: $phoneNumber',
                       style: TextStyle(fontSize: 26));
                 }
                 break;

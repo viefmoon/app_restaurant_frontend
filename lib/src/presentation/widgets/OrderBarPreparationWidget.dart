@@ -68,6 +68,15 @@ class _OrderBarPreparationWidgetState extends State<OrderBarPreparationWidget> {
     }
   }
 
+  @override
+  void didUpdateWidget(covariant OrderBarPreparationWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.order.scheduledDeliveryTime !=
+        oldWidget.order.scheduledDeliveryTime) {
+      _updateTimeUntilScheduled();
+    }
+  }
+
   Color _getColorBasedOnTime(Duration duration) {
     if (duration.inMinutes < 20) {
       return const Color.fromARGB(255, 29, 126, 32);
@@ -193,7 +202,7 @@ class _OrderBarPreparationWidgetState extends State<OrderBarPreparationWidget> {
                           children: [
                             TextSpan(
                               text:
-                                  'Programado: ${DateFormat('HH:mm').format(widget.order.scheduledDeliveryTime!)}',
+                                  'Programado: ${DateFormat('HH:mm').format(widget.order.scheduledDeliveryTime!.toLocal())}',
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 15,

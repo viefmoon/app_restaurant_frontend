@@ -262,6 +262,8 @@ class _OpenOrdersPageState extends State<OpenOrdersPage> {
         return Colors.orange;
       case OrderStatus.prepared:
         return Colors.green;
+      case OrderStatus.in_delivery:
+        return Colors.indigo;
       case OrderStatus.finished:
         return Colors.grey;
       case OrderStatus.canceled:
@@ -281,6 +283,8 @@ class _OpenOrdersPageState extends State<OpenOrdersPage> {
         return 'En preparación';
       case OrderStatus.prepared:
         return 'Preparado';
+      case OrderStatus.in_delivery:
+        return 'En reparto';
       case OrderStatus.finished:
         return 'Finalizado';
       case OrderStatus.canceled:

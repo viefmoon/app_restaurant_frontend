@@ -1,4 +1,6 @@
+import 'package:app/src/domain/models/AuthResponse.dart';
 import 'package:app/src/domain/repositories/OrdersRepository.dart';
+import 'package:app/src/domain/useCases/auth/AuthUseCases.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,13 +16,26 @@ class _SettingsScreenState extends State<SettingsPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey =
       GlobalKey<ScaffoldState>(); // Añade esta línea
   late OrdersRepository ordersRepository;
+  late AuthUseCases authUseCases;
+  String? _userRole;
 
   @override
   void initState() {
     super.initState();
-    ordersRepository = GetIt.instance
-        .get<OrdersRepository>(); // Utiliza getIt para obtener la instancia
+    ordersRepository = GetIt.instance.get<OrdersRepository>();
+    authUseCases = GetIt.instance.get<AuthUseCases>();
     _loadServerIP();
+    _determineUserRole();
+  }
+
+  Future<void> _determineUserRole() async {
+    AuthResponse? userSession = await authUseCases.getUserSession.run();
+    setState(() {
+      _userRole = userSession?.user.roles?.isNotEmpty == true
+          ? userSession?.user.roles!.first.name
+          : null;
+      print("El rol del usuario es: $_userRole"); // Imprime el rol del usuari
+    });
   }
 
   _loadServerIP() async {
@@ -85,27 +100,30 @@ class _SettingsScreenState extends State<SettingsPage> {
               ),
             ),
             SizedBox(height: 20), // Espacio adicional para el nuevo botón
-            SizedBox(
-              width: double.infinity,
-              height: 60,
-              child: ElevatedButton(
-                onPressed: () async {
-                  // Asegúrate de que ordersRepository está inicializado
-                  var result = await ordersRepository.resetDatabase();
-                  if (result is Success) {
-                    // Asegúrate de que Success está definido
-                    _showSnackBar('La base de datos ha sido reseteada.', true);
-                  } else {
-                    _showSnackBar('Error al resetear la base de datos.', false);
-                  }
-                },
-                child: Text('Resetear Base de Datos',
-                    style: TextStyle(fontSize: 20)),
-                style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Colors.red), // Cambiado 'primary' a 'backgroundColor'
+            if (_userRole == "Administrador") // Condición para mostrar el botón
+              SizedBox(
+                width: double.infinity,
+                height: 60,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    // Asegúrate de que ordersRepository está inicializado
+                    var result = await ordersRepository.resetDatabase();
+                    if (result is Success) {
+                      // Asegúrate de que Success está definido
+                      _showSnackBar(
+                          'La base de datos ha sido reseteada.', true);
+                    } else {
+                      _showSnackBar(
+                          'Error al resetear la base de datos.', false);
+                    }
+                  },
+                  child: Text('Resetear Base de Datos',
+                      style: TextStyle(fontSize: 20)),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          Colors.red), // Cambiado 'primary' a 'backgroundColor'
+                ),
               ),
-            ),
           ],
         ),
       ),

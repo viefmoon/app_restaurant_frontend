@@ -33,6 +33,7 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
   late TextEditingController
       _tempTableController; // Controlador para la mesa temporal
   String? _userRole;
+  bool isButtonDisabled = false;
 
   @override
   void initState() {
@@ -617,7 +618,9 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                     return Padding(
                       padding: const EdgeInsets.all(10.0),
                       child: ElevatedButton(
-                        onPressed: () => _sendOrder(context, state),
+                        onPressed: isButtonDisabled
+                            ? null
+                            : () => _sendOrder(context, state),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           textStyle: TextStyle(fontSize: 22),
@@ -762,7 +765,8 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
     return itemsTotal + adjustmentsTotal;
   }
 
-  void _sendOrder(BuildContext context, OrderCreationState state) async {
+  Future<void> _sendOrder(
+      BuildContext context, OrderCreationState state) async {
     if (state.orderItems == null || state.orderItems!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -827,6 +831,11 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
         break; // No se requieren verificaciones adicionales para otros tipos de orden
     }
 
+    // Deshabilitar el botón antes de enviar la orden
+    setState(() {
+      isButtonDisabled = true;
+    });
+
     BlocProvider.of<OrderCreationBloc>(context).add(SendOrder());
 
     // Declarar la variable subscription antes de usarla
@@ -838,6 +847,11 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
           updatedState.response is Error<String>) {
         subscription?.cancel();
         _navigateBasedOnRole(context);
+
+        // Volver a habilitar el botón después de enviar la orden
+        setState(() {
+          isButtonDisabled = false;
+        });
       }
     });
   }

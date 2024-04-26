@@ -69,20 +69,6 @@ class _PizzaHomePageState extends State<PizzaHomePage> {
               SizedBox(width: screenWidth * 0.10),
               _buildIconButton(Icons.shopping_bag, OrderFilterType.pickUpWait),
               SizedBox(width: screenWidth * 0.16),
-              // Botón para filtrar por entrega programada
-              IconButton(
-                iconSize: 40,
-                icon: Icon(_filterByScheduledDelivery
-                    ? Icons.date_range
-                    : Icons.date_range_outlined),
-                color: _filterByScheduledDelivery ? Colors.black : Colors.white,
-                onPressed: () {
-                  setState(() {
-                    _filterByScheduledDelivery = !_filterByScheduledDelivery;
-                  });
-                },
-              ),
-              SizedBox(width: screenWidth * 0.03),
               IconButton(
                 iconSize: 40,
                 icon: Icon(_filterByPrepared

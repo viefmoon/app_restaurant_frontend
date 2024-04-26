@@ -152,9 +152,18 @@ class _BurgerPreparationPageState extends State<BurgerPreparationPage> {
               matchesScheduledDelivery = order.scheduledDeliveryTime == null;
             }
 
+            bool isWithinPreparationWindow = true;
+            if (order.scheduledDeliveryTime != null) {
+              final preparationWindow =
+                  order.scheduledDeliveryTime!.subtract(Duration(minutes: 30));
+              isWithinPreparationWindow =
+                  DateTime.now().isAfter(preparationWindow);
+            }
+
             return matchesType &&
                 matchesPreparedStatus &&
-                matchesScheduledDelivery;
+                matchesScheduledDelivery &&
+                isWithinPreparationWindow;
           }).toList();
 
           if (filteredOrders.isEmpty) {

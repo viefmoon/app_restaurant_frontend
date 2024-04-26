@@ -30,7 +30,7 @@ class PendingOrderItemsBloc
         "Cocteleria",
         "Bebidas",
         "Cafe Caliente"
-      ], ordersLimit: 10);
+      ], ordersLimit: 1000); //sin limite
       if (result is Success<List<OrderItemSummary>>) {
         emit(PendingOrderItemsLoaded(items: result.data));
       } else if (result is Error) {

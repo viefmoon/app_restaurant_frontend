@@ -96,7 +96,7 @@ class _ClosedOrderDetailsPageState extends State<ClosedOrderDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Teléfono: ${order.phoneNumber}',
+              'Telefono: ${order.phoneNumber}',
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 4),
@@ -131,7 +131,7 @@ class _ClosedOrderDetailsPageState extends State<ClosedOrderDetailsPage> {
             ),
             SizedBox(height: 4),
             Text(
-              'Teléfono: ${order.phoneNumber}',
+              'Telefono: ${order.phoneNumber}',
               style: TextStyle(fontSize: 16),
             ),
           ],
@@ -479,15 +479,15 @@ class _ClosedOrderDetailsPageState extends State<ClosedOrderDetailsPage> {
     switch (order.orderType) {
       case OrderType.delivery:
         content += cmdFontSizeMedium +
-            'Teléfono: ${order.phoneNumber}\n' +
+            'Telefono: ${order.phoneNumber}\n' +
             cmdFontSizeNormal;
         content += cmdFontSizeMedium +
-            'Dirección: ${removeAccents(order.deliveryAddress ?? '')}\n' +
+            'Direccion: ${removeAccents(order.deliveryAddress ?? '')}\n' +
             cmdFontSizeNormal;
         break;
       case OrderType.dineIn:
         content += cmdFontSizeMedium +
-            'Área: ${order.area?.name}\n' +
+            'Area: ${order.area?.name}\n' +
             cmdFontSizeNormal;
         content += cmdFontSizeMedium +
             'Mesa: ${order.table?.number}\n' +
@@ -498,7 +498,7 @@ class _ClosedOrderDetailsPageState extends State<ClosedOrderDetailsPage> {
             'Nombre del Cliente: ${order.customerName}\n' +
             cmdFontSizeNormal;
         content += cmdFontSizeMedium +
-            'Teléfono: ${order.phoneNumber}\n' +
+            'Telefono: ${order.phoneNumber}\n' +
             cmdFontSizeNormal;
         break;
       default:
