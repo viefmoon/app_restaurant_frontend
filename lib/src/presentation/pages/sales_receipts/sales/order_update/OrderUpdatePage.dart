@@ -699,6 +699,9 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                                 product:
                                     foundProduct!, // Aquí se asume que el producto siempre se encuentra
                                 existingOrderItem: orderItem,
+                                bloc: BlocProvider.of<OrderUpdateBloc>(context),
+                                state: BlocProvider.of<OrderUpdateBloc>(context)
+                                    .state,
                               ),
                             ),
                           );
@@ -750,6 +753,11 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                                             product:
                                                 foundProduct!, // Aquí se asume que el producto siempre se encuentra
                                             existingOrderItem: orderItem,
+                                            bloc: BlocProvider.of<
+                                                OrderUpdateBloc>(context),
+                                            state: BlocProvider.of<
+                                                    OrderUpdateBloc>(context)
+                                                .state,
                                           ),
                                         ),
                                       );

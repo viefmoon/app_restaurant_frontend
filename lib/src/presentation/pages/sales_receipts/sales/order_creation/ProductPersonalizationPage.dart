@@ -11,6 +11,7 @@ import 'package:app/src/domain/models/SelectedPizzaIngredient.dart';
 import 'package:app/src/domain/models/SelectedProductObservation.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
 import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationEvent.dart';
+import 'package:app/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationState.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
@@ -18,10 +19,16 @@ import 'package:uuid/uuid.dart';
 class ProductPersonalizationPage extends StatefulWidget {
   final Product product;
   final OrderItem? existingOrderItem;
+  final OrderCreationBloc bloc;
+  final OrderCreationState state;
 
-  const ProductPersonalizationPage(
-      {Key? key, required this.product, this.existingOrderItem})
-      : super(key: key);
+  const ProductPersonalizationPage({
+    Key? key,
+    required this.product,
+    this.existingOrderItem,
+    required this.bloc,
+    required this.state,
+  }) : super(key: key);
 
   @override
   _ProductPersonalizationPageState createState() =>
@@ -42,10 +49,16 @@ class _ProductPersonalizationPageState
   bool _isIngredientsExpanded = false;
   bool _isLeftExpanded = false;
   bool _isRightExpanded = false;
+  int productCount = 0; // Added to manage product count state
 
   @override
   void initState() {
     super.initState();
+
+    productCount = widget.state.orderItems
+            ?.where((item) => item.product?.id == widget.product.id)
+            .length ??
+        0;
 
     if (widget.existingOrderItem != null) {
       selectedVariant = widget.existingOrderItem!.productVariant;
@@ -118,114 +131,142 @@ class _ProductPersonalizationPageState
       }
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Text(
-              widget.product.name,
-              style:
-                  TextStyle(fontSize: 26), // Cambiado a una fuente más grande
+    return BlocListener<OrderCreationBloc, OrderCreationState>(
+      listener: (context, state) {
+        // Recalcula productCount cuando la lista orderItems cambia
+        if (state.orderItems != widget.state.orderItems) {
+          setState(() {
+            productCount = state.orderItems
+                    ?.where((item) => item.product?.id == widget.product.id)
+                    .length ??
+                0;
+          });
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Row(
+            children: [
+              Text(
+                widget.product.name,
+                style:
+                    TextStyle(fontSize: 26), // Cambiado a una fuente más grande
+              ),
+              Spacer(),
+              if (widget.existingOrderItem == null && productCount > 0)
+                Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: Text(
+                    '($productCount)',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              Text(
+                '\$${_currentPrice.toStringAsFixed(2)}',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            if (widget.existingOrderItem ==
+                null) // Only show the button if there is no existing OrderItem
+              IconButton(
+                icon: Icon(Icons.arrow_forward, size: 40),
+                onPressed: enableSaveButton ? _saveAndReset : null,
+                tooltip: 'Guardar y agregar otro',
+              ),
+            IconButton(
+              icon: Icon(Icons.save, size: 40),
+              onPressed: enableSaveButton ? _saveOrderItem : null,
             ),
-            Spacer(),
-            Text(
-              '\$${_currentPrice.toStringAsFixed(2)}',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            SizedBox(width: 20),
+            if (widget.existingOrderItem != null)
+              IconButton(
+                icon: Icon(Icons.delete, size: 40),
+                onPressed: _deleteOrderItem,
+              ),
+          ],
+        ),
+        body: ListView(
+          children: [
+            // Muestra el switch solo si el producto es una pizza
+            if (isPizza)
+              SwitchListTile(
+                title: Text('Armar pizza',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                value: _showPizzaIngredients,
+                onChanged: (bool value) {
+                  setState(() {
+                    _showPizzaIngredients = value;
+                    if (value) {
+                      selectedPizzaFlavors.clear();
+                      selectedPizzaIngredients.clear();
+                    } else {
+                      // Aquí se agrega la lógica para borrar los ingredientes cuando se deselecciona "Armar pizza"
+                      selectedPizzaIngredients
+                          .clear(); // Borra los ingredientes de pizza seleccionados
+                    }
+                    _updatePrice();
+                  });
+                },
+              ),
+            if (isPizza && _showPizzaIngredients)
+              SwitchListTile(
+                  title: Text('Crear dos mitades',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  value: _createTwoHalves,
+                  onChanged: (bool value) {
+                    setState(() {
+                      _createTwoHalves = value;
+                      // Al activar o desactivar, reinicia los ingredientes seleccionados
+                      selectedPizzaIngredients.clear();
+                      _updatePrice();
+                    });
+                  }),
+            if (widget.product.productVariants != null)
+              _buildVariantSelector(widget.product.productVariants!),
+            // Muestra los sabores de pizza solo si el producto es una pizza y _showPizzaIngredients es falso
+            if (!_showPizzaIngredients && isPizza)
+              _buildPizzaFlavorSelector(widget.product.pizzaFlavors!),
+            // Muestra los ingredientes de pizza solo si el producto es una pizza y _showPizzaIngredients es verdadero
+            if (_showPizzaIngredients && isPizza)
+              _buildPizzaIngredientSelector(widget.product.pizzaIngredients!),
+            if (widget.product.modifierTypes != null)
+              ...widget.product.modifierTypes!
+                  .map(_buildModifierTypeSection)
+                  .toList(),
+            if (widget.product.productObservationTypes != null)
+              ...widget.product.productObservationTypes!
+                  .map(_buildObservationTypeSection)
+                  .toList(),
+            SizedBox(height: 16.0), // Espaciado agregado arriba de comentarios
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'Comentarios',
+                  labelStyle: TextStyle(
+                      fontSize: 22), // Fuente más grande para el label
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  comments = value; // Actualiza el comentario del usuario
+                },
+                initialValue:
+                    comments, // Inicializa con el comentario existente si lo hay
+              ),
             ),
           ],
         ),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.save, size: 40),
-            onPressed: enableSaveButton
-                ? _saveOrderItem
-                : null, // Usa la variable enableSaveButton para habilitar o deshabilitar el botón
-          ),
-          SizedBox(width: 20),
-          if (widget.existingOrderItem != null)
-            IconButton(
-              icon: Icon(Icons.delete, size: 40),
-              onPressed: _deleteOrderItem,
-            ),
-        ],
-      ),
-      body: ListView(
-        children: [
-          // Muestra el switch solo si el producto es una pizza
-          if (isPizza)
-            SwitchListTile(
-              title: Text('Armar pizza',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              value: _showPizzaIngredients,
-              onChanged: (bool value) {
-                setState(() {
-                  _showPizzaIngredients = value;
-                  if (value) {
-                    selectedPizzaFlavors.clear();
-                    selectedPizzaIngredients.clear();
-                  } else {
-                    // Aquí se agrega la lógica para borrar los ingredientes cuando se deselecciona "Armar pizza"
-                    selectedPizzaIngredients
-                        .clear(); // Borra los ingredientes de pizza seleccionados
-                  }
-                  _updatePrice();
-                });
-              },
-            ),
-          if (isPizza && _showPizzaIngredients)
-            SwitchListTile(
-              title: Text('Crear dos mitades',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              value: _createTwoHalves,
-              onChanged: (bool value) {
-                setState(() {
-                  _createTwoHalves = value;
-                  // Al activar o desactivar, reinicia los ingredientes seleccionados
-                  selectedPizzaIngredients.clear();
-                  _updatePrice();
-                });
-              },
-            ),
-
-          if (widget.product.productVariants != null)
-            _buildVariantSelector(widget.product.productVariants!),
-          // Muestra los sabores de pizza solo si el producto es una pizza y _showPizzaIngredients es falso
-          if (!_showPizzaIngredients && isPizza)
-            _buildPizzaFlavorSelector(widget.product.pizzaFlavors!),
-          // Muestra los ingredientes de pizza solo si el producto es una pizza y _showPizzaIngredients es verdadero
-          if (_showPizzaIngredients && isPizza)
-            _buildPizzaIngredientSelector(widget.product.pizzaIngredients!),
-          if (widget.product.modifierTypes != null)
-            ...widget.product.modifierTypes!
-                .map(_buildModifierTypeSection)
-                .toList(),
-          if (widget.product.productObservationTypes != null)
-            ...widget.product.productObservationTypes!
-                .map(_buildObservationTypeSection)
-                .toList(),
-          SizedBox(height: 16.0), // Espaciado agregado arriba de comentarios
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextFormField(
-              decoration: InputDecoration(
-                labelText: 'Comentarios',
-                labelStyle:
-                    TextStyle(fontSize: 22), // Fuente más grande para el label
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (value) {
-                comments = value; // Actualiza el comentario del usuario
-              },
-              initialValue:
-                  comments, // Inicializa con el comentario existente si lo hay
-            ),
-          ),
-        ],
       ),
     );
   }
 
-  void _saveOrderItem() {
+  void _saveOrderItem({bool resetAfterSave = false}) {
     double price = _calculatePrice();
 
     // Genera un nuevo tempId si es un nuevo OrderItem, de lo contrario, usa el existente
@@ -234,7 +275,7 @@ class _ProductPersonalizationPageState
     if (widget.existingOrderItem != null) {
       // Actualizar el OrderItem existente
       final updatedOrderItem = widget.existingOrderItem!.copyWith(
-        tempId: tempId, // Asegrate de pasar el tempId existente
+        tempId: tempId, // Asegúrate de pasar el tempId existente
         product: widget.product,
         productVariant: selectedVariant,
         selectedModifiers: selectedModifiers,
@@ -267,19 +308,38 @@ class _ProductPersonalizationPageState
       BlocProvider.of<OrderCreationBloc>(context)
           .add(AddOrderItem(orderItem: orderItem));
     }
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        backgroundColor: Colors.green, // Color de fondo verde
+        backgroundColor: Colors.green,
         content: Text(
             'Producto ${widget.existingOrderItem != null ? 'actualizado' : 'añadido'} con éxito',
             style: TextStyle(
-              fontSize: 20, // Fuente de tamaño 20
-              fontWeight: FontWeight.bold, // Texto en negrita
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
             )),
-        duration: Duration(milliseconds: 600),
+        duration: Duration(milliseconds: 200),
       ),
     );
-    Navigator.pop(context);
+
+    if (!resetAfterSave) {
+      Navigator.pop(context);
+    }
+  }
+
+  void _saveAndReset() {
+    _saveOrderItem(resetAfterSave: true);
+    setState(() {
+      selectedVariant = null;
+      selectedModifiers.clear();
+      selectedObservations.clear();
+      selectedPizzaIngredients.clear();
+      selectedPizzaFlavors.clear();
+      comments = null;
+      _showPizzaIngredients = false;
+      _createTwoHalves = false;
+      _updatePrice();
+    });
   }
 
   Widget _buildVariantSelector(List<ProductVariant> variants) {

@@ -136,18 +136,22 @@ class ProductSelectionPage extends StatelessWidget {
         final product = state.filteredProducts![index];
         final hasImage =
             product.imageUrl != null && product.imageUrl!.isNotEmpty;
+        final productCount = state.orderItems
+                ?.where((item) => item.product?.id == product.id)
+                .length ??
+            0;
+
+        bool requiresPersonalization =
+            (product.productVariants?.isNotEmpty ?? false) ||
+                (product.modifierTypes?.isNotEmpty ?? false) ||
+                (product.productObservationTypes?.isNotEmpty ?? false) ||
+                (product.pizzaFlavors?.isNotEmpty ?? false) ||
+                (product.pizzaIngredients?.isNotEmpty ?? false);
 
         return InkWell(
           onTap: () {
-            bool requiresPersonalization =
-                (product.productVariants?.isNotEmpty ?? false) ||
-                    (product.modifierTypes?.isNotEmpty ?? false) ||
-                    (product.productObservationTypes?.isNotEmpty ?? false) ||
-                    (product.pizzaFlavors?.isNotEmpty ?? false) ||
-                    (product.pizzaIngredients?.isNotEmpty ?? false);
             if (!requiresPersonalization) {
               final tempId = Uuid().v4();
-
               final orderItem = OrderItem(
                 tempId: tempId,
                 product: Product(
@@ -158,7 +162,6 @@ class ProductSelectionPage extends StatelessWidget {
                 status: OrderItemStatus.created,
                 price: product.price,
               );
-
               bloc.add(AddOrderItem(orderItem: orderItem));
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -170,15 +173,15 @@ class ProductSelectionPage extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  duration: Duration(milliseconds: 300),
+                  duration: Duration(milliseconds: 150),
                 ),
               );
             } else {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) =>
-                        ProductPersonalizationPage(product: product)),
+                    builder: (context) => ProductPersonalizationPage(
+                        product: product, bloc: bloc, state: state)),
               );
             }
           },
@@ -188,8 +191,7 @@ class ProductSelectionPage extends StatelessWidget {
               color: Colors.grey[200],
             ),
             child: Stack(
-              alignment: Alignment
-                  .bottomCenter, // Alinea el texto en la parte inferior de la imagen
+              alignment: Alignment.center,
               children: [
                 if (hasImage)
                   Image.asset(
@@ -198,7 +200,6 @@ class ProductSelectionPage extends StatelessWidget {
                     width: double.infinity,
                     height: double.infinity,
                     errorBuilder: (context, error, stackTrace) {
-                      // Fallback al nombre del producto si la imagen no se puede cargar
                       return Center(
                         child: Text(
                           product.name,
@@ -213,30 +214,113 @@ class ProductSelectionPage extends StatelessWidget {
                     },
                   ),
                 Container(
-                  // Agrega un degradado para mejorar la legibilidad del texto sobre la imagen
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                       colors: [
-                        Colors.black.withOpacity(0.6),
+                        Colors.black.withOpacity(0.99),
                         Colors.transparent
                       ],
                     ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(
-                      8.0), // Un poco de padding para el texto
-                  child: Text(
-                    product.name,
-                    style: TextStyle(
-                      color: Colors.white, // Color blanco para contraste
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow
-                        .ellipsis, // Asegura que el texto no sobrepase el espacio disponible
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        product.name,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (!requiresPersonalization && productCount > 0)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.remove,
+                                  color: Colors.white, size: 40),
+                              onPressed: () {
+                                final tempId = state.orderItems!
+                                    .where((item) =>
+                                        item.product?.id == product.id)
+                                    .first
+                                    .tempId!;
+                                bloc.add(RemoveOrderItem(tempId: tempId));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: Colors.red,
+                                    content: Text(
+                                      'Producto quitado',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    duration: Duration(milliseconds: 150),
+                                  ),
+                                );
+                              },
+                            ),
+                            Text(
+                              productCount.toString(),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 40,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.add,
+                                  color: Colors.white, size: 40),
+                              onPressed: () {
+                                final tempId = Uuid().v4();
+                                final orderItem = OrderItem(
+                                  tempId: tempId,
+                                  product: Product(
+                                    id: product.id,
+                                    name: product.name,
+                                    price: product.price,
+                                  ),
+                                  status: OrderItemStatus.created,
+                                  price: product.price,
+                                );
+                                bloc.add(AddOrderItem(orderItem: orderItem));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: Colors.green,
+                                    content: Text(
+                                      'Producto agregado',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    duration: Duration(milliseconds: 150),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      if (requiresPersonalization && productCount > 0)
+                        Text(
+                          productCount.toString(),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ],

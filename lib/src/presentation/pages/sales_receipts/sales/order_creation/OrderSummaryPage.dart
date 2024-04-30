@@ -535,6 +535,11 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                               builder: (context) => ProductPersonalizationPage(
                                 product: orderItem.product!,
                                 existingOrderItem: orderItem,
+                                bloc:
+                                    BlocProvider.of<OrderCreationBloc>(context),
+                                state:
+                                    BlocProvider.of<OrderCreationBloc>(context)
+                                        .state,
                               ),
                             ),
                           );
