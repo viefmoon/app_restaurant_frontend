@@ -66,9 +66,7 @@ class _BurgerHomePageState extends State<BurgerHomePage> {
               _buildIconButton(Icons.local_shipping, OrderFilterType.delivery),
               SizedBox(width: screenWidth * 0.10),
               _buildIconButton(Icons.restaurant, OrderFilterType.dineIn),
-              SizedBox(width: screenWidth * 0.10),
-              _buildIconButton(Icons.shopping_bag, OrderFilterType.pickUpWait),
-              SizedBox(width: screenWidth * 0.16),
+              SizedBox(width: screenWidth * 0.25),
               IconButton(
                 iconSize: 40,
                 icon: Icon(_filterByPrepared

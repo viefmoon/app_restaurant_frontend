@@ -37,7 +37,7 @@ class _PizzaHomePageState extends State<PizzaHomePage> {
         color: _currentFilter == filterType
             ? Colors.black
             : Colors.white, // Cambia el color aquí
-        iconSize: 40,
+        iconSize: 70,
         onPressed: () {
           setState(() {
             _currentFilter = filterType;
@@ -48,11 +48,12 @@ class _PizzaHomePageState extends State<PizzaHomePage> {
     }
 
     return AppBar(
+      toolbarHeight: 80,
       title: Text(
         'Pizza',
         style: TextStyle(
           fontFamily: 'Roboto',
-          fontSize: 26,
+          fontSize: 40,
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -66,11 +67,9 @@ class _PizzaHomePageState extends State<PizzaHomePage> {
               _buildIconButton(Icons.local_shipping, OrderFilterType.delivery),
               SizedBox(width: screenWidth * 0.10),
               _buildIconButton(Icons.restaurant, OrderFilterType.dineIn),
-              SizedBox(width: screenWidth * 0.10),
-              _buildIconButton(Icons.shopping_bag, OrderFilterType.pickUpWait),
-              SizedBox(width: screenWidth * 0.16),
+              SizedBox(width: screenWidth * 0.27),
               IconButton(
-                iconSize: 40,
+                iconSize: 70,
                 icon: Icon(_filterByPrepared
                     ? Icons.check_box
                     : Icons.check_box_outline_blank),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
@@ -204,10 +205,8 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
                   matchesType = order.orderType == OrderType.delivery;
                   break;
                 case OrderFilterType.dineIn:
-                  matchesType = order.orderType == OrderType.dineIn;
-                  break;
-                case OrderFilterType.pickUpWait:
-                  matchesType = order.orderType == OrderType.pickUpWait;
+                  matchesType = order.orderType == OrderType.dineIn ||
+                      order.orderType == OrderType.pickUpWait;
                   break;
                 case OrderFilterType.all:
                 default:
@@ -250,23 +249,33 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
               return Center(child: Text('No hay pedidos para mostrar.'));
             }
 
-            return ListView.builder(
-              controller: _scrollController,
-              scrollDirection: Axis.horizontal,
-              itemCount: filteredOrders.length,
-              itemBuilder: (context, index) {
-                final order = filteredOrders[index];
-                if (order.pizzaPreparationStatus !=
-                    OrderPreparationStatus.not_required) {
-                  return OrderPizzaPreparationWidget(
-                    order: order,
-                    onOrderGesture: _handleOrderGesture,
-                    onOrderItemTap: _handleOrderItemTap,
-                  );
-                } else {
-                  return SizedBox.shrink();
-                }
-              },
+            return ScrollConfiguration(
+              behavior: ScrollConfiguration.of(context).copyWith(
+                dragDevices: {
+                  PointerDeviceKind.touch,
+                  PointerDeviceKind.mouse,
+                },
+              ),
+              child: ListView.builder(
+                controller: _scrollController,
+                scrollDirection: Axis.horizontal,
+                physics:
+                    const BouncingScrollPhysics(), // Agrega un efecto de rebote
+                itemCount: filteredOrders.length,
+                itemBuilder: (context, index) {
+                  final order = filteredOrders[index];
+                  if (order.pizzaPreparationStatus !=
+                      OrderPreparationStatus.not_required) {
+                    return OrderPizzaPreparationWidget(
+                      order: order,
+                      onOrderGesture: _handleOrderGesture,
+                      onOrderItemTap: _handleOrderItemTap,
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                },
+              ),
             );
           },
         ),

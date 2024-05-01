@@ -132,7 +132,7 @@ class _OrderBurgerPreparationWidgetState
             ],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
-            stops: const [0.90, 0.10],
+            stops: const [0.95, 0.05],
           ),
         ),
         child: Row(
@@ -478,9 +478,19 @@ class _OrderBurgerPreparationWidgetState
           onTap: () {
             widget.onOrderItemTap(widget.order, orderItem);
           },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: itemWidgets,
+          child: Container(
+            padding: EdgeInsets.only(top: 5, bottom: 5),
+            color: Colors.transparent,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: itemWidgets,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
