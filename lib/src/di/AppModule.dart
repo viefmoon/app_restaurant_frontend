@@ -41,6 +41,7 @@ import 'package:app/src/domain/useCases/orders/RegisterTicketPrintUseCase.dart';
 import 'package:app/src/domain/useCases/orders/ResetDatabaseUseCase.dart';
 import 'package:app/src/domain/useCases/orders/RevertMultipleOrdersUseCase%20copy.dart';
 import 'package:app/src/domain/useCases/orders/SynchronizeDataUseCase.dart';
+import 'package:app/src/domain/useCases/orders/UpdateOrderItemPreparationAdvanceStatus.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderItemStatusUseCase.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderStatusUseCase.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderUseCase.dart';
@@ -156,5 +157,7 @@ abstract class AppModule {
         registerTicketPrint: RegisterTicketPrintUseCase(ordersRepository),
         revertMultipleOrders: RevertMultipleOrdersUseCase(ordersRepository),
         getSalesReport: GetSalesReportUseCase(ordersRepository),
+        updateOrderItemPreparationAdvanceStatus:
+            UpdateOrderItemPreparationAdvanceStatusUseCase(ordersRepository),
       );
 }

@@ -1,15 +1,13 @@
-import 'dart:async';
 import 'dart:ui';
-
 import 'package:app/src/domain/models/Order.dart';
 import 'package:app/src/domain/models/OrderItem.dart';
-import 'package:app/src/domain/models/OrderItemSummary.dart';
 import 'package:app/src/domain/models/Product.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationEvent.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationState.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/bloc/PizzaPreparationBloc.dart';
 import 'package:app/src/presentation/pages/preparation/pizza/home/bloc/PizzaHomeState.dart';
 import 'package:app/src/presentation/widgets/OrderPizzaPreparationWidget.dart';
+import 'package:app/src/presentation/widgets/AdvancePreparationCounter.dart'; // Added import for the new widget
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
@@ -18,12 +16,14 @@ class PizzaPreparationPage extends StatefulWidget {
   final OrderFilterType filterType;
   final bool filterByPrepared;
   final bool filterByScheduledDelivery; // Nuevo parámetro
+  final bool filterByCanBePreparedInAdvance; // Nuevo parámetro
 
   const PizzaPreparationPage(
       {Key? key,
       required this.filterType,
       this.filterByPrepared = false,
-      this.filterByScheduledDelivery = false}) // Nuevo parámetro
+      this.filterByScheduledDelivery = false,
+      this.filterByCanBePreparedInAdvance = false}) // Nuevo parámetro
       : super(key: key);
 
   @override
@@ -32,8 +32,7 @@ class PizzaPreparationPage extends StatefulWidget {
 
 class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
   PizzaPreparationBloc? bloc;
-  bool _isDialogShown =
-      false; // Añade esta variable para rastrear si el diálogo está abierto
+  List<Order> filteredOrders = []; // Define la variable aquí
 
   @override
   void initState() {
@@ -108,80 +107,21 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
             product?.subcategory?.name == "Entradas")) {
       // Verifica si es de la subcategoría "Pizzas" o "Entradas"
       final bloc = BlocProvider.of<PizzaPreparationBloc>(context);
-      final newStatus = orderItem.status == OrderItemStatus.prepared
-          ? OrderItemStatus.in_preparation
-          : OrderItemStatus.prepared;
-      bloc.add(UpdateOrderItemStatusEvent(
-          orderId: order.id!,
-          orderItemId: orderItem.id!,
-          newStatus: newStatus));
-    }
-  }
-
-  void _fetchAndShowOrderItemsSummary() {
-    final bloc = BlocProvider.of<PizzaPreparationBloc>(context);
-    bloc.add(FetchOrderItemsSummaryEvent());
-
-    StreamSubscription<PizzaPreparationState>? subscription;
-    // Escucha solo una vez al Bloc para obtener el nuevo estado con los datos
-    subscription = bloc.stream.listen((state) {
-      if (state.orderItemsSummary != null &&
-          state.orderItemsSummary!.isNotEmpty) {
-        _showOrderItemsSummaryDialog(state.orderItemsSummary!);
-        subscription?.cancel(); // No olvides cancelar la suscripción
+      if (widget.filterByCanBePreparedInAdvance) {
+        // Si el filtro "Adelantar" está activado
+        final newStatus = !orderItem.isBeingPreparedInAdvance!;
+        bloc.add(UpdateOrderItemPreparationAdvanceStatusEvent(
+            order.id!, orderItem.id!, newStatus));
+      } else {
+        // Si el filtro "Adelantar" no está activado, se mantiene el comportamiento anterior
+        final newStatus = orderItem.status == OrderItemStatus.prepared
+            ? OrderItemStatus.in_preparation
+            : OrderItemStatus.prepared;
+        bloc.add(UpdateOrderItemStatusEvent(
+            orderId: order.id!,
+            orderItemId: orderItem.id!,
+            newStatus: newStatus));
       }
-    });
-  }
-
-  void _showOrderItemsSummaryDialog(List<OrderItemSummary> summaries) {
-    if (!_isDialogShown) {
-      _isDialogShown = true;
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          // Construcción de tu diálogo...
-          return AlertDialog(
-            title: Text('A preparar siguientes 10 ordenes',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: summaries
-                    .map((summary) => ExpansionTile(
-                          title: Text(summary.subcategoryName,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 22)),
-                          children: summary.products
-                              .map((product) => ListTile(
-                                    title: Text(
-                                      product.name,
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18),
-                                    ),
-                                    trailing: Text('${product.count}',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20)),
-                                  ))
-                              .toList(),
-                        ))
-                    .toList(),
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Cerrar',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _isDialogShown = false; // Marca que el diálogo se ha cerrado
-                },
-              ),
-            ],
-          );
-        },
-      ).then((_) => _isDialogShown =
-          false); // Restablece _isDialogShown cuando el diálogo se cierra
     }
   }
 
@@ -198,7 +138,7 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
         child: BlocBuilder<PizzaPreparationBloc, PizzaPreparationState>(
           builder: (context, state) {
             final orders = state.orders ?? [];
-            final filteredOrders = orders.where((order) {
+            filteredOrders = orders.where((order) {
               bool matchesType;
               switch (widget.filterType) {
                 case OrderFilterType.delivery:
@@ -239,10 +179,17 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
                     DateTime.now().isAfter(preparationWindow);
               }
 
+              bool matchesCanBePreparedInAdvance = true;
+              if (widget.filterByCanBePreparedInAdvance) {
+                matchesCanBePreparedInAdvance = order.orderItems!.any(
+                    (orderItem) => orderItem.canBePreparedInAdvance == true);
+              }
+
               return matchesType &&
                   matchesPreparedStatus &&
                   matchesScheduledDelivery &&
-                  isWithinPreparationWindow;
+                  isWithinPreparationWindow &&
+                  matchesCanBePreparedInAdvance;
             }).toList();
 
             if (filteredOrders.isEmpty) {
@@ -264,10 +211,22 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
                 itemCount: filteredOrders.length,
                 itemBuilder: (context, index) {
                   final order = filteredOrders[index];
+                  List<OrderItem> filteredItems = widget
+                          .filterByCanBePreparedInAdvance
+                      ? order.orderItems!
+                          .where((item) =>
+                              item.canBePreparedInAdvance == true &&
+                              item.status != OrderItemStatus.prepared)
+                          .toList()
+                      : List.from(order
+                          .orderItems!); // Usa una copia de la lista si no hay filtro
+
                   if (order.pizzaPreparationStatus !=
-                      OrderPreparationStatus.not_required) {
+                          OrderPreparationStatus.not_required &&
+                      filteredItems.isNotEmpty) {
                     return OrderPizzaPreparationWidget(
                       order: order,
+                      orderItems: filteredItems, // Pasa los items filtrados
                       onOrderGesture: _handleOrderGesture,
                       onOrderItemTap: _handleOrderItemTap,
                     );
@@ -285,20 +244,14 @@ class _PizzaPreparationPageState extends State<PizzaPreparationPage> {
         children: [
           FloatingActionButton(
             onPressed: () {
-              _fetchAndShowOrderItemsSummary();
-            },
-            child: Icon(Icons.list),
-            heroTag: 'orderItemsSummary',
-          ),
-          SizedBox(height: 10), // Espacio entre botones
-          FloatingActionButton(
-            onPressed: () {
               final bloc = BlocProvider.of<PizzaPreparationBloc>(context);
               bloc.add(SynchronizeOrdersEvent());
             },
             child: Icon(Icons.sync),
             heroTag: 'synchronizeOrders',
           ),
+          AdvancePreparationCounter(
+              orders: filteredOrders), // Added the new widget here
         ],
       ),
     );

@@ -12,6 +12,8 @@ abstract class OrdersRepository {
   Future<Resource<Order>> getOrderForUpdate(int orderId);
   Future<Resource<Order>> updateOrderStatus(Order order);
   Future<Resource<OrderItem>> updateOrderItemStatus(OrderItem orderItem);
+  Future<Resource<OrderItem>> updateOrderItemPreparationAdvanceStatus(
+      int orderId, int orderItemId, bool isBeingPreparedInAdvance);
   Future<Resource<Order>> updateOrder(Order order);
   Future<Resource<void>> synchronizeData();
   Future<Resource<List<OrderItemSummary>>> findOrderItemsWithCounts(

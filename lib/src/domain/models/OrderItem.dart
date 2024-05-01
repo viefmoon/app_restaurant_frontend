@@ -14,6 +14,8 @@ class OrderItem {
   final int? id;
   final String? tempId;
   OrderItemStatus? status;
+  bool? canBePreparedInAdvance;
+  bool? isBeingPreparedInAdvance;
   String? comments;
   OrderModel.Order? order;
   Product? product;
@@ -29,6 +31,8 @@ class OrderItem {
     this.id,
     String? tempId,
     this.status,
+    this.canBePreparedInAdvance,
+    this.isBeingPreparedInAdvance,
     this.comments,
     this.order,
     this.product,
@@ -48,6 +52,8 @@ class OrderItem {
           ? OrderItemStatus.values
               .firstWhere((e) => e.toString().split(".").last == json['status'])
           : null,
+      canBePreparedInAdvance: json['canBePreparedInAdvance'],
+      isBeingPreparedInAdvance: json['isBeingPreparedInAdvance'],
       comments: json['comments'],
       // order: json['order'] != null
       //     ? OrderModel.Order.fromJson(json['order'])
@@ -92,6 +98,8 @@ class OrderItem {
     final Map<String, dynamic> data = {};
     data['id'] = id;
     data['status'] = status.toString().split(".").last;
+    data['canBePreparedInAdvance'] = canBePreparedInAdvance;
+    data['isBeingPreparedInAdvance'] = isBeingPreparedInAdvance;
     data['comments'] = comments;
     if (order != null) data['order'] = order!.toJson();
     if (product != null) data['product'] = product!.toJson();
@@ -128,6 +136,8 @@ class OrderItem {
     int? id,
     String? tempId,
     OrderItemStatus? status,
+    bool? canBePreparedInAdvance,
+    bool? isBeingPreparedInAdvance,
     String? comments,
     OrderModel.Order? order,
     Product? product,
@@ -143,6 +153,10 @@ class OrderItem {
       id: id ?? this.id,
       tempId: tempId ?? this.tempId,
       status: status ?? this.status,
+      canBePreparedInAdvance:
+          canBePreparedInAdvance ?? this.canBePreparedInAdvance,
+      isBeingPreparedInAdvance:
+          isBeingPreparedInAdvance ?? this.isBeingPreparedInAdvance,
       comments: comments ?? this.comments,
       order: order ?? this.order,
       product: product ?? this.product,

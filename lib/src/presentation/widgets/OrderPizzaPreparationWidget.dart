@@ -9,14 +9,15 @@ import 'package:collection/collection.dart';
 
 class OrderPizzaPreparationWidget extends StatefulWidget {
   final Order order;
+  final List<OrderItem> orderItems; // Added to accept filtered OrderItems
   final Function(Order, String) onOrderGesture;
   final Function(Order, OrderItem) onOrderItemTap;
 
   const OrderPizzaPreparationWidget({
-    //Key? key,
     required this.order,
+    required this.orderItems, // Added this
     required this.onOrderGesture,
-    required this.onOrderItemTap, // Agrega el callback al constructor
+    required this.onOrderItemTap,
   });
 
   @override
@@ -28,21 +29,21 @@ class _OrderPizzaPreparationWidgetState
     extends State<OrderPizzaPreparationWidget> {
   Timer? _timer;
   Duration _timeSinceCreation = Duration.zero;
-  Duration _timeUntilScheduled = Duration.zero; // Añadir esta línea
+  Duration _timeUntilScheduled = Duration.zero; // Added this line
   final ScrollController _scrollController = ScrollController();
   double _initialSwipeX = 0.0;
   double _swipeDistanceX = 0.0;
   final double _swipeThreshold =
-      50.0; // Define un umbral para considerar un deslizamiento como válido
+      50.0; // Define a threshold to consider a swipe as valid
 
   @override
   void initState() {
     super.initState();
     _updateTimeSinceCreation();
-    _updateTimeUntilScheduled(); // Añadir esta llamada
+    _updateTimeUntilScheduled(); // Added this call
     _timer = Timer.periodic(Duration(minutes: 1), (Timer t) {
       _updateTimeSinceCreation();
-      _updateTimeUntilScheduled(); // Añadir esta llamada
+      _updateTimeUntilScheduled(); // Added this call
     });
   }
 
@@ -126,7 +127,6 @@ class _OrderPizzaPreparationWidgetState
   }
 
   Widget _buildOrderHeader(String timeSinceCreation) {
-    // Añade el parámetro aquí
     return _OrderHeaderGestureDetector(
       child: Container(
         decoration: BoxDecoration(
@@ -394,8 +394,8 @@ class _OrderPizzaPreparationWidgetState
     }
 
     // Añadir detalles de los OrderItems
-    widget.order.orderItems?.asMap().forEach((index, orderItem) {
-      // Encuentra la actualización más reciente para este OrderItem
+    widget.orderItems.asMap().forEach((index, orderItem) {
+      // Find the most recent update for this OrderItem
       OrderUpdate? latestUpdateForItem =
           widget.order.orderUpdates?.lastWhereOrNull(
         (update) =>
@@ -548,7 +548,11 @@ class _OrderPizzaPreparationWidgetState
           },
           child: Container(
             padding: EdgeInsets.only(top: 5, bottom: 5),
-            color: Colors.transparent,
+            color: (orderItem.isBeingPreparedInAdvance == true &&
+                    orderItem.status != OrderItemStatus.prepared)
+                ? Colors.green[
+                    200] // Color para items que están siendo preparados con anticipación y no están preparados
+                : Colors.transparent,
             child: Row(
               children: [
                 Expanded(
@@ -577,7 +581,7 @@ class _OrderPizzaPreparationWidgetState
       case OrderType.dineIn:
         return 'Dentro';
       case OrderType.pickUpWait:
-        return 'Recoger';
+        return 'Pasan/Esperan';
       default:
         return 'Desconocido';
     }
@@ -596,7 +600,7 @@ class _OrderPizzaPreparationWidgetState
     }
   }
 
-  // Esta función ayuda a formatear la duración a un formato legible
+  // This function helps to format the duration into a readable format
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final hours = twoDigits(duration.inHours);

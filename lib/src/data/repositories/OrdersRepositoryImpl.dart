@@ -114,4 +114,11 @@ class OrdersRepositoryImpl implements OrdersRepository {
   Future<Resource<SalesReport>> getSalesReport() {
     return ordersService.getSalesReport();
   }
+
+  @override
+  Future<Resource<OrderItem>> updateOrderItemPreparationAdvanceStatus(
+      int orderId, int orderItemId, bool isBeingPreparedInAdvance) {
+    return ordersService.updateOrderItemPreparationAdvanceStatus(
+        orderId, orderItemId, isBeingPreparedInAdvance);
+  }
 }

@@ -20,6 +20,7 @@ class _PizzaHomePageState extends State<PizzaHomePage> {
   int _currentPageIndex = 0;
   bool _filterByPrepared = false;
   bool _filterByScheduledDelivery = false;
+  bool _filterByCanBePreparedInAdvance = false; // New state variable
 
   @override
   void initState() {
@@ -67,7 +68,24 @@ class _PizzaHomePageState extends State<PizzaHomePage> {
               _buildIconButton(Icons.local_shipping, OrderFilterType.delivery),
               SizedBox(width: screenWidth * 0.10),
               _buildIconButton(Icons.restaurant, OrderFilterType.dineIn),
-              SizedBox(width: screenWidth * 0.27),
+              SizedBox(width: screenWidth * 0.15),
+              Text("ADELANTAR",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+              IconButton(
+                iconSize: 70,
+                icon: Icon(_filterByCanBePreparedInAdvance
+                    ? Icons.check_box
+                    : Icons.check_box_outline_blank),
+                onPressed: () {
+                  if (!_filterByPrepared) {
+                    setState(() {
+                      _filterByCanBePreparedInAdvance =
+                          !_filterByCanBePreparedInAdvance;
+                    });
+                  }
+                },
+              ),
+              SizedBox(width: screenWidth * 0.02),
               IconButton(
                 iconSize: 70,
                 icon: Icon(_filterByPrepared
@@ -76,6 +94,9 @@ class _PizzaHomePageState extends State<PizzaHomePage> {
                 onPressed: () {
                   setState(() {
                     _filterByPrepared = !_filterByPrepared;
+                    if (_filterByPrepared) {
+                      _filterByCanBePreparedInAdvance = false;
+                    }
                   });
                 },
               ),
@@ -91,7 +112,9 @@ class _PizzaHomePageState extends State<PizzaHomePage> {
       PizzaPreparationPage(
           filterType: _currentFilter,
           filterByPrepared: _filterByPrepared,
-          filterByScheduledDelivery: _filterByScheduledDelivery),
+          filterByScheduledDelivery: _filterByScheduledDelivery,
+          filterByCanBePreparedInAdvance:
+              _filterByCanBePreparedInAdvance), // Passing new filter state
       SettingsPage(),
     ];
 

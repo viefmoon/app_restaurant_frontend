@@ -62,6 +62,8 @@ class PizzaPreparationBloc
     on<SynchronizeOrdersEvent>(_onSynchronizeOrdersEvent);
     on<FetchOrderItemsSummaryEvent>(
         _onFetchOrderItemsSummaryEvent); // Nuevo manejador
+    on<UpdateOrderItemPreparationAdvanceStatusEvent>(
+        _onUpdateOrderItemPreparationAdvanceStatusEvent);
   }
 
   void _onConnectToWebSocket(
@@ -276,6 +278,24 @@ class PizzaPreparationBloc
       emit(state.copyWith(
           errorMessage:
               "Error actualizando el estado del item de la orden: $e"));
+    }
+  }
+
+  void _onUpdateOrderItemPreparationAdvanceStatusEvent(
+      UpdateOrderItemPreparationAdvanceStatusEvent event,
+      Emitter<PizzaPreparationState> emit) async {
+    try {
+      final result = await orderUseCases.updateOrderItemPreparationAdvanceStatus
+          .run(event.orderId, event.orderItemId, event.newStatus);
+      if (result is Success<OrderItem>) {
+        // Opcional: Emitir un estado de éxito
+      } else {
+        // Opcional: Manejo de casos de fallo
+      }
+    } catch (e) {
+      emit(state.copyWith(
+          errorMessage:
+              "Error actualizando el estado de preparación adelantada del item de la orden: $e"));
     }
   }
 

@@ -69,3 +69,16 @@ class FetchOrderItemsSummaryEvent extends PizzaPreparationEvent {
   @override
   List<Object> get props => [subcategories ?? [], ordersLimit ?? 0];
 }
+
+class UpdateOrderItemPreparationAdvanceStatusEvent
+    extends PizzaPreparationEvent {
+  final int orderId;
+  final int orderItemId;
+  final bool newStatus;
+
+  const UpdateOrderItemPreparationAdvanceStatusEvent(
+      this.orderId, this.orderItemId, this.newStatus);
+
+  @override
+  List<Object> get props => [orderId, orderItemId, newStatus];
+}

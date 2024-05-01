@@ -450,4 +450,29 @@ class OrdersService {
       return Error(e.toString());
     }
   }
+
+  Future<Resource<OrderItem>> updateOrderItemPreparationAdvanceStatus(
+      int orderId, int orderItemId, bool isBeingPreparedInAdvance) async {
+    try {
+      String apiEcommerce = await ApiConfig.getApiEcommerce();
+      Uri url = Uri.http(apiEcommerce,
+          '/orders/$orderId/order-items/$orderItemId/preparation-advance-status');
+      final response = await http.patch(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body:
+            json.encode({"isBeingPreparedInAdvance": isBeingPreparedInAdvance}),
+      );
+      if (response.statusCode == 200) {
+        OrderItem updatedOrderItem =
+            OrderItem.fromJson(json.decode(response.body));
+        return Success(updatedOrderItem);
+      } else {
+        return Error(
+            "Error al actualizar el estado de preparación por adelantado del ítem de la orden: ${response.body}");
+      }
+    } catch (e) {
+      return Error(e.toString());
+    }
+  }
 }

@@ -506,7 +506,7 @@ class _OrderBarPreparationWidgetState extends State<OrderBarPreparationWidget> {
       case OrderType.dineIn:
         return 'Dentro';
       case OrderType.pickUpWait:
-        return 'Recoger';
+        return 'Pasan/Esperan';
       default:
         return 'Desconocido';
     }

@@ -15,6 +15,7 @@ import 'package:app/src/domain/useCases/orders/RegisterTicketPrintUseCase.dart';
 import 'package:app/src/domain/useCases/orders/ResetDatabaseUseCase.dart';
 import 'package:app/src/domain/useCases/orders/RevertMultipleOrdersUseCase%20copy.dart';
 import 'package:app/src/domain/useCases/orders/SynchronizeDataUseCase.dart';
+import 'package:app/src/domain/useCases/orders/UpdateOrderItemPreparationAdvanceStatus.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderItemStatusUseCase.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderStatusUseCase.dart';
 import 'package:app/src/domain/useCases/orders/UpdateOrderUseCase.dart';
@@ -40,6 +41,8 @@ class OrdersUseCases {
   CompleteMultipleOrdersUseCase completeMultipleOrders;
   RevertMultipleOrdersUseCase revertMultipleOrders;
   GetSalesReportUseCase getSalesReport;
+  UpdateOrderItemPreparationAdvanceStatusUseCase
+      updateOrderItemPreparationAdvanceStatus;
 
   OrdersUseCases({
     required this.createOrder,
@@ -62,5 +65,6 @@ class OrdersUseCases {
     required this.completeMultipleOrders,
     required this.revertMultipleOrders,
     required this.getSalesReport,
+    required this.updateOrderItemPreparationAdvanceStatus,
   });
 }
