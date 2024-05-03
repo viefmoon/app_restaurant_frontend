@@ -14,40 +14,50 @@ class AdvancePreparationCounter extends StatefulWidget {
 }
 
 class _AdvancePreparationCounterState extends State<AdvancePreparationCounter> {
-  List<OrderItem> _advancePreparationItems = [];
+  Map<String, int> _itemCounts = {};
 
   @override
   void initState() {
     super.initState();
-    _updateAdvancePreparationItems();
+    _updateItemCounts();
   }
 
   @override
   void didUpdateWidget(covariant AdvancePreparationCounter oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.orders != oldWidget.orders) {
-      _updateAdvancePreparationItems();
+      _updateItemCounts();
     }
   }
 
-  void _updateAdvancePreparationItems() {
-    _advancePreparationItems = widget.orders
+  void _updateItemCounts() {
+    Map<String, int> itemCounts = {};
+    widget.orders
         .expand((order) => order.orderItems ?? [])
         .where((item) =>
             item.isBeingPreparedInAdvance == true &&
             item.status != OrderItemStatus.prepared)
-        .toList()
-        .cast<OrderItem>();
+        .forEach((item) {
+      final name = item.productVariant?.name ??
+          item.product?.name ??
+          'Producto desconocido';
+      itemCounts[name] = (itemCounts[name] ?? 0) + 1;
+    });
+    setState(() {
+      _itemCounts = itemCounts;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      left: 16.0,
+      left: 8.0,
       bottom: 80.0,
       child: Container(
+        width: MediaQuery.of(context).size.width * 0.20,
+        height: 270,
         decoration: BoxDecoration(
-          color: Colors.green.withOpacity(0.8),
+          color: Colors.green.withOpacity(0.9),
           borderRadius: BorderRadius.circular(8.0),
         ),
         padding: EdgeInsets.all(8.0),
@@ -59,30 +69,42 @@ class _AdvancePreparationCounterState extends State<AdvancePreparationCounter> {
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 16.0,
+                fontSize: 20.0,
               ),
             ),
             SizedBox(height: 4.0),
-            Text(
-              '${_advancePreparationItems.length} items',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14.0,
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 4.0, // Espacio entre columnas
+                mainAxisSpacing: 4.0, // Espacio entre filas
+                childAspectRatio:
+                    7, // Ajusta según necesidad para el tamaño del texto
+                children: _itemCounts.entries.map((entry) {
+                  return RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${entry.key} ',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17.0,
+                          ),
+                        ),
+                        TextSpan(
+                          text: '- ${entry.value}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
               ),
             ),
-            SizedBox(height: 8.0),
-            ..._advancePreparationItems.map((item) {
-              final name = item.productVariant?.name ??
-                  item.product?.name ??
-                  'Producto desconocido';
-              return Text(
-                name,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12.0,
-                ),
-              );
-            }).toList(),
           ],
         ),
       ),
