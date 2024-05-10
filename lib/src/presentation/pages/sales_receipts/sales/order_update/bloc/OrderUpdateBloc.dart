@@ -222,7 +222,7 @@ class OrderUpdateBloc extends Bloc<OrderUpdateEvent, OrderUpdateState> {
 
   Future<void> _onAreaSelected(
       AreaSelected event, Emitter<OrderUpdateState> emit) async {
-    emit(state.copyWith(selectedAreaId: event.areaId));
+    emit(state.copyWith(selectedAreaId: event.areaId, selectedTableId: 0));
     final areaName =
         state.areas?.firstWhere((area) => area.id == event.areaId).name;
     emit(state.copyWith(selectedAreaName: areaName));

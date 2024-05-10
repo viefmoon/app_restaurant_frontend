@@ -37,19 +37,19 @@ class OrderTypeSelectionPage extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 bloc.add(
-                    OrderTypeSelected(selectedOrderType: OrderType.pickUpWait));
+                    OrderTypeSelected(selectedOrderType: OrderType.dineIn));
               },
               style: buttonStyle,
-              child: Text('Pasan/Esperan'),
+              child: Text('Comer dentro'),
             ),
             SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
                 bloc.add(
-                    OrderTypeSelected(selectedOrderType: OrderType.dineIn));
+                    OrderTypeSelected(selectedOrderType: OrderType.pickUpWait));
               },
               style: buttonStyle,
-              child: Text('Comer dentro'),
+              child: Text('Pasan/Esperan'),
             ),
           ],
         ),

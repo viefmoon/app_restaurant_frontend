@@ -151,11 +151,12 @@ class OrderCreationBloc extends Bloc<OrderCreationEvent, OrderCreationState> {
 
   Future<void> _onAreaSelected(
       AreaSelected event, Emitter<OrderCreationState> emit) async {
-    emit(state.copyWith(selectedAreaId: event.areaId));
-    final areaName =
-        state.areas?.firstWhere((area) => area.id == event.areaId).name;
-    emit(state.copyWith(selectedAreaName: areaName));
-
+    emit(state.copyWith(
+      selectedAreaId: event.areaId,
+      selectedAreaName:
+          state.areas?.firstWhere((area) => area.id == event.areaId).name,
+      selectedTableId: 0, // Asegúrate de resetear el selectedTableId aquí
+    ));
     add(ResetTableSelection());
     add(LoadTables(areaId: event.areaId));
   }

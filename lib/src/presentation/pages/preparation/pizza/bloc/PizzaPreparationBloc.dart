@@ -44,6 +44,7 @@ class PizzaPreparationBloc
     socket?.on('synchronizationEvent', _handleSocketData);
     socket?.on('orderStatusUpdated', _handleSocketData);
     socket?.on('orderItemStatusUpdated', _handleSocketData);
+    socket?.on('orderItemPreparationAdvanceStatusUpdated', _handleSocketData);
     socket?.on('newOrderItems', _handleSocketData);
     socket?.on('orderUpdated', _handleSocketData);
   }
@@ -89,6 +90,9 @@ class PizzaPreparationBloc
       case 'orderStatusUpdated':
         _handleOrderStatusUpdate(data, emit);
         break;
+      case 'orderItemPreparationAdvanceStatusUpdated':
+        _handleOrderItemPreparationAdvanceStatusUpdate(data, emit);
+        break;
       case 'newOrderItems':
         _handleNewOrder(data, emit);
         break;
@@ -128,6 +132,31 @@ class PizzaPreparationBloc
     if (orderExists && updatedOrders != null) {
       emit(state.copyWith(orders: updatedOrders));
     }
+  }
+
+  void _handleOrderItemPreparationAdvanceStatusUpdate(
+      Map<String, dynamic> data, Emitter<PizzaPreparationState> emit) {
+    print('data aqu: $data');
+    final orderId = data['orderId'];
+    final orderItemId = data['orderItemId'];
+    final isBeingPreparedInAdvance = data['isBeingPreparedInAdvance'];
+
+    final updatedOrders = state.orders?.map((existingOrder) {
+      if (existingOrder.id == orderId) {
+        final updatedOrderItems = existingOrder.orderItems?.map((existingItem) {
+          if (existingItem.id == orderItemId) {
+            return existingItem.copyWith(
+              isBeingPreparedInAdvance: isBeingPreparedInAdvance,
+            );
+          }
+          return existingItem;
+        }).toList();
+        return existingOrder.copyWith(orderItems: updatedOrderItems);
+      }
+      return existingOrder;
+    }).toList();
+
+    emit(state.copyWith(orders: updatedOrders));
   }
 
   void _handleOrderItemStatusUpdate(

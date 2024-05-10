@@ -1137,8 +1137,9 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
             },
             items: state.tables
                     ?.where((table) =>
-                        table.number !=
-                        null) // Filtra solo las mesas con número
+                        table.number != null &&
+                            table.status?.name == 'Disponible' ||
+                        table.id == state.selectedTableId)
                     .map<DropdownMenuItem<int>>((table) {
                   return DropdownMenuItem<int>(
                     value: table.id,

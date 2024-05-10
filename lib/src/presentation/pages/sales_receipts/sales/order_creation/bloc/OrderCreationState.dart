@@ -66,7 +66,7 @@ class OrderCreationState extends Equatable {
     this.scheduledDeliveryTime,
     this.totalCost,
     this.response,
-    this.step,
+    this.step = OrderCreationStep.orderTypeSelection,
     this.isTimePickerEnabled = false,
     this.orderAdjustments,
     this.isTemporaryTableEnabled = false,

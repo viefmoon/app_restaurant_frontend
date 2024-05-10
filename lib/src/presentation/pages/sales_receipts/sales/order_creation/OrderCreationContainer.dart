@@ -49,7 +49,7 @@ class OrderCreationContainer extends StatelessWidget {
                     style: TextStyle(fontSize: 26));
               default:
                 // Maneja el caso null y cualquier otro no contemplado
-                return Text('Crear orden', style: TextStyle(fontSize: 26));
+                return Text('Default', style: TextStyle(fontSize: 26));
             }
             // Retorno por defecto para manejar cualquier caso no contemplado
             return Text('Pasan/Esperan', style: TextStyle(fontSize: 26));
@@ -108,9 +108,13 @@ class OrderCreationContainer extends StatelessWidget {
             icon: Icon(Icons.arrow_back),
             onPressed: () => _showExitConfirmationDialog(context),
           );
+        } else {
+          // Para cualquier otro paso que no sea la selección de productos, muestra el botón de retroceso que simplemente hace pop.
+          return IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          );
         }
-        // Si no estás en la página de selección de productos, devuelve un SizedBox para no mostrar nada o manejar según sea necesario.
-        return SizedBox.shrink();
       },
     );
   }

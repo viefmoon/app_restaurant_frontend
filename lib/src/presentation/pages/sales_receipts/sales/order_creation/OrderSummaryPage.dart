@@ -729,8 +729,9 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
             },
             items: state.tables
                     ?.where((table) =>
-                        table.number !=
-                        null) // Filtrar mesas con número no nulo
+                        table.number != null &&
+                        table.status?.name ==
+                            'Disponible') // Filtrar mesas con número no nulo y que estén disponibles
                     .map<DropdownMenuItem<int>>((table) {
                   return DropdownMenuItem<int>(
                     value: table.id,

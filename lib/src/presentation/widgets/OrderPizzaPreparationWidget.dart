@@ -394,7 +394,7 @@ class _OrderPizzaPreparationWidgetState
     }
 
     // Añadir detalles de los OrderItems
-    widget.orderItems.asMap().forEach((index, orderItem) {
+    widget.orderItems.reversed.toList().asMap().forEach((index, orderItem) {
       // Find the most recent update for this OrderItem
       OrderUpdate? latestUpdateForItem =
           widget.order.orderUpdates?.lastWhereOrNull(

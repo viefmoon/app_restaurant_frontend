@@ -372,7 +372,10 @@ class _OrderBarPreparationWidgetState extends State<OrderBarPreparationWidget> {
     }
 
     // Añadir detalles de los OrderItems
-    widget.order.orderItems?.asMap().forEach((index, orderItem) {
+    widget.order.orderItems?.reversed
+        .toList()
+        .asMap()
+        .forEach((index, orderItem) {
       // Encuentra la actualización más reciente para este OrderItem
       OrderUpdate? latestUpdateForItem =
           widget.order.orderUpdates?.lastWhereOrNull(
