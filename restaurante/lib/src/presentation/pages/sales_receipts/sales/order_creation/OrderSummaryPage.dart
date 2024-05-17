@@ -11,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:restaurante/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationBloc.dart';
 import 'package:restaurante/src/presentation/pages/sales_receipts/sales/order_creation/bloc/OrderCreationState.dart';
 import 'package:restaurante/src/presentation/pages/sales_receipts/sales/order_creation/ProductPersonalizationPage.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class OrderSummaryPage extends StatefulWidget {
   const OrderSummaryPage({super.key});
@@ -34,6 +35,9 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
       _tempTableController; // Controlador para la mesa temporal
   String? _userRole;
   bool isButtonDisabled = false;
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+  String _voiceInput = "";
 
   @override
   void initState() {
@@ -44,6 +48,19 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
     _commentsController = TextEditingController(text: "");
     _tempTableController = TextEditingController(text: "");
     _determineUserRole();
+    _initSpeechToText();
+  }
+
+  Future<void> _initSpeechToText() async {
+    _speech = stt.SpeechToText();
+    bool available = await _speech.initialize(
+      onStatus: (val) => print('onStatus: $val'),
+      onError: (val) => print('onError: $val'),
+    );
+    if (!available) {
+      print(
+          "El usuario no tiene permisos para usar el micrófono o no hay micrófono disponible.");
+    }
   }
 
   Future<void> _determineUserRole() async {
@@ -283,10 +300,15 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
                           borderSide:
                               BorderSide(color: Colors.green, width: 2.0),
                         ),
+                        suffixIcon: IconButton(
+                          icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
+                          onPressed: _listen,
+                        ),
                       ),
                       onChanged: (value) {
                         BlocProvider.of<OrderCreationBloc>(context).add(
-                            DeliveryAddressEntered(deliveryAddress: value));
+                          DeliveryAddressEntered(deliveryAddress: value),
+                        );
                       },
                     ),
                   ));
@@ -950,5 +972,29 @@ class _OrderSummaryPageState extends State<OrderSummaryPage> {
         );
       },
     );
+  }
+
+  void _listen() async {
+    if (!_isListening) {
+      bool available = await _speech.initialize(
+        onStatus: (val) => print('onStatus: $val'),
+        onError: (val) => print('onError: $val'),
+      );
+      if (available) {
+        setState(() => _isListening = true);
+        _speech.listen(
+          onResult: (val) => setState(() {
+            _voiceInput = val.recognizedWords;
+            _addressController.text = _voiceInput;
+            BlocProvider.of<OrderCreationBloc>(context).add(
+              DeliveryAddressEntered(deliveryAddress: _voiceInput),
+            );
+          }),
+        );
+      }
+    } else {
+      setState(() => _isListening = false);
+      _speech.stop();
+    }
   }
 }

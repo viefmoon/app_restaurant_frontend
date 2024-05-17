@@ -266,7 +266,7 @@ class _ProductPersonalizationPageState
     );
   }
 
-  void _saveOrderItem({bool resetAfterSave = false}) {
+  Future<void> _saveOrderItem({bool resetAfterSave = false}) async {
     double price = _calculatePrice();
 
     // Genera un nuevo tempId si es un nuevo OrderItem, de lo contrario, usa el existente
@@ -327,14 +327,18 @@ class _ProductPersonalizationPageState
     }
   }
 
-  void _saveAndReset() {
-    _saveOrderItem(resetAfterSave: true);
+  void _saveAndReset() async {
+    await _saveOrderItem(resetAfterSave: true);
+    _resetFields();
+  }
+
+  void _resetFields() {
     setState(() {
       selectedVariant = null;
-      selectedModifiers.clear();
-      selectedObservations.clear();
-      selectedPizzaIngredients.clear();
-      selectedPizzaFlavors.clear();
+      selectedModifiers = [];
+      selectedObservations = [];
+      selectedPizzaIngredients = [];
+      selectedPizzaFlavors = [];
       comments = null;
       _showPizzaIngredients = false;
       _createTwoHalves = false;
