@@ -14,6 +14,7 @@ import 'package:restaurante/src/domain/models/Order.dart';
 import 'package:restaurante/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateBloc.dart';
 import 'package:restaurante/src/presentation/pages/sales_receipts/sales/order_update/bloc/OrderUpdateEvent.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class OrderUpdatePage extends StatefulWidget {
   const OrderUpdatePage({Key? key}) : super(key: key);
@@ -36,6 +37,9 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
   late TextEditingController _tempTableController;
   String? _userRole;
   BluetoothDevice? _selectedPrinter;
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+  String _voiceInput = "";
 
   @override
   void initState() {
@@ -49,6 +53,19 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
     // Emitir el evento para cargar las categorías al iniciar la página
     BlocProvider.of<OrderUpdateBloc>(context, listen: false)
         .add(LoadCategoriesWithProducts());
+    _initSpeechToText();
+  }
+
+  Future<void> _initSpeechToText() async {
+    _speech = stt.SpeechToText();
+    bool available = await _speech.initialize(
+      onStatus: (val) => print('onStatus: $val'),
+      onError: (val) => print('onError: $val'),
+    );
+    if (!available) {
+      print(
+          "El usuario no tiene permisos para usar el micrófono o no hay micrófono disponible.");
+    }
   }
 
   Future<void> _determineUserRole() async {
@@ -373,6 +390,10 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
                     borderSide: BorderSide(color: Colors.green, width: 2.0),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
+                    onPressed: _listen,
                   ),
                 ),
                 onChanged: (value) {
@@ -1669,5 +1690,29 @@ class _OrderUpdatePageState extends State<OrderUpdatePage> {
       }
     }
     return result;
+  }
+
+  void _listen() async {
+    if (!_isListening) {
+      bool available = await _speech.initialize(
+        onStatus: (val) => print('onStatus: $val'),
+        onError: (val) => print('onError: $val'),
+      );
+      if (available) {
+        setState(() => _isListening = true);
+        _speech.listen(
+          onResult: (val) => setState(() {
+            _voiceInput = val.recognizedWords;
+            _addressController.text = _voiceInput;
+            BlocProvider.of<OrderUpdateBloc>(context).add(
+              DeliveryAddressEntered(deliveryAddress: _voiceInput),
+            );
+          }),
+        );
+      }
+    } else {
+      setState(() => _isListening = false);
+      _speech.stop();
+    }
   }
 }
